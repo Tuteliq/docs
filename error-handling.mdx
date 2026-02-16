@@ -1,0 +1,226 @@
+---
+title: Error Handling
+sidebarTitle: Errors
+icon: triangle-exclamation
+description: Handle Tuteliq API errors gracefully
+keywords: [errors, retry, error codes, troubleshooting]
+---
+
+All Tuteliq API errors return a consistent JSON structure with a machine-readable `code` and a human-readable `message`:
+
+```json
+{
+  "error": {
+    "code": "AUTH_1002",
+    "message": "Invalid API key"
+  }
+}
+```
+
+## Error Codes
+
+### Authentication (AUTH_1xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `AUTH_1001` | 401 | API key is required |
+| `AUTH_1002` | 401 | Invalid API key |
+| `AUTH_1003` | 401 | API key has been revoked |
+| `AUTH_1004` | 401 | API key is inactive |
+| `AUTH_1005` | 401 | API key has expired |
+| `AUTH_1006` | 401 | Unauthorized access |
+| `AUTH_1007` | 403 | Access forbidden |
+| `AUTH_1008` | 503 | Authentication service unavailable |
+
+### Rate Limiting (RATE_2xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `RATE_2001` | 429 | Rate limit exceeded |
+| `RATE_2002` | 429 | Daily request limit exceeded |
+| `RATE_2003` | 429 | Request quota exceeded |
+
+### Validation (VAL_3xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VAL_3001` | 400 | Validation failed |
+| `VAL_3002` | 400 | Invalid input provided |
+| `VAL_3003` | 400 | Missing required field |
+| `VAL_3004` | 400 | Invalid format |
+| `VAL_3005` | 400 | Batch size exceeds maximum allowed |
+
+### Service (SVC_4xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `SVC_4001` | 500 | An unexpected error occurred |
+| `SVC_4005` | 500 | AI analysis service error |
+| `SVC_4007` | 503 | LLM service is temporarily unavailable |
+
+### Not Found (NF_5xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `NF_5001` | 404 | Resource not found |
+| `NF_5002` | 404 | Endpoint not found |
+| `NF_5003` | 404 | User not found |
+
+### Analysis (ANALYSIS_6xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `ANALYSIS_6001` | 500 | Analysis failed |
+| `ANALYSIS_6002` | 400 | Unsupported analysis type |
+| `ANALYSIS_6003` | 400 | File exceeds maximum allowed size |
+| `ANALYSIS_6004` | 400 | File type is not supported |
+| `ANALYSIS_6005` | 400 | File is required but was not provided |
+| `ANALYSIS_6006` | 500 | Audio transcription failed |
+| `ANALYSIS_6007` | 500 | Image analysis failed |
+
+### Subscription (SUB_7xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `SUB_7001` | 403 | No active subscription found |
+| `SUB_7002` | 403 | Subscription is inactive |
+| `SUB_7003` | 403 | Subscription has expired |
+| `SUB_7004` | 429 | Message limit reached |
+| `SUB_7005` | 429 | Credits depleted |
+| `SUB_7006` | 403 | Endpoint not available on your current plan |
+
+### GDPR (GDPR_8xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `GDPR_8001` | 500 | Failed to delete user data |
+| `GDPR_8002` | 500 | Failed to export user data |
+| `GDPR_8004` | 404 | Consent record not found |
+| `GDPR_8005` | 400 | Consent has already been withdrawn |
+| `GDPR_8009` | 400 | Invalid consent type |
+| `GDPR_8010` | 403 | Required consent not granted |
+
+### WebSocket (WS_10xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `WS_10001` | 401 | WebSocket authentication failed |
+| `WS_10002` | 429 | WebSocket connection limit reached |
+| `WS_10003` | 400 | Audio buffer exceeded maximum size |
+| `WS_10004` | 400 | Session exceeded maximum duration |
+| `WS_10005` | 400 | Invalid WebSocket message format |
+| `WS_10006` | 500 | Real-time transcription failed |
+
+## Retry Strategy
+
+Not all errors should be retried. Here's a guide:
+
+| Error Type | Retry? | Strategy |
+|------------|--------|----------|
+| `AUTH_*` | No | Fix your API key or permissions |
+| `RATE_2001` | Yes | Wait for the `Retry-After` header value, then retry |
+| `VAL_*` | No | Fix the request payload |
+| `SVC_4001`, `SVC_4005` | Yes | Exponential backoff, max 3 retries |
+| `SVC_4007` | Yes | Wait 5-10 seconds, then retry |
+| `NF_*` | No | Check the endpoint URL or resource ID |
+| `ANALYSIS_6001`, `6006`, `6007` | Yes | Retry once after a short delay |
+| `SUB_7005` | No | Purchase more credits |
+
+### Exponential backoff example
+
+<CodeGroup>
+```typescript Node.js
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error instanceof TuteliqError) {
+        // Don't retry client errors
+        if (error.status < 500 && error.code !== "RATE_2001") throw error;
+      }
+      if (attempt === maxRetries) throw error;
+      const delay = Math.min(1000 * 2 ** attempt, 10000);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw new Error("Unreachable");
+}
+
+const result = await withRetry(() =>
+  tuteliq.detectUnsafe({ text: "message", ageGroup: "10-12" })
+);
+```
+
+```python Python
+import time
+from tuteliq import Tuteliq, TuteliqError
+
+def with_retry(fn, max_retries=3):
+    for attempt in range(max_retries + 1):
+        try:
+            return fn()
+        except TuteliqError as e:
+            if e.status < 500 and e.code != "RATE_2001":
+                raise
+            if attempt == max_retries:
+                raise
+            delay = min(1 * 2 ** attempt, 10)
+            time.sleep(delay)
+
+result = with_retry(
+    lambda: client.detect_unsafe(text="message", age_group="10-12")
+)
+```
+</CodeGroup>
+
+<Info>
+  The Node.js and Python SDKs have built-in retry logic. Set `retries: 2` (Node.js) or `retries=2` (Python) in the client constructor to enable automatic retries with exponential backoff.
+</Info>
+
+## SDK Error Handling
+
+All Tuteliq SDKs throw typed error objects that you can catch and inspect:
+
+<CodeGroup>
+```typescript Node.js
+import Tuteliq, { TuteliqError } from "@tuteliq/sdk";
+
+try {
+  const result = await tuteliq.detectUnsafe({
+    text: "some content",
+    ageGroup: "10-12",
+  });
+} catch (error) {
+  if (error instanceof TuteliqError) {
+    console.error(error.code);    // "AUTH_1002"
+    console.error(error.message); // "Invalid API key"
+    console.error(error.status);  // 401
+  }
+}
+```
+
+```python Python
+from tuteliq import Tuteliq, TuteliqError
+
+try:
+    result = client.detect_unsafe(text="some content", age_group="10-12")
+except TuteliqError as e:
+    print(e.code)     # "AUTH_1002"
+    print(e.message)  # "Invalid API key"
+    print(e.status)   # 401
+```
+
+```swift Swift
+do {
+    let result = try await tuteliq.detectUnsafe(
+        text: "some content",
+        ageGroup: .tenToTwelve
+    )
+} catch let error as TuteliqError {
+    print(error.code)    // .authInvalidKey
+    print(error.message) // "Invalid API key"
+    print(error.status)  // 401
+}
+```
+</CodeGroup>

@@ -1,30 +1,51 @@
 ---
 title: Introduction
+sidebarTitle: Introduction
+icon: book-open
 description: AI-powered child safety API covering all nine KOSA harm categories
+keywords: [child safety, API, KOSA, moderation]
 ---
 
 Tuteliq is an AI-powered child safety API that helps platforms detect harmful content, analyze emotional well-being, and maintain compliance with child protection regulations including KOSA and GDPR. Integrate real-time safety analysis into any application with a single API call.
 
 <CardGroup cols={2}>
-  <Card title="Safety Detection" icon="shield-halved" href="/api-reference/safety">
+  <Card title="Safety Detection" icon="shield-halved" href="/quickstart">
     Detect bullying, grooming, and unsafe content in text with per-message risk scoring aligned to KOSA harm categories.
   </Card>
-  <Card title="Emotional Analysis" icon="brain" href="/api-reference/analysis">
+  <Card title="Emotional Analysis" icon="brain" href="/sdks/node">
     Analyze emotional patterns across conversation histories to identify distress signals and behavioral shifts.
   </Card>
-  <Card title="Voice & Image" icon="microphone" href="/api-reference/analysis">
+  <Card title="Voice & Image" icon="microphone" href="/voice-streaming">
     Process audio recordings and images for safety analysis, including transcription, OCR, and content classification.
   </Card>
-  <Card title="Batch & Webhooks" icon="arrows-spin" href="/api-reference/batch">
+  <Card title="Batch & Webhooks" icon="arrows-spin" href="/webhooks">
     Submit bulk analysis jobs and receive results asynchronously via webhook callbacks.
   </Card>
-  <Card title="KOSA Compliance" icon="gavel" href="/api-reference/compliance">
+  <Card title="KOSA Compliance" icon="gavel" href="/kosa-compliance">
     Built-in coverage for all nine Kids Online Safety Act harm categories with audit-ready reporting.
   </Card>
-  <Card title="GDPR Ready" icon="lock" href="/api-reference/compliance">
+  <Card title="GDPR Ready" icon="lock" href="/gdpr">
     Data minimization, retention controls, and consent management designed for processing children's data.
   </Card>
 </CardGroup>
+
+## Who uses Tuteliq
+
+Tuteliq is built for any platform where minors interact online:
+
+- **Gaming platforms** — moderate in-game chat, voice comms, and user-generated content
+- **Social apps** — detect grooming, bullying, and self-harm signals in DMs and feeds
+- **Ed-tech** — ensure safe learning environments with real-time content filtering
+- **Messaging apps** — analyze conversations for emotional distress and predatory behavior
+
+## Performance
+
+| Metric | Value |
+|--------|-------|
+| Average response time | < 400ms |
+| Uptime SLA | 99.9% |
+| KOSA categories covered | 9/9 |
+| Supported input types | Text, voice, image |
 
 ## Get started
 

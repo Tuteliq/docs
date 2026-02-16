@@ -2,16 +2,38 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Tuteliq",
+  "description": "Documentation for the Tuteliq API — AI-powered child safety detection for text, voice, and images.",
   "colors": {
     "primary": "#6366F1",
     "light": "#818CF8",
     "dark": "#4F46E5"
   },
   "favicon": "/favicon.svg",
+  "icons": {
+    "library": "fontawesome"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs",
+    "codeblocks": "dark"
+  },
+  "search": {
+    "prompt": "Search Tuteliq docs..."
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
+  },
   "api": {
     "baseUrl": "https://api.tuteliq.ai",
     "auth": {
       "method": "bearer"
+    },
+    "playground": {
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": ["bash", "javascript", "python"]
     }
   },
   "openapi": "https://api.tuteliq.ai/docs/json",
@@ -22,15 +44,18 @@
         "groups": [
           {
             "group": "Getting Started",
+            "icon": "play",
             "pages": [
               "index",
               "quickstart",
               "authentication",
-              "credits"
+              "credits",
+              "changelog"
             ]
           },
           {
             "group": "SDKs",
+            "icon": "puzzle-piece",
             "pages": [
               "sdks/node",
               "sdks/python",
@@ -39,13 +64,16 @@
           },
           {
             "group": "Advanced",
+            "icon": "bolt",
             "pages": [
               "voice-streaming",
-              "webhooks"
+              "webhooks",
+              "error-handling"
             ]
           },
           {
             "group": "Compliance",
+            "icon": "scale-balanced",
             "pages": [
               "kosa-compliance",
               "gdpr"
@@ -76,6 +104,36 @@
           "anchor": "Dashboard",
           "href": "https://tuteliq.ai/dashboard",
           "icon": "gauge"
+        },
+        {
+          "anchor": "Kotlin SDK",
+          "href": "https://github.com/Tuteliq/kotlin",
+          "icon": "android"
+        },
+        {
+          "anchor": "Flutter SDK",
+          "href": "https://github.com/Tuteliq/flutter",
+          "icon": "flutter"
+        },
+        {
+          "anchor": "React Native SDK",
+          "href": "https://github.com/Tuteliq/react-native",
+          "icon": "react"
+        },
+        {
+          "anchor": ".NET SDK",
+          "href": "https://github.com/Tuteliq/dotnet",
+          "icon": "microsoft"
+        },
+        {
+          "anchor": "Unity SDK",
+          "href": "https://github.com/Tuteliq/unity",
+          "icon": "gamepad"
+        },
+        {
+          "anchor": "CLI",
+          "href": "https://github.com/Tuteliq/cli",
+          "icon": "terminal"
         }
       ]
     }
@@ -115,11 +173,19 @@
     }
   },
   "seo": {
-    "indexHiddenPages": false
+    "indexHiddenPages": false,
+    "metatags": [
+      { "name": "robots", "content": "index, follow" },
+      { "name": "author", "content": "Tuteliq" }
+    ]
   },
   "metadata": {
     "og:site_name": "Tuteliq Docs",
     "og:image": "https://tuteliq.ai/og-image.png",
     "twitter:site": "@tuteliq"
-  }
+  },
+  "redirects": [
+    { "source": "/docs", "destination": "/index" },
+    { "source": "/api", "destination": "/api-reference/introduction" }
+  ]
 }

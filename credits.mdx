@@ -1,6 +1,9 @@
 ---
 title: Credits
+sidebarTitle: Credits
+icon: coins
 description: Understand the Tuteliq credit system and per-endpoint costs
+keywords: [pricing, credits, usage, billing, cost]
 ---
 
 Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on processing complexity. Your current balance and usage are always available through the dashboard and the API.
@@ -21,6 +24,24 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 <Info>
   For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) = 3` credits.
 </Info>
+
+### Batch processing example
+
+When submitting a batch of 500 text messages through `detectUnsafe`:
+
+```
+500 messages x 1 credit = 500 credits
+```
+
+For a batch of 200 messages through `detectGrooming` with 15 messages per conversation:
+
+```
+200 conversations x ceil(15 / 10) = 200 x 2 = 400 credits
+```
+
+## Purchasing credits
+
+Credits can be purchased from the [Tuteliq Dashboard](https://tuteliq.ai/dashboard). Navigate to **Billing > Purchase Credits** to top up your balance. Plans include monthly credit allowances, with overage billing available for high-volume usage.
 
 ## Tracking usage
 
@@ -46,7 +67,7 @@ X-Credits-Remaining: 9472
 
 ### Usage endpoints
 
-Check your credit balance and historical usage programmatically via the [Usage API](/api-reference/usage):
+Check your credit balance and historical usage programmatically via the [Usage API](/api-reference/introduction):
 
 <CodeGroup>
   ```typescript Node.js
@@ -65,10 +86,12 @@ Check your credit balance and historical usage programmatically via the [Usage A
   ```
 </CodeGroup>
 
+## Low-balance alerts
+
+Configure low-balance notifications in the [Dashboard](https://tuteliq.ai/dashboard) under **Settings > Alerts**. You can set a credit threshold (e.g., 100 credits remaining) and receive email or webhook notifications before you run out.
+
 ## What happens when credits run out
 
 <Warning>
   When your balance reaches zero, API requests return a `402 Payment Required` error. Upgrade your plan or purchase additional credits from the [Dashboard](https://tuteliq.ai/dashboard) to resume service.
 </Warning>
-
-You can configure low-balance alerts in the dashboard to receive notifications before you run out.

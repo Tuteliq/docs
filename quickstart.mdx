@@ -1,6 +1,9 @@
 ---
 title: Quickstart
+sidebarTitle: Quickstart
+icon: rocket
 description: Get up and running with Tuteliq in under 5 minutes
+keywords: [getting started, setup, first call, SDK]
 ---
 
 <Steps>
@@ -68,9 +71,27 @@ description: Get up and running with Tuteliq in under 5 minutes
       }'
     ```
   </CodeGroup>
+
+  **Expected response:**
+
+  ```json
+  {
+    "safe": false,
+    "severity": "high",
+    "risk_score": 0.91,
+    "categories": ["grooming"],
+    "flags": ["secrecy", "private_meeting"],
+    "summary": "Potential grooming pattern detected: solicitation of a private meeting with secrecy directive.",
+    "credits_used": 1
+  }
+  ```
 </Step>
 
 </Steps>
+
+<Tip>
+  **What's next?** Explore the full [API Reference](/api-reference/introduction) or dive into the [Node.js SDK](/sdks/node), [Python SDK](/sdks/python), or [Swift SDK](/sdks/swift) for deeper integration.
+</Tip>
 
 ## Next steps
 
@@ -81,10 +102,10 @@ description: Get up and running with Tuteliq in under 5 minutes
   <Card title="Credits" icon="coins" href="/credits">
     Understand per-endpoint credit costs and usage tracking.
   </Card>
-  <Card title="Safety endpoints" icon="shield-halved" href="/api-reference/safety">
-    Explore bullying, grooming, and unsafe content detection.
+  <Card title="Error Handling" icon="triangle-exclamation" href="/error-handling">
+    Handle errors gracefully with retry strategies.
   </Card>
-  <Card title="Compliance" icon="gavel" href="/api-reference/compliance">
-    KOSA and GDPR compliance reporting.
+  <Card title="KOSA Compliance" icon="gavel" href="/kosa-compliance">
+    Full coverage of all nine KOSA harm categories.
   </Card>
 </CardGroup>

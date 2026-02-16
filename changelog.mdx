@@ -1,0 +1,49 @@
+---
+title: Changelog
+sidebarTitle: Changelog
+icon: clock-rotate-left
+description: Latest updates to the Tuteliq API
+keywords: [changelog, updates, releases, versions]
+---
+
+## v1.0.0 — February 2026
+
+Initial public release of the Tuteliq API.
+
+### Safety Endpoints
+- `POST /v1/safety/detect-unsafe` — detect harmful content across all nine KOSA categories
+- `POST /v1/safety/detect-bullying` — dedicated bullying and harassment detection
+- `POST /v1/safety/detect-grooming` — conversation-level grooming pattern analysis
+- `POST /v1/safety/voice` — audio file transcription and safety analysis
+- `POST /v1/safety/image` — image analysis for visual content risks
+
+### Analysis Endpoints
+- `POST /v1/analysis/emotions` — emotional well-being analysis from text and conversations
+- `POST /v1/analysis/action-plan` — age-appropriate guidance and intervention recommendations
+- `POST /v1/analysis/report` — structured safety report generation
+
+### Voice Streaming
+- `WSS /safety/voice/stream` — real-time voice moderation via WebSocket with configurable severity thresholds
+
+### Webhooks
+- `POST /v1/webhooks` — register webhook endpoints for safety alerts and batch events
+- HMAC-SHA256 signature verification on all webhook deliveries
+- Automatic retry with exponential backoff (3 attempts)
+
+### GDPR Compliance
+- `DELETE /v1/account/data` — right to erasure (Article 17)
+- `GET /v1/account/data/export` — right to data portability (Article 20)
+- `PATCH /v1/account/data` — right to rectification (Article 16)
+- Consent management endpoints for granular data processing consent
+- Public transparency endpoints: DPA, sub-processors, retention policy
+
+### SDKs
+- [Node.js SDK](/sdks/node) — `@tuteliq/sdk` on npm
+- [Python SDK](/sdks/python) — `tuteliq` on PyPI
+- [Swift SDK](/sdks/swift) — via Swift Package Manager
+
+### Platform
+- Credit-based billing with per-endpoint pricing
+- Tier-based rate limiting (Free, Basic, Premium, Enterprise)
+- API key authentication via Bearer token or `x-api-key` header
+- Full KOSA harm category coverage with age-calibrated severity scoring

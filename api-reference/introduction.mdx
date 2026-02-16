@@ -1,6 +1,9 @@
 ---
 title: API Reference
+sidebarTitle: Overview
+icon: code
 description: Complete reference for all Tuteliq API endpoints
+keywords: [API reference, endpoints, error codes, rate limits]
 ---
 
 ## Base URL
@@ -70,55 +73,24 @@ When you exceed your rate limit, the API returns a `429 Too Many Requests` statu
 | `VAL_INVALID_INPUT`  | 400         | The request body or parameters failed validation.|
 | `SVC_INTERNAL_ERROR` | 500         | An unexpected internal error occurred.           |
 
-## Endpoint Reference
+For the full error codes reference and retry strategies, see the [Error Handling guide](/error-handling).
+
+## Endpoints
 
 <Note>
-  The endpoint pages below are auto-generated from the [OpenAPI specification](/api-reference/openapi.json). They include request and response schemas, parameter descriptions, and an interactive playground.
+  Endpoint pages are auto-generated from the OpenAPI specification and appear in the sidebar under this tab. Each page includes request/response schemas, parameter descriptions, and an interactive playground.
 </Note>
 
-The API is organized into the following endpoint groups:
+The API is organized into the following groups:
 
-<CardGroup cols={2}>
-  <Card title="Safety" icon="shield-halved" href="/api-reference/safety">
-    Content safety analysis and moderation
-  </Card>
-  <Card title="Analysis" icon="magnifying-glass-chart" href="/api-reference/analysis">
-    In-depth content analysis
-  </Card>
-  <Card title="Guidance" icon="compass" href="/api-reference/guidance">
-    Age-appropriate guidance recommendations
-  </Card>
-  <Card title="Reports" icon="file-lines" href="/api-reference/reports">
-    Generate and retrieve safety reports
-  </Card>
-  <Card title="Batch" icon="layer-group" href="/api-reference/batch">
-    Batch processing for bulk operations
-  </Card>
-  <Card title="Webhooks" icon="bell" href="/api-reference/webhooks">
-    Webhook configuration and management
-  </Card>
-  <Card title="Usage" icon="chart-simple" href="/api-reference/usage">
-    API usage metrics and statistics
-  </Card>
-  <Card title="Policy" icon="scroll" href="/api-reference/policy">
-    Custom policy configuration
-  </Card>
-  <Card title="Pricing" icon="tags" href="/api-reference/pricing">
-    Plan and pricing information
-  </Card>
-  <Card title="Account" icon="user" href="/api-reference/account">
-    Account and API key management
-  </Card>
-  <Card title="Compliance" icon="clipboard-check" href="/api-reference/compliance">
-    Compliance and audit endpoints
-  </Card>
-  <Card title="Admin" icon="gear" href="/api-reference/admin">
-    Administrative operations
-  </Card>
-  <Card title="Health" icon="heart-pulse" href="/api-reference/health">
-    Service health checks
-  </Card>
-  <Card title="Status" icon="signal" href="/api-reference/status">
-    System status and uptime
-  </Card>
-</CardGroup>
+| Group | Description |
+|-------|-------------|
+| **Safety** | Content safety analysis — bullying, grooming, unsafe content detection |
+| **Analysis** | In-depth emotional and behavioral analysis |
+| **Guidance** | Age-appropriate guidance and action plan generation |
+| **Reports** | Structured safety and compliance report generation |
+| **Batch** | Bulk processing for high-volume operations |
+| **Webhooks** | Webhook configuration and event management |
+| **Usage** | Credit balance and API usage metrics |
+| **Compliance** | GDPR data subject rights and audit endpoints |
+| **Health** | Service health checks and system status |
