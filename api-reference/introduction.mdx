@@ -1,33 +1,124 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: API Reference
+description: Complete reference for all Tuteliq API endpoints
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+All API requests are made to the following base URL:
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+```
+https://api.tuteliq.ai
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Tuteliq supports two methods of authentication. Include one of the following in every request:
+
+- **Bearer token** in the `Authorization` header:
+  ```
+  Authorization: Bearer YOUR_API_KEY
+  ```
+- **API key header**:
+  ```
+  x-api-key: YOUR_API_KEY
+  ```
+
+## Response Format
+
+All responses are returned as JSON.
+
+A successful response follows this structure:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "data": { ... }
+}
 ```
+
+An error response follows this structure:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "A human-readable description of the error."
+  }
+}
+```
+
+## Rate Limits
+
+Rate limits are enforced per API key based on your plan tier:
+
+| Tier       | Requests per minute |
+| ---------- | ------------------- |
+| Free       | 60                  |
+| Basic      | 300                 |
+| Premium    | 1,000               |
+| Enterprise | 5,000               |
+
+When you exceed your rate limit, the API returns a `429 Too Many Requests` status with the `RATE_LIMIT_EXCEEDED` error code.
+
+## Common Error Codes
+
+| Code                  | HTTP Status | Description                                      |
+| --------------------- | ----------- | ------------------------------------------------ |
+| `AUTH_INVALID_KEY`    | 401         | The provided API key is invalid or unrecognized. |
+| `AUTH_EXPIRED_KEY`    | 401         | The API key has expired.                         |
+| `RATE_LIMIT_EXCEEDED` | 429         | You have exceeded your rate limit.               |
+| `VAL_INVALID_INPUT`  | 400         | The request body or parameters failed validation.|
+| `SVC_INTERNAL_ERROR` | 500         | An unexpected internal error occurred.           |
+
+## Endpoint Reference
+
+<Note>
+  The endpoint pages below are auto-generated from the [OpenAPI specification](/api-reference/openapi.json). They include request and response schemas, parameter descriptions, and an interactive playground.
+</Note>
+
+The API is organized into the following endpoint groups:
+
+<CardGroup cols={2}>
+  <Card title="Safety" icon="shield-halved" href="/api-reference/safety">
+    Content safety analysis and moderation
+  </Card>
+  <Card title="Analysis" icon="magnifying-glass-chart" href="/api-reference/analysis">
+    In-depth content analysis
+  </Card>
+  <Card title="Guidance" icon="compass" href="/api-reference/guidance">
+    Age-appropriate guidance recommendations
+  </Card>
+  <Card title="Reports" icon="file-lines" href="/api-reference/reports">
+    Generate and retrieve safety reports
+  </Card>
+  <Card title="Batch" icon="layer-group" href="/api-reference/batch">
+    Batch processing for bulk operations
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/api-reference/webhooks">
+    Webhook configuration and management
+  </Card>
+  <Card title="Usage" icon="chart-simple" href="/api-reference/usage">
+    API usage metrics and statistics
+  </Card>
+  <Card title="Policy" icon="scroll" href="/api-reference/policy">
+    Custom policy configuration
+  </Card>
+  <Card title="Pricing" icon="tags" href="/api-reference/pricing">
+    Plan and pricing information
+  </Card>
+  <Card title="Account" icon="user" href="/api-reference/account">
+    Account and API key management
+  </Card>
+  <Card title="Compliance" icon="clipboard-check" href="/api-reference/compliance">
+    Compliance and audit endpoints
+  </Card>
+  <Card title="Admin" icon="gear" href="/api-reference/admin">
+    Administrative operations
+  </Card>
+  <Card title="Health" icon="heart-pulse" href="/api-reference/health">
+    Service health checks
+  </Card>
+  <Card title="Status" icon="signal" href="/api-reference/status">
+    System status and uptime
+  </Card>
+</CardGroup>

@@ -1,0 +1,162 @@
+---
+title: Python SDK
+description: Install and use the Tuteliq Python SDK
+---
+
+The Tuteliq Python SDK provides both synchronous and asynchronous clients for the Tuteliq child safety API. It supports Python 3.9+.
+
+## Installation
+
+```bash
+pip install tuteliq
+```
+
+## Initialize the client
+
+```python
+from tuteliq import Tuteliq
+
+client = Tuteliq(api_key="YOUR_API_KEY")
+```
+
+<Warning>
+  Never hardcode API keys in source code. Use environment variables or a secrets manager.
+</Warning>
+
+```python
+import os
+from tuteliq import Tuteliq
+
+client = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```python
+result = client.detect_unsafe(
+    text="Let's meet at the park after school, don't tell your parents",
+    age_group="10-12",
+)
+
+print(result.safe)        # False
+print(result.severity)    # "high"
+print(result.categories)  # ["grooming", "secrecy"]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```python
+result = client.detect_grooming(
+    messages=[
+        {"role": "stranger", "text": "Hey, how old are you?"},
+        {"role": "child", "text": "I'm 11"},
+        {"role": "stranger", "text": "Cool. Do you have your own phone?"},
+        {"role": "stranger", "text": "Let's talk on a different app, just us"},
+    ],
+    age_group="10-12",
+)
+
+print(result.grooming_detected)  # True
+print(result.risk_score)         # 0.92
+print(result.stage)              # "isolation"
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```python
+result = client.analyze_emotions(
+    text="Nobody at school talks to me anymore. I just sit alone every day.",
+    age_group="13-15",
+)
+
+print(result.emotions)    # [{"label": "sadness", "score": 0.87}, ...]
+print(result.distress)    # True
+print(result.risk_level)  # "elevated"
+```
+
+## Analyze voice
+
+Upload an audio file for transcription and safety analysis.
+
+```python
+result = client.analyze_voice(
+    file=open("recording.wav", "rb"),
+    age_group="13-15",
+)
+
+print(result.transcript)
+print(result.safe)
+print(result.emotions)
+```
+
+## Async support
+
+For asynchronous applications, use the `AsyncTuteliq` client. It exposes the same methods with `await` syntax.
+
+```python
+import asyncio
+from tuteliq import AsyncTuteliq
+
+client = AsyncTuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
+
+async def main():
+    result = await client.detect_unsafe(
+        text="example message to analyze",
+        age_group="13-15",
+    )
+    print(result.safe)
+
+asyncio.run(main())
+```
+
+<Info>
+  `AsyncTuteliq` is ideal for frameworks like FastAPI, aiohttp, and Django with ASGI. It uses `httpx` under the hood.
+</Info>
+
+## Error handling
+
+The SDK raises typed exceptions that you can catch and inspect.
+
+```python
+from tuteliq import Tuteliq, TuteliqError
+
+client = Tuteliq(api_key="YOUR_API_KEY")
+
+try:
+    result = client.detect_unsafe(
+        text="some content",
+        age_group="10-12",
+    )
+except TuteliqError as e:
+    print(e.code)     # e.g. "AUTH_INVALID_KEY"
+    print(e.message)  # human-readable description
+    print(e.status)   # HTTP status code
+```
+
+## Configuration options
+
+```python
+client = Tuteliq(
+    api_key=os.environ["TUTELIQ_API_KEY"],
+    base_url="https://api.tuteliq.ai",  # default
+    timeout=30.0,                         # request timeout in seconds
+    retries=2,                            # automatic retries on failure
+)
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Node.js SDK" icon="node-js" href="/sdks/node">
+    See the Node.js SDK guide.
+  </Card>
+</CardGroup>

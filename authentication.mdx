@@ -1,0 +1,76 @@
+---
+title: Authentication
+description: How to authenticate with the Tuteliq API
+---
+
+Every request to the Tuteliq API must include a valid API key. You can create and manage keys from the [Tuteliq Dashboard](https://tuteliq.ai/dashboard).
+
+## Authentication methods
+
+Tuteliq supports two ways to pass your API key. Both are equivalent; use whichever fits your stack.
+
+### Bearer token
+
+Pass the key in the `Authorization` header:
+
+```bash
+curl https://api.tuteliq.ai/v1/safety/detect-unsafe \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### x-api-key header
+
+Pass the key in a dedicated header:
+
+```bash
+curl https://api.tuteliq.ai/v1/safety/detect-unsafe \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+<Info>If both headers are present, `Authorization: Bearer` takes precedence.</Info>
+
+## SDK authentication
+
+<CodeGroup>
+  ```typescript Node.js
+  import { Tuteliq } from "@tuteliq/sdk";
+
+  const tuteliq = new Tuteliq({
+    apiKey: process.env.TUTELIQ_API_KEY,
+  });
+  ```
+  ```python Python
+  from tuteliq import Tuteliq
+
+  client = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
+  ```
+  ```swift Swift
+  import Tuteliq
+
+  let client = Tuteliq(apiKey: ProcessInfo.processInfo.environment["TUTELIQ_API_KEY"]!)
+  ```
+</CodeGroup>
+
+<Warning>Never hard-code API keys in source code. Use environment variables or a secrets manager.</Warning>
+
+## Environments and tiers
+
+Each API key is scoped to an environment. The environment determines which rate-limit tier applies:
+
+| Environment   | Tier      | Rate limit     |
+|---------------|-----------|----------------|
+| `production`  | Premium   | 1,000 req/min  |
+| `staging`     | Basic     | 300 req/min    |
+| `development` | Free      | 60 req/min     |
+
+You select the environment when creating a key in the dashboard. Keys cannot be moved between environments after creation.
+
+## Security
+
+- API keys are **hashed with SHA-256** before being stored. Tuteliq never retains your plaintext key.
+- Keys are shown **only once** at creation time. If you lose a key, revoke it and create a new one.
+- Each request updates the key's `last_used_at` timestamp and increments its `requests_count`, both visible in the dashboard.
+
+<Note>
+  If you suspect a key has been compromised, revoke it immediately from the [Dashboard](https://tuteliq.ai/dashboard) and generate a replacement.
+</Note>

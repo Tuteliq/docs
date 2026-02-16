@@ -1,0 +1,188 @@
+---
+title: Voice Streaming
+description: Real-time voice moderation via WebSocket
+---
+
+Tuteliq provides a WebSocket-based voice streaming endpoint that transcribes audio in real time and emits safety alerts as they are detected. This allows you to moderate voice chat, calls, and other live audio without waiting for the full recording to finish.
+
+## Endpoint
+
+```
+wss://api.tuteliq.ai/safety/voice/stream?token=YOUR_API_KEY
+```
+
+Authentication is handled via the `token` query parameter. The connection will be rejected with a `4001` close code if the key is invalid or expired.
+
+## Audio Format
+
+Send audio data as **binary WebSocket frames**. The recommended format is:
+
+| Parameter   | Value          |
+|-------------|----------------|
+| Encoding    | PCM 16-bit LE  |
+| Sample Rate | 16 kHz         |
+| Channels    | 1 (mono)       |
+| Chunk Size  | 4096–32768 bytes |
+
+<Note>
+  Other sample rates (8 kHz, 44.1 kHz, 48 kHz) are accepted but will be resampled server-side, which adds latency. 16 kHz mono gives the best balance of accuracy and speed.
+</Note>
+
+## Connection Lifecycle
+
+<Steps>
+  <Step title="Connect">
+    Open a WebSocket connection to the streaming endpoint with your API key.
+  </Step>
+  <Step title="Configure (optional)">
+    Send a JSON text frame to adjust settings before streaming audio.
+  </Step>
+  <Step title="Send Audio">
+    Stream binary audio chunks continuously. The server begins transcription and analysis immediately.
+  </Step>
+  <Step title="Receive Alerts">
+    The server sends JSON text frames containing partial transcriptions and safety alerts as they are detected.
+  </Step>
+  <Step title="Close">
+    Close the connection normally. The server will flush any remaining audio and send a final summary frame.
+  </Step>
+</Steps>
+
+## Configuration
+
+After connecting, you can send a JSON text frame to configure the session:
+
+```json
+{
+  "type": "config",
+  "flush_interval_ms": 2000,
+  "categories": ["grooming", "bullying", "self_harm", "substance", "sexual_content"],
+  "language": "en",
+  "min_severity": "medium"
+}
+```
+
+| Field                | Type     | Default | Description                                      |
+|----------------------|----------|---------|--------------------------------------------------|
+| `flush_interval_ms`  | number   | 3000    | How often (in ms) the server emits transcription results. Lower values give faster feedback but may be less accurate. |
+| `categories`         | string[] | all     | Safety categories to monitor. Omit to enable all. |
+| `language`           | string   | `"en"`  | Language hint for transcription.                  |
+| `min_severity`       | string   | `"low"` | Minimum severity level to trigger alerts (`low`, `medium`, `high`, `critical`). |
+
+## Server Messages
+
+### Transcription Frame
+
+```json
+{
+  "type": "transcription",
+  "text": "hey do you want to come over to my place after school",
+  "is_partial": false,
+  "timestamp_ms": 14200
+}
+```
+
+### Safety Alert Frame
+
+```json
+{
+  "type": "alert",
+  "category": "grooming",
+  "severity": "high",
+  "risk_score": 0.87,
+  "text": "hey do you want to come over to my place after school",
+  "description": "Potential grooming pattern detected: private meeting solicitation directed at a minor.",
+  "timestamp_ms": 14200
+}
+```
+
+### Session Summary Frame
+
+Sent when the connection closes:
+
+```json
+{
+  "type": "summary",
+  "duration_ms": 62000,
+  "alerts_count": 2,
+  "highest_severity": "high",
+  "categories_flagged": ["grooming"],
+  "transcript_length": 347
+}
+```
+
+## Code Example
+
+<CodeGroup>
+```javascript Node.js
+import WebSocket from "ws";
+
+const ws = new WebSocket(
+  "wss://api.tuteliq.ai/safety/voice/stream?token=YOUR_API_KEY"
+);
+
+ws.on("open", () => {
+  // Optional: configure the session
+  ws.send(JSON.stringify({
+    type: "config",
+    flush_interval_ms: 2000,
+    categories: ["grooming", "bullying", "self_harm"],
+    min_severity: "medium",
+  }));
+
+  // Stream audio from a source (e.g., microphone, file, or RTC track)
+  const audioStream = getAudioStream(); // your PCM 16-bit 16kHz mono source
+  audioStream.on("data", (chunk) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(chunk);
+    }
+  });
+
+  audioStream.on("end", () => {
+    ws.close(1000, "stream_complete");
+  });
+});
+
+ws.on("message", (data) => {
+  const message = JSON.parse(data.toString());
+
+  if (message.type === "alert") {
+    console.log(
+      `[${message.severity.toUpperCase()}] ${message.category}: ${message.description}`
+    );
+    // Trigger your moderation workflow here
+  }
+
+  if (message.type === "transcription" && !message.is_partial) {
+    console.log(`Transcript: ${message.text}`);
+  }
+
+  if (message.type === "summary") {
+    console.log(`Session ended. Alerts: ${message.alerts_count}`);
+  }
+});
+
+ws.on("close", (code, reason) => {
+  console.log(`Connection closed: ${code} ${reason}`);
+});
+
+ws.on("error", (err) => {
+  console.error("WebSocket error:", err.message);
+});
+```
+</CodeGroup>
+
+## Close Codes
+
+| Code | Meaning                              |
+|------|--------------------------------------|
+| 1000 | Normal closure                      |
+| 4001 | Authentication failed               |
+| 4002 | Rate limit exceeded                 |
+| 4003 | Invalid audio format                |
+| 4008 | Session duration limit reached      |
+| 4500 | Internal server error               |
+
+<Warning>
+  Voice streaming sessions have a maximum duration of **10 minutes** on the free tier and **60 minutes** on paid tiers. The server will send a summary frame and close the connection with code `4008` when the limit is reached.
+</Warning>

@@ -1,0 +1,99 @@
+---
+title: KOSA Compliance
+description: How Tuteliq covers all nine Kids Online Safety Act harm categories
+---
+
+The **Kids Online Safety Act (KOSA)** requires covered platforms to prevent and mitigate specific categories of harm to minors. Tuteliq provides API endpoints that map directly to each of the nine KOSA harm categories, giving you a single integration point for full compliance coverage.
+
+## Coverage Matrix
+
+| Harm Category          | Tuteliq Endpoint(s)                         | Status    |
+|------------------------|----------------------------------------------|-----------|
+| Eating Disorders       | `/safety/unsafe`                             | Covered   |
+| Substance Use          | `/safety/unsafe`                             | Covered   |
+| Suicidal Behaviors     | `/safety/unsafe`                             | Covered   |
+| Depression & Anxiety   | `/safety/unsafe` + `/analysis/emotions`      | Covered   |
+| Compulsive Usage       | `/safety/unsafe`                             | Covered   |
+| Harassment & Bullying  | `/safety/bullying`                           | Covered   |
+| Sexual Exploitation    | `/safety/grooming` + `/safety/unsafe`        | Covered   |
+| Voice & Audio Threats  | `/safety/voice`                              | Covered   |
+| Visual Content Risks   | `/safety/image`                              | Covered   |
+
+## Category Details
+
+### Eating Disorders
+
+The `/safety/unsafe` endpoint detects promotion of disordered eating, pro-anorexia and pro-bulimia content, dangerous diet challenges, and body-shaming language that could trigger eating disorders in minors.
+
+### Substance Use
+
+Content promoting or normalizing drug use, alcohol consumption by minors, vaping, and substance abuse challenges is flagged by `/safety/unsafe` under the `substance` sub-category.
+
+### Suicidal Behaviors
+
+The `/safety/unsafe` endpoint identifies suicidal ideation, self-harm instructions, and content that glorifies or normalizes self-harm. Detections in this category are always elevated to `critical` severity to enable immediate intervention.
+
+<Warning>
+  Alerts in the suicidal behaviors category should trigger your most urgent response workflow. Consider routing these to human moderators with mandatory response SLAs.
+</Warning>
+
+### Depression & Anxiety
+
+Tuteliq uses a two-endpoint approach for this category. The `/safety/unsafe` endpoint catches content that promotes hopelessness or emotional distress. The `/analysis/emotions` endpoint provides nuanced emotional tone analysis, detecting sustained patterns of anxiety, despair, or emotional manipulation in conversations.
+
+### Compulsive Usage
+
+The `/safety/unsafe` endpoint detects dark patterns, engagement manipulation, and content designed to exploit compulsive usage behaviors in minors, such as artificial urgency, streak mechanics framing, and addictive loop language.
+
+### Harassment & Bullying
+
+The dedicated `/safety/bullying` endpoint is purpose-built to detect direct insults, exclusionary language, coordinated harassment, intimidation, and cyberbullying patterns across text conversations.
+
+### Sexual Exploitation
+
+This category uses two endpoints for layered detection. The `/safety/grooming` endpoint identifies predatory behavior patterns such as trust-building, isolation tactics, boundary testing, and secret-keeping. The `/safety/unsafe` endpoint catches explicit sexual content, sextortion language, and exploitation material references.
+
+### Voice & Audio Threats
+
+The `/safety/voice` endpoint accepts audio files and returns transcription with safety analysis. It detects verbal harassment, threats, grooming in voice messages, and other harmful audio content. For real-time monitoring, see [Voice Streaming](/voice-streaming).
+
+### Visual Content Risks
+
+The `/safety/image` endpoint analyzes images for inappropriate visual content including explicit material, violent imagery, self-harm depictions, and other content that poses risks to minors.
+
+## Age-Calibrated Severity
+
+<Info>
+  All Tuteliq safety endpoints accept an optional `age` parameter (integer, 0-17). When provided, severity scores are calibrated to the developmental stage of the minor. Content that may be flagged as `medium` for a 16-year-old could be elevated to `high` or `critical` for an 8-year-old.
+</Info>
+
+```json
+{
+  "text": "let's play a secret game, just between us",
+  "age": 9
+}
+```
+
+Age calibration is applied automatically across all harm categories when the parameter is present. This helps platforms implement age-appropriate safety measures as recommended by KOSA.
+
+## Implementation Guidance
+
+To achieve full KOSA coverage, integrate the following endpoints into your content pipeline:
+
+<Steps>
+  <Step title="Text Content">
+    Route user-generated text through `/safety/unsafe`, `/safety/bullying`, and `/safety/grooming`. This covers eating disorders, substance use, suicidal behaviors, compulsive usage, harassment, and sexual exploitation.
+  </Step>
+  <Step title="Emotional Monitoring">
+    For messaging and social features, use `/analysis/emotions` to detect sustained patterns of depression and anxiety in conversations.
+  </Step>
+  <Step title="Voice Content">
+    Send audio messages and voice chat recordings to `/safety/voice`, or use the [WebSocket streaming endpoint](/voice-streaming) for live monitoring.
+  </Step>
+  <Step title="Image Content">
+    Route uploaded images and profile pictures through `/safety/image` to cover visual content risks.
+  </Step>
+  <Step title="Alerting">
+    Configure [webhooks](/webhooks) for `safety.critical` and `safety.high` events to ensure immediate response to the most severe incidents.
+  </Step>
+</Steps>

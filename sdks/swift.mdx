@@ -1,0 +1,193 @@
+---
+title: Swift SDK
+description: Install and use the Tuteliq Swift SDK
+---
+
+The Tuteliq Swift SDK provides a native client for the Tuteliq child safety API using Swift concurrency (`async`/`await`). It supports iOS 15.0+ and macOS 12.0+.
+
+## Installation
+
+Add the Tuteliq package via Swift Package Manager in Xcode:
+
+1. Go to **File > Add Package Dependencies**.
+2. Enter the repository URL:
+
+```
+https://github.com/Tuteliq/swift
+```
+
+3. Select your desired version rule and add the package to your target.
+
+Alternatively, add it to your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Tuteliq/swift", from: "1.0.0"),
+],
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: [
+            .product(name: "Tuteliq", package: "swift"),
+        ]
+    ),
+]
+```
+
+## Deployment targets
+
+| Platform | Minimum Version |
+|----------|----------------|
+| iOS      | 15.0           |
+| macOS    | 12.0           |
+
+## Initialize the client
+
+```swift
+import Tuteliq
+
+let tuteliq = Tuteliq(apiKey: "YOUR_API_KEY")
+```
+
+<Warning>
+  Never hardcode API keys in source code. Store them in the Keychain, Xcode build configuration, or a secrets manager.
+</Warning>
+
+```swift
+let tuteliq = Tuteliq(apiKey: Configuration.tuteliqApiKey)
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```swift
+let result = try await tuteliq.detectUnsafe(
+    text: "Let's meet at the park after school, don't tell your parents",
+    ageGroup: .tenToTwelve
+)
+
+print(result.safe)        // false
+print(result.severity)    // .high
+print(result.categories)  // [.grooming, .secrecy]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```swift
+let messages: [Message] = [
+    Message(role: .stranger, text: "Hey, how old are you?"),
+    Message(role: .child, text: "I'm 11"),
+    Message(role: .stranger, text: "Cool. Do you have your own phone?"),
+    Message(role: .stranger, text: "Let's talk on a different app, just us"),
+]
+
+let result = try await tuteliq.detectGrooming(
+    messages: messages,
+    ageGroup: .tenToTwelve
+)
+
+print(result.groomingDetected) // true
+print(result.riskScore)        // 0.92
+print(result.stage)            // .isolation
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```swift
+let result = try await tuteliq.analyzeEmotions(
+    text: "Nobody at school talks to me anymore. I just sit alone every day.",
+    ageGroup: .thirteenToFifteen
+)
+
+print(result.emotions)   // [Emotion(label: "sadness", score: 0.87), ...]
+print(result.distress)   // true
+print(result.riskLevel)  // .elevated
+```
+
+## Analyze voice
+
+Upload an audio file for transcription and safety analysis.
+
+```swift
+let audioURL = Bundle.main.url(forResource: "recording", withExtension: "wav")!
+let audioData = try Data(contentsOf: audioURL)
+
+let result = try await tuteliq.analyzeVoice(
+    file: audioData,
+    ageGroup: .thirteenToFifteen
+)
+
+print(result.transcript)
+print(result.safe)
+print(result.emotions)
+```
+
+## Error handling
+
+The SDK throws typed `TuteliqError` values that you can pattern-match on.
+
+```swift
+do {
+    let result = try await tuteliq.detectUnsafe(
+        text: "some content",
+        ageGroup: .tenToTwelve
+    )
+} catch let error as TuteliqError {
+    print(error.code)    // e.g. .authInvalidKey
+    print(error.message) // human-readable description
+    print(error.status)  // HTTP status code
+} catch {
+    print("Unexpected error: \(error)")
+}
+```
+
+## Configuration options
+
+```swift
+let tuteliq = Tuteliq(
+    apiKey: Configuration.tuteliqApiKey,
+    baseURL: URL(string: "https://api.tuteliq.ai")!, // default
+    timeout: 30,                                       // request timeout in seconds
+    retries: 2                                         // automatic retries on failure
+)
+```
+
+## SwiftUI integration
+
+<Info>
+  The SDK works seamlessly with SwiftUI. All methods are `async` and can be called directly from `.task` modifiers or `@MainActor` contexts.
+</Info>
+
+```swift
+struct ContentModerationView: View {
+    @State private var isSafe: Bool?
+    let tuteliq = Tuteliq(apiKey: Configuration.tuteliqApiKey)
+
+    var body: some View {
+        Text(isSafe == true ? "Content is safe" : "Checking...")
+            .task {
+                let result = try? await tuteliq.detectUnsafe(
+                    text: messageText,
+                    ageGroup: .thirteenToFifteen
+                )
+                isSafe = result?.safe
+            }
+    }
+}
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Node.js SDK" icon="node-js" href="/sdks/node">
+    See the Node.js SDK guide.
+  </Card>
+</CardGroup>

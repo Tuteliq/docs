@@ -1,0 +1,74 @@
+---
+title: Credits
+description: Understand the Tuteliq credit system and per-endpoint costs
+---
+
+Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on processing complexity. Your current balance and usage are always available through the dashboard and the API.
+
+## Per-endpoint costs
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| `detectBullying` | 1 | Single text analysis |
+| `detectUnsafe` | 1 | Single text analysis |
+| `detectGrooming` | 1 per 10 msgs | `ceil(messages / 10)`, minimum 1 |
+| `analyzeEmotions` | 1 per 10 msgs | `ceil(messages / 10)`, minimum 1 |
+| `getActionPlan` | 2 | Longer generation |
+| `generateReport` | 3 | Structured output |
+| `analyzeVoice` | 5 | Transcription + analysis |
+| `analyzeImage` | 3 | Vision + OCR + analysis |
+
+<Info>
+  For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) = 3` credits.
+</Info>
+
+## Tracking usage
+
+### Response body
+
+Every API response includes a `credits_used` field showing the credits consumed by that request:
+
+```json
+{
+  "severity": "high",
+  "categories": ["bullying"],
+  "credits_used": 1
+}
+```
+
+### Response header
+
+Each response also includes the `X-Credits-Remaining` header with your current balance:
+
+```
+X-Credits-Remaining: 9472
+```
+
+### Usage endpoints
+
+Check your credit balance and historical usage programmatically via the [Usage API](/api-reference/usage):
+
+<CodeGroup>
+  ```typescript Node.js
+  const usage = await tuteliq.getUsage();
+  console.log(usage.credits_remaining);
+  console.log(usage.credits_used_today);
+  ```
+  ```python Python
+  usage = client.get_usage()
+  print(usage.credits_remaining)
+  print(usage.credits_used_today)
+  ```
+  ```bash cURL
+  curl https://api.tuteliq.ai/v1/usage \
+    -H "Authorization: Bearer YOUR_API_KEY"
+  ```
+</CodeGroup>
+
+## What happens when credits run out
+
+<Warning>
+  When your balance reaches zero, API requests return a `402 Payment Required` error. Upgrade your plan or purchase additional credits from the [Dashboard](https://tuteliq.ai/dashboard) to resume service.
+</Warning>
+
+You can configure low-balance alerts in the dashboard to receive notifications before you run out.

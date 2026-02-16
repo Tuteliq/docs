@@ -1,0 +1,159 @@
+---
+title: Node.js SDK
+description: Install and use the Tuteliq Node.js SDK
+---
+
+The Tuteliq Node.js SDK provides a typed, promise-based client for the Tuteliq child safety API. It works in Node.js 18+ and includes full TypeScript definitions out of the box.
+
+## Installation
+
+```bash
+npm install @tuteliq/sdk
+```
+
+## Initialize the client
+
+```typescript
+import Tuteliq from '@tuteliq/sdk'
+
+const tuteliq = new Tuteliq({ apiKey: 'YOUR_API_KEY' })
+```
+
+<Warning>
+  Never hardcode API keys in source code. Use environment variables or a secrets manager.
+</Warning>
+
+```typescript
+const tuteliq = new Tuteliq({
+  apiKey: process.env.TUTELIQ_API_KEY,
+})
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```typescript
+const result = await tuteliq.detectUnsafe({
+  text: "Let's meet at the park after school, don't tell your parents",
+  ageGroup: '10-12',
+})
+
+console.log(result.safe)        // false
+console.log(result.severity)    // "high"
+console.log(result.categories)  // ["grooming", "secrecy"]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```typescript
+const result = await tuteliq.detectGrooming({
+  messages: [
+    { role: 'stranger', text: 'Hey, how old are you?' },
+    { role: 'child', text: "I'm 11" },
+    { role: 'stranger', text: 'Cool. Do you have your own phone?' },
+    { role: 'stranger', text: "Let's talk on a different app, just us" },
+  ],
+  ageGroup: '10-12',
+})
+
+console.log(result.groomingDetected) // true
+console.log(result.riskScore)        // 0.92
+console.log(result.stage)            // "isolation"
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```typescript
+const result = await tuteliq.analyzeEmotions({
+  text: "Nobody at school talks to me anymore. I just sit alone every day.",
+  ageGroup: '13-15',
+})
+
+console.log(result.emotions)    // [{ label: "sadness", score: 0.87 }, ...]
+console.log(result.distress)    // true
+console.log(result.riskLevel)   // "elevated"
+```
+
+## Analyze voice
+
+Upload an audio file for transcription and safety analysis.
+
+```typescript
+import fs from 'fs'
+
+const audio = fs.readFileSync('./recording.wav')
+
+const result = await tuteliq.analyzeVoice({
+  file: audio,
+  ageGroup: '13-15',
+})
+
+console.log(result.transcript)
+console.log(result.safe)
+console.log(result.emotions)
+```
+
+## Error handling
+
+The SDK throws typed errors that you can catch and inspect.
+
+```typescript
+import Tuteliq, { TuteliqError } from '@tuteliq/sdk'
+
+try {
+  const result = await tuteliq.detectUnsafe({
+    text: 'some content',
+    ageGroup: '10-12',
+  })
+} catch (error) {
+  if (error instanceof TuteliqError) {
+    console.error(error.code)    // e.g. "AUTH_INVALID_KEY"
+    console.error(error.message) // human-readable description
+    console.error(error.status)  // HTTP status code
+  }
+}
+```
+
+## TypeScript support
+
+<Info>
+  The SDK ships with complete TypeScript definitions. No additional `@types` package is needed.
+</Info>
+
+All request and response types are exported for direct use:
+
+```typescript
+import Tuteliq, {
+  type DetectUnsafeRequest,
+  type DetectUnsafeResponse,
+  type AnalyzeEmotionsResponse,
+  type AgeGroup,
+} from '@tuteliq/sdk'
+```
+
+## Configuration options
+
+```typescript
+const tuteliq = new Tuteliq({
+  apiKey: process.env.TUTELIQ_API_KEY,
+  baseUrl: 'https://api.tuteliq.ai',  // default
+  timeout: 30_000,                      // request timeout in ms
+  retries: 2,                           // automatic retries on failure
+})
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Python SDK" icon="python" href="/sdks/python">
+    See the Python SDK guide.
+  </Card>
+</CardGroup>

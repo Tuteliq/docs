@@ -1,0 +1,213 @@
+---
+title: GDPR Compliance
+description: Data privacy endpoints for GDPR compliance
+---
+
+Tuteliq provides built-in endpoints for GDPR data subject rights so you can fulfill privacy obligations without building custom infrastructure.
+
+<Info>
+  Privacy is not a premium feature. All GDPR endpoints are available on every tier, including free.
+</Info>
+
+## Data Subject Rights
+
+### Right to Erasure (Article 17)
+
+Delete all stored data associated with a user account, including analysis history, cached results, and metadata.
+
+```bash
+curl -X DELETE https://api.tuteliq.ai/account/data \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "user_id": "usr_abc123", "confirm": true }'
+```
+
+**Response:**
+
+```json
+{
+  "status": "accepted",
+  "deletion_id": "del_xyz789",
+  "estimated_completion": "2026-02-16T13:00:00Z",
+  "records_queued": 142
+}
+```
+
+<Note>
+  Erasure requests are processed asynchronously. Most deletions complete within 1 hour. You will receive a `deletion.completed` webhook event if webhooks are configured.
+</Note>
+
+### Right to Data Portability (Article 20)
+
+Export all data associated with a user account in a machine-readable JSON format.
+
+```bash
+curl https://api.tuteliq.ai/account/data/export \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -G -d "user_id=usr_abc123" -d "format=json"
+```
+
+**Response:**
+
+```json
+{
+  "status": "processing",
+  "export_id": "exp_def456",
+  "format": "json",
+  "estimated_completion": "2026-02-16T12:45:00Z",
+  "download_url": null
+}
+```
+
+Once processing is complete, the `download_url` field will contain a time-limited signed URL. You can poll the export status or configure a webhook for the `export.ready` event.
+
+<Tabs>
+  <Tab title="JSON">
+    ```bash
+    curl https://api.tuteliq.ai/account/data/export \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -G -d "user_id=usr_abc123" -d "format=json"
+    ```
+  </Tab>
+  <Tab title="CSV">
+    ```bash
+    curl https://api.tuteliq.ai/account/data/export \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -G -d "user_id=usr_abc123" -d "format=csv"
+    ```
+  </Tab>
+</Tabs>
+
+### Right to Rectification (Article 16)
+
+Update or correct stored metadata associated with a user account.
+
+```bash
+curl -X PATCH https://api.tuteliq.ai/account/data \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "usr_abc123",
+    "corrections": {
+      "display_name": "Updated Name",
+      "age": 14,
+      "region": "EU"
+    }
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "status": "updated",
+  "user_id": "usr_abc123",
+  "fields_modified": ["display_name", "age", "region"],
+  "updated_at": "2026-02-16T12:00:00Z"
+}
+```
+
+## Consent Management
+
+Manage data processing consent on a per-user basis.
+
+### Record Consent
+
+```bash
+curl -X POST https://api.tuteliq.ai/account/consent \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "usr_abc123",
+    "purposes": ["safety_analysis", "emotional_analysis", "voice_analysis"],
+    "legal_basis": "explicit_consent",
+    "consented_at": "2026-02-16T10:00:00Z"
+  }'
+```
+
+### Withdraw Consent
+
+```bash
+curl -X DELETE https://api.tuteliq.ai/account/consent \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "usr_abc123",
+    "purposes": ["emotional_analysis"]
+  }'
+```
+
+When consent is withdrawn for a specific purpose, any subsequent API calls for that purpose involving the user will return a `403` with error code `CONSENT_REQUIRED`.
+
+## Public Transparency Endpoints
+
+The following endpoints are publicly accessible and require no authentication. They are intended to support your own transparency and compliance documentation.
+
+| Endpoint                          | Description                                      |
+|-----------------------------------|--------------------------------------------------|
+| `GET /compliance/dpa`             | Current Data Processing Agreement (PDF)          |
+| `GET /compliance/sub-processors`  | List of sub-processors with locations and roles   |
+| `GET /compliance/retention`       | Data retention policy by data type                |
+
+### Example: Sub-Processors
+
+```bash
+curl https://api.tuteliq.ai/compliance/sub-processors
+```
+
+```json
+{
+  "last_updated": "2026-01-15T00:00:00Z",
+  "sub_processors": [
+    {
+      "name": "Google Cloud Platform",
+      "location": "United States / EU",
+      "purpose": "Infrastructure and compute",
+      "dpa_url": "https://cloud.google.com/terms/data-processing-addendum"
+    },
+    {
+      "name": "Upstash",
+      "location": "EU",
+      "purpose": "Rate limiting and caching",
+      "dpa_url": "https://upstash.com/trust/dpa"
+    }
+  ]
+}
+```
+
+### Example: Retention Policy
+
+```bash
+curl https://api.tuteliq.ai/compliance/retention
+```
+
+```json
+{
+  "policies": [
+    {
+      "data_type": "analysis_results",
+      "retention_period": "90 days",
+      "auto_delete": true
+    },
+    {
+      "data_type": "audio_files",
+      "retention_period": "24 hours",
+      "auto_delete": true
+    },
+    {
+      "data_type": "api_logs",
+      "retention_period": "30 days",
+      "auto_delete": true
+    },
+    {
+      "data_type": "account_metadata",
+      "retention_period": "Until deletion requested",
+      "auto_delete": false
+    }
+  ]
+}
+```
+
+<Note>
+  Audio files submitted to `/safety/voice` and the voice streaming endpoint are automatically deleted within 24 hours of processing. Transcriptions are retained according to the `analysis_results` policy.
+</Note>

@@ -1,0 +1,197 @@
+---
+title: Webhooks
+description: Receive real-time alerts for critical safety incidents
+---
+
+Webhooks let you receive push notifications when safety events occur, so you can act on critical incidents without polling the API.
+
+## Registering a Webhook
+
+```bash
+curl -X POST https://api.tuteliq.ai/webhooks \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://yourapp.com/tuteliq/webhook",
+    "events": ["safety.critical", "safety.high"],
+    "description": "Production safety alerts"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "wh_abc123",
+  "url": "https://yourapp.com/tuteliq/webhook",
+  "events": ["safety.critical", "safety.high"],
+  "secret": "whsec_9f8a7b6c5d4e3f2a1b...",
+  "status": "active",
+  "created_at": "2026-02-16T10:00:00Z"
+}
+```
+
+<Warning>
+  Store the `secret` value immediately. It is only returned once at creation time and is required to verify incoming webhook signatures.
+</Warning>
+
+## Event Types
+
+| Event               | Description                                      |
+|----------------------|--------------------------------------------------|
+| `safety.critical`    | A critical-severity safety alert was triggered    |
+| `safety.high`        | A high-severity safety alert was triggered        |
+| `safety.medium`      | A medium-severity safety alert was triggered      |
+| `batch.completed`    | A batch analysis job has finished processing      |
+| `batch.failed`       | A batch analysis job has failed                   |
+| `voice.alert`        | A safety alert was detected during voice streaming|
+| `report.ready`       | A scheduled compliance report is ready            |
+
+## Webhook Payload
+
+Every webhook delivery is an HTTP POST with a JSON body:
+
+```json
+{
+  "id": "evt_xyz789",
+  "type": "safety.critical",
+  "created_at": "2026-02-16T12:34:56Z",
+  "data": {
+    "analysis_id": "an_456def",
+    "category": "grooming",
+    "severity": "critical",
+    "risk_score": 0.96,
+    "summary": "High-confidence grooming pattern detected in text input.",
+    "input_preview": "hey sweetie, this is our little secret..."
+  }
+}
+```
+
+## Signature Verification
+
+Every webhook request includes an `X-Tuteliq-Signature` header containing an HMAC-SHA256 signature of the raw request body, computed with your webhook secret.
+
+**Always verify this signature before processing the payload.**
+
+<CodeGroup>
+```javascript Node.js
+import crypto from "node:crypto";
+
+function verifyWebhookSignature(rawBody, signatureHeader, secret) {
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(rawBody, "utf-8")
+    .digest("hex");
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signatureHeader),
+    Buffer.from(expected)
+  );
+}
+
+// Express / Fastify example
+app.post("/tuteliq/webhook", (req, res) => {
+  const signature = req.headers["x-tuteliq-signature"];
+  const rawBody = req.rawBody; // ensure your framework preserves the raw body
+
+  if (!verifyWebhookSignature(rawBody, signature, process.env.TUTELIQ_WEBHOOK_SECRET)) {
+    return res.status(401).send("Invalid signature");
+  }
+
+  const event = JSON.parse(rawBody);
+
+  switch (event.type) {
+    case "safety.critical":
+      // Escalate immediately — alert moderators, pause user, etc.
+      handleCriticalAlert(event.data);
+      break;
+    case "safety.high":
+      handleHighAlert(event.data);
+      break;
+    case "batch.completed":
+      handleBatchComplete(event.data);
+      break;
+  }
+
+  res.status(200).send("OK");
+});
+```
+
+```python Python
+import hmac
+import hashlib
+
+def verify_webhook_signature(raw_body: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode("utf-8"),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected)
+```
+</CodeGroup>
+
+<Info>
+  Always use a constant-time comparison function (such as `crypto.timingSafeEqual` or `hmac.compare_digest`) to prevent timing attacks.
+</Info>
+
+## Retry Policy
+
+If your endpoint returns a non-2xx status code or does not respond within **10 seconds**, Tuteliq will retry the delivery:
+
+| Attempt | Delay         |
+|---------|---------------|
+| 1st retry | 30 seconds  |
+| 2nd retry | 5 minutes   |
+| 3rd retry | 30 minutes  |
+
+After three failed retries, the event is marked as `failed`. You can view and replay failed deliveries from the dashboard or via the API.
+
+## Managing Webhooks
+
+### List Webhooks
+
+```bash
+curl https://api.tuteliq.ai/webhooks \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Update Events
+
+```bash
+curl -X PATCH https://api.tuteliq.ai/webhooks/wh_abc123 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "events": ["safety.critical", "safety.high", "batch.completed"] }'
+```
+
+### Test Delivery
+
+Send a test event to your endpoint to verify it is reachable and correctly validating signatures:
+
+```bash
+curl -X POST https://api.tuteliq.ai/webhooks/wh_abc123/test \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+The test event will have `"type": "webhook.test"` and does not represent a real safety incident.
+
+### Regenerate Secret
+
+If your webhook secret has been compromised, regenerate it immediately:
+
+```bash
+curl -X POST https://api.tuteliq.ai/webhooks/wh_abc123/secret/rotate \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+<Warning>
+  Rotating the secret invalidates the previous one immediately. Update your verification logic before or right after regeneration to avoid rejecting legitimate deliveries.
+</Warning>
+
+### Delete a Webhook
+
+```bash
+curl -X DELETE https://api.tuteliq.ai/webhooks/wh_abc123 \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
