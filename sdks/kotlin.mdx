@@ -1,0 +1,171 @@
+---
+title: Kotlin SDK
+sidebarTitle: Kotlin
+icon: android
+description: Install and use the Tuteliq Kotlin SDK
+keywords: [kotlin, android, SDK, JVM]
+---
+
+The Tuteliq Kotlin SDK provides a coroutine-based client for the Tuteliq child safety API. It supports Android 7.0+ (API 24) and any JVM 11+ target.
+
+## Installation
+
+Add the dependency to your `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("ai.tuteliq:sdk:1.0.0")
+}
+```
+
+Or with Gradle Groovy:
+
+```groovy
+dependencies {
+    implementation 'ai.tuteliq:sdk:1.0.0'
+}
+```
+
+## Initialize the client
+
+```kotlin
+import ai.tuteliq.Tuteliq
+
+val tuteliq = Tuteliq(apiKey = "YOUR_API_KEY")
+```
+
+<Warning>
+  Never hardcode API keys in source code. Use `BuildConfig` fields, the Android Keystore, or a secrets manager.
+</Warning>
+
+```kotlin
+val tuteliq = Tuteliq(apiKey = BuildConfig.TUTELIQ_API_KEY)
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```kotlin
+val result = tuteliq.detectUnsafe(
+    text = "Let's meet at the park after school, don't tell your parents",
+    ageGroup = AgeGroup.TEN_TO_TWELVE
+)
+
+println(result.safe)        // false
+println(result.severity)    // Severity.HIGH
+println(result.categories)  // [Category.GROOMING, Category.SECRECY]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```kotlin
+val result = tuteliq.detectGrooming(
+    messages = listOf(
+        Message(role = Role.STRANGER, text = "Hey, how old are you?"),
+        Message(role = Role.CHILD, text = "I'm 11"),
+        Message(role = Role.STRANGER, text = "Cool. Do you have your own phone?"),
+        Message(role = Role.STRANGER, text = "Let's talk on a different app, just us"),
+    ),
+    ageGroup = AgeGroup.TEN_TO_TWELVE
+)
+
+println(result.groomingDetected) // true
+println(result.riskScore)        // 0.92
+println(result.stage)            // GroomingStage.ISOLATION
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```kotlin
+val result = tuteliq.analyzeEmotions(
+    text = "Nobody at school talks to me anymore. I just sit alone every day.",
+    ageGroup = AgeGroup.THIRTEEN_TO_FIFTEEN
+)
+
+println(result.emotions)   // [Emotion(label="sadness", score=0.87), ...]
+println(result.distress)   // true
+println(result.riskLevel)  // RiskLevel.ELEVATED
+```
+
+## Analyze voice
+
+Upload an audio file for transcription and safety analysis.
+
+```kotlin
+val audioFile = File("recording.wav")
+
+val result = tuteliq.analyzeVoice(
+    file = audioFile,
+    ageGroup = AgeGroup.THIRTEEN_TO_FIFTEEN
+)
+
+println(result.transcript)
+println(result.safe)
+println(result.emotions)
+```
+
+## Coroutine support
+
+All SDK methods are `suspend` functions designed for Kotlin coroutines.
+
+```kotlin
+import kotlinx.coroutines.launch
+
+viewModelScope.launch {
+    val result = tuteliq.detectUnsafe(
+        text = messageText,
+        ageGroup = AgeGroup.THIRTEEN_TO_FIFTEEN
+    )
+    _safetyState.value = result
+}
+```
+
+<Info>
+  The SDK uses OkHttp under the hood and integrates with any coroutine scope — `viewModelScope`, `lifecycleScope`, or custom scopes.
+</Info>
+
+## Error handling
+
+The SDK throws typed exceptions that you can catch and inspect.
+
+```kotlin
+import ai.tuteliq.TuteliqError
+
+try {
+    val result = tuteliq.detectUnsafe(
+        text = "some content",
+        ageGroup = AgeGroup.TEN_TO_TWELVE
+    )
+} catch (e: TuteliqError) {
+    println(e.code)    // e.g. "AUTH_INVALID_KEY"
+    println(e.message) // human-readable description
+    println(e.status)  // HTTP status code
+}
+```
+
+## Configuration options
+
+```kotlin
+val tuteliq = Tuteliq(
+    apiKey = BuildConfig.TUTELIQ_API_KEY,
+    baseUrl = "https://api.tuteliq.ai",  // default
+    timeout = 30_000L,                    // request timeout in ms
+    retries = 2                           // automatic retries on failure
+)
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Swift SDK" icon="swift" href="/sdks/swift">
+    See the Swift SDK guide.
+  </Card>
+</CardGroup>

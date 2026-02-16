@@ -1,0 +1,185 @@
+---
+title: Flutter SDK
+sidebarTitle: Flutter
+icon: flutter
+description: Install and use the Tuteliq Flutter SDK
+keywords: [flutter, dart, SDK, mobile, cross-platform]
+---
+
+The Tuteliq Flutter SDK provides a Dart client for the Tuteliq child safety API. It supports iOS, Android, web, macOS, and Linux via Flutter 3.10+.
+
+## Installation
+
+Add the package to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  tuteliq: ^1.0.0
+```
+
+Then run:
+
+```bash
+flutter pub get
+```
+
+## Initialize the client
+
+```dart
+import 'package:tuteliq/tuteliq.dart';
+
+final tuteliq = Tuteliq(apiKey: 'YOUR_API_KEY');
+```
+
+<Warning>
+  Never hardcode API keys in source code. Use `--dart-define`, environment variables, or a secrets manager.
+</Warning>
+
+```dart
+final tuteliq = Tuteliq(
+  apiKey: const String.fromEnvironment('TUTELIQ_API_KEY'),
+);
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```dart
+final result = await tuteliq.detectUnsafe(
+  text: "Let's meet at the park after school, don't tell your parents",
+  ageGroup: AgeGroup.tenToTwelve,
+);
+
+print(result.safe);        // false
+print(result.severity);    // Severity.high
+print(result.categories);  // [Category.grooming, Category.secrecy]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```dart
+final result = await tuteliq.detectGrooming(
+  messages: [
+    Message(role: Role.stranger, text: 'Hey, how old are you?'),
+    Message(role: Role.child, text: "I'm 11"),
+    Message(role: Role.stranger, text: 'Cool. Do you have your own phone?'),
+    Message(role: Role.stranger, text: "Let's talk on a different app, just us"),
+  ],
+  ageGroup: AgeGroup.tenToTwelve,
+);
+
+print(result.groomingDetected); // true
+print(result.riskScore);        // 0.92
+print(result.stage);            // GroomingStage.isolation
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```dart
+final result = await tuteliq.analyzeEmotions(
+  text: 'Nobody at school talks to me anymore. I just sit alone every day.',
+  ageGroup: AgeGroup.thirteenToFifteen,
+);
+
+print(result.emotions);   // [Emotion(label: 'sadness', score: 0.87), ...]
+print(result.distress);   // true
+print(result.riskLevel);  // RiskLevel.elevated
+```
+
+## Analyze voice
+
+Upload an audio file for transcription and safety analysis.
+
+```dart
+import 'dart:io';
+
+final audioFile = File('recording.wav');
+
+final result = await tuteliq.analyzeVoice(
+  file: audioFile,
+  ageGroup: AgeGroup.thirteenToFifteen,
+);
+
+print(result.transcript);
+print(result.safe);
+print(result.emotions);
+```
+
+## Flutter widget integration
+
+<Info>
+  The SDK works with any Flutter state management solution — Provider, Riverpod, Bloc, or plain `setState`.
+</Info>
+
+```dart
+class SafetyCheckWidget extends StatefulWidget {
+  @override
+  _SafetyCheckWidgetState createState() => _SafetyCheckWidgetState();
+}
+
+class _SafetyCheckWidgetState extends State<SafetyCheckWidget> {
+  final tuteliq = Tuteliq(
+    apiKey: const String.fromEnvironment('TUTELIQ_API_KEY'),
+  );
+  bool? _isSafe;
+
+  Future<void> _checkContent(String text) async {
+    final result = await tuteliq.detectUnsafe(
+      text: text,
+      ageGroup: AgeGroup.thirteenToFifteen,
+    );
+    setState(() => _isSafe = result.safe);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(_isSafe == true ? 'Content is safe' : 'Checking...');
+  }
+}
+```
+
+## Error handling
+
+The SDK throws typed exceptions that you can catch and inspect.
+
+```dart
+import 'package:tuteliq/tuteliq.dart';
+
+try {
+  final result = await tuteliq.detectUnsafe(
+    text: 'some content',
+    ageGroup: AgeGroup.tenToTwelve,
+  );
+} on TuteliqError catch (e) {
+  print(e.code);    // e.g. 'AUTH_INVALID_KEY'
+  print(e.message); // human-readable description
+  print(e.status);  // HTTP status code
+}
+```
+
+## Configuration options
+
+```dart
+final tuteliq = Tuteliq(
+  apiKey: const String.fromEnvironment('TUTELIQ_API_KEY'),
+  baseUrl: 'https://api.tuteliq.ai',  // default
+  timeout: Duration(seconds: 30),      // request timeout
+  retries: 2,                          // automatic retries on failure
+);
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Kotlin SDK" icon="android" href="/sdks/kotlin">
+    See the Kotlin SDK guide.
+  </Card>
+</CardGroup>

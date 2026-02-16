@@ -1,0 +1,102 @@
+---
+title: How It Works
+sidebarTitle: How It Works
+icon: diagram-project
+description: "Understand Tuteliq's detection pipeline — from raw content to actionable safety scores"
+keywords: [architecture, detection, pipeline, scoring, how it works, KOSA]
+---
+
+Tuteliq processes content through a multi-stage AI pipeline designed specifically for child safety. Every input — whether text, voice, or image — passes through detection, contextual analysis, and age-calibrated scoring before returning an actionable result.
+
+## The detection pipeline
+
+### 1. Content ingestion
+
+When you send a request to any Safety endpoint, Tuteliq first normalizes the input. Text is analyzed directly. Audio files are transcribed via Whisper and then analyzed as text with timestamped segments preserved. Images are processed through Vision AI for visual classification and OCR text extraction simultaneously — so a screenshot of a harmful conversation is caught by both the visual and textual classifiers.
+
+### 2. Multi-model classification
+
+Rather than relying on a single model, Tuteliq runs content through specialized classifiers for each harm category in parallel:
+
+| Classifier | What it detects |
+|------------|----------------|
+| **Grooming Detection** | Trust escalation, secrecy requests, isolation attempts, boundary testing, gift/reward patterns |
+| **Bullying & Harassment** | Direct insults, social exclusion, intimidation, cyberstalking, identity-based attacks |
+| **Self-Harm & Suicidal Ideation** | Crisis language, passive ideation, planning indicators, self-injury references |
+| **Substance Use** | Promotion, solicitation, normalization of drug/alcohol use toward minors |
+| **Eating Disorders** | Pro-anorexia/bulimia content, body dysmorphia triggers, dangerous diet promotion |
+| **Depression & Anxiety** | Persistent mood indicators, hopelessness patterns, withdrawal signals |
+| **Compulsive Usage** | Engagement manipulation, addiction-pattern reinforcement, dark patterns targeting minors |
+| **Sexual Exploitation** | Explicit solicitation, sextortion patterns, inappropriate sexual content directed at minors |
+
+Each classifier produces an independent confidence score. When multiple classifiers fire on the same content (e.g., grooming + sexual exploitation), Tuteliq combines the signals to produce a holistic risk assessment.
+
+### 3. Context engine
+
+This is where Tuteliq diverges from keyword-based filters. The context engine evaluates:
+
+- **Linguistic intent** — Is "I want to kill myself" an expression of frustration over a video game, or a genuine crisis signal? Tuteliq analyzes surrounding context, tone, and conversational history to distinguish the two.
+- **Relationship dynamics** — In grooming detection, a single message may appear harmless. The context engine tracks multi-turn escalation patterns — compliments, then secrecy requests, then isolation attempts, then boundary violations — that only become visible across a conversation.
+- **Platform norms** — Teen slang, gaming culture, and social media language evolve fast. The context engine recognizes that "I'm literally dead" in a group chat has a fundamentally different risk profile than the same phrase in a private message to a younger child.
+
+### 4. Age-calibrated scoring
+
+The same content carries different risk depending on the child's age. Tuteliq adjusts severity across four brackets:
+
+| Age bracket | Calibration |
+|-------------|------------|
+| **Under 10** | Highest sensitivity. Almost any exposure to harmful content is flagged at elevated severity. |
+| **10–12** | High sensitivity. Beginning to encounter peer conflict; distinguishes normal friction from targeted harassment. |
+| **13–15** | Moderate sensitivity. Accounts for typical teen communication patterns while remaining alert to genuine risk. |
+| **16–17** | Adjusted sensitivity. Recognizes greater autonomy while maintaining protection against grooming, exploitation, and crisis signals. |
+
+You specify the `age_group` in your request context. If omitted, Tuteliq defaults to the most protective bracket.
+
+### 5. Response generation
+
+Every response includes:
+
+- **`unsafe`** (boolean) — Clear yes/no for immediate routing decisions.
+- **`categories`** (array) — Which KOSA harm categories were triggered.
+- **`severity`** (string) — `low`, `medium`, `high`, or `critical`, calibrated to the age group.
+- **`risk_score`** (integer, 0–100) — Granular score for threshold-based automation.
+- **`confidence`** (float) — Model confidence in the classification.
+- **`rationale`** (string) — Human-readable explanation of why the content was flagged. Useful for trust & safety review and audit trails.
+- **`recommended_action`** (string) — Suggested next step, such as "Escalate to counselor" or "Block and report."
+
+## Beyond detection
+
+Tuteliq doesn't stop at "this content is unsafe." Two additional endpoints complete the workflow:
+
+### Action plan generation
+
+The `/guidance/action-plan` endpoint takes a detection result and generates age-appropriate guidance tailored to the audience:
+
+- **For children** — Gentle, reading-level-appropriate language explaining what happened and what to do next.
+- **For parents** — Clear explanation of the detected risk with suggested conversations and resources.
+- **For trust & safety teams** — Technical summary with recommended platform actions and escalation paths.
+
+### Incident reports
+
+The `/reports/incident` endpoint converts raw conversation data into structured, professional reports suitable for school counselors responding to bullying incidents, platform moderators documenting patterns of abuse, and compliance teams maintaining audit trails for KOSA reporting.
+
+## Architecture principles
+
+**Stateless by default.** Each API call is independent — Tuteliq does not store conversation history unless you explicitly use the emotional trend analysis feature. This minimizes data exposure when processing children's content.
+
+**No training on your data.** Content sent to Tuteliq is used solely for real-time analysis and is not retained for model training. See the [GDPR](/gdpr) section for data retention details.
+
+**Parallel processing.** All harm classifiers run simultaneously, not sequentially. This is how Tuteliq maintains sub-400ms response times even when checking against all nine KOSA categories.
+
+**Policy-configurable.** Use the `/policy/` endpoint to adjust detection thresholds, category weights, and moderation rules for your specific use case — without changing your integration code.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Make your first detection call in under 5 minutes.
+  </Card>
+  <Card title="KOSA Compliance" icon="gavel" href="/kosa-compliance">
+    See how each harm category maps to regulatory requirements.
+  </Card>
+</CardGroup>

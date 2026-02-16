@@ -1,0 +1,180 @@
+---
+title: React Native SDK
+sidebarTitle: React Native
+icon: react
+description: Install and use the Tuteliq React Native SDK
+keywords: [react native, javascript, typescript, SDK, mobile]
+---
+
+The Tuteliq React Native SDK provides a typed client for the Tuteliq child safety API in React Native applications. It supports React Native 0.70+ with full TypeScript definitions.
+
+## Installation
+
+```bash
+npm install @tuteliq/react-native
+```
+
+Or with Yarn:
+
+```bash
+yarn add @tuteliq/react-native
+```
+
+## Initialize the client
+
+```typescript
+import { Tuteliq } from '@tuteliq/react-native';
+
+const tuteliq = new Tuteliq({ apiKey: 'YOUR_API_KEY' });
+```
+
+<Warning>
+  Never hardcode API keys in source code. Use `react-native-config`, environment variables, or a secrets manager.
+</Warning>
+
+```typescript
+import Config from 'react-native-config';
+
+const tuteliq = new Tuteliq({ apiKey: Config.TUTELIQ_API_KEY });
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```typescript
+const result = await tuteliq.detectUnsafe({
+  text: "Let's meet at the park after school, don't tell your parents",
+  ageGroup: '10-12',
+});
+
+console.log(result.safe);        // false
+console.log(result.severity);    // "high"
+console.log(result.categories);  // ["grooming", "secrecy"]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```typescript
+const result = await tuteliq.detectGrooming({
+  messages: [
+    { role: 'stranger', text: 'Hey, how old are you?' },
+    { role: 'child', text: "I'm 11" },
+    { role: 'stranger', text: 'Cool. Do you have your own phone?' },
+    { role: 'stranger', text: "Let's talk on a different app, just us" },
+  ],
+  ageGroup: '10-12',
+});
+
+console.log(result.groomingDetected); // true
+console.log(result.riskScore);        // 0.92
+console.log(result.stage);            // "isolation"
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```typescript
+const result = await tuteliq.analyzeEmotions({
+  text: 'Nobody at school talks to me anymore. I just sit alone every day.',
+  ageGroup: '13-15',
+});
+
+console.log(result.emotions);   // [{ label: "sadness", score: 0.87 }, ...]
+console.log(result.distress);   // true
+console.log(result.riskLevel);  // "elevated"
+```
+
+## Analyze voice
+
+Upload an audio file for transcription and safety analysis.
+
+```typescript
+import RNFS from 'react-native-fs';
+
+const audioPath = `${RNFS.DocumentDirectoryPath}/recording.wav`;
+
+const result = await tuteliq.analyzeVoice({
+  filePath: audioPath,
+  ageGroup: '13-15',
+});
+
+console.log(result.transcript);
+console.log(result.safe);
+console.log(result.emotions);
+```
+
+## Hook integration
+
+<Info>
+  The SDK exports a `useTuteliq` hook for convenient usage within React components.
+</Info>
+
+```typescript
+import { useTuteliq } from '@tuteliq/react-native';
+
+function SafetyScreen() {
+  const tuteliq = useTuteliq();
+  const [result, setResult] = useState(null);
+
+  const checkMessage = async (text: string) => {
+    const res = await tuteliq.detectUnsafe({
+      text,
+      ageGroup: '13-15',
+    });
+    setResult(res);
+  };
+
+  return (
+    <View>
+      <Text>{result?.safe ? 'Content is safe' : 'Checking...'}</Text>
+    </View>
+  );
+}
+```
+
+## Error handling
+
+The SDK throws typed errors that you can catch and inspect.
+
+```typescript
+import { Tuteliq, TuteliqError } from '@tuteliq/react-native';
+
+try {
+  const result = await tuteliq.detectUnsafe({
+    text: 'some content',
+    ageGroup: '10-12',
+  });
+} catch (error) {
+  if (error instanceof TuteliqError) {
+    console.error(error.code);    // e.g. "AUTH_INVALID_KEY"
+    console.error(error.message); // human-readable description
+    console.error(error.status);  // HTTP status code
+  }
+}
+```
+
+## Configuration options
+
+```typescript
+const tuteliq = new Tuteliq({
+  apiKey: Config.TUTELIQ_API_KEY,
+  baseUrl: 'https://api.tuteliq.ai',  // default
+  timeout: 30_000,                      // request timeout in ms
+  retries: 2,                           // automatic retries on failure
+});
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Node.js SDK" icon="node-js" href="/sdks/node">
+    See the Node.js SDK guide.
+  </Card>
+</CardGroup>

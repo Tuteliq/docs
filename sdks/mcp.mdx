@@ -1,0 +1,130 @@
+---
+title: MCP Server
+sidebarTitle: MCP
+icon: plug
+description: Install and use the Tuteliq MCP server for AI assistant integrations
+keywords: [mcp, model context protocol, AI, assistant, claude, cursor]
+---
+
+The Tuteliq MCP server exposes child safety detection as tools for AI assistants that support the [Model Context Protocol](https://modelcontextprotocol.io) — including Claude Desktop, Cursor, Windsurf, and other MCP-compatible clients.
+
+## Installation
+
+```bash
+npm install -g @tuteliq/mcp
+```
+
+## Configuration
+
+### Claude Desktop
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "tuteliq": {
+      "command": "tuteliq-mcp",
+      "env": {
+        "TUTELIQ_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to your `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "tuteliq": {
+      "command": "tuteliq-mcp",
+      "env": {
+        "TUTELIQ_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+### Claude Code
+
+Add to your project's `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "tuteliq": {
+      "command": "tuteliq-mcp",
+      "env": {
+        "TUTELIQ_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+## Available tools
+
+Once configured, the following tools are available to the AI assistant:
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `detect_unsafe` | Detect harmful content in text | `text`, `age_group` |
+| `detect_bullying` | Detect bullying in text | `text`, `age_group` |
+| `detect_grooming` | Detect grooming patterns in conversations | `messages`, `age_group` |
+| `analyze_emotions` | Analyze emotional well-being | `text`, `age_group` |
+| `analyze_voice` | Analyze audio files | `file_path`, `age_group` |
+| `analyze_image` | Analyze image files | `file_path`, `age_group` |
+| `get_action_plan` | Generate age-appropriate guidance | `detection_result`, `audience` |
+| `generate_report` | Create incident reports | `conversation`, `age_group` |
+
+## Example usage
+
+Once the MCP server is running, you can ask your AI assistant to use Tuteliq tools directly in conversation:
+
+> "Check this message for safety: 'Let's meet at the park after school, don't tell your parents' — the user is 10-12 years old"
+
+The assistant will call `detect_unsafe` and return the full safety analysis including severity, categories, risk score, and rationale.
+
+> "Analyze this conversation for grooming patterns" (with a conversation pasted or in a file)
+
+The assistant will call `detect_grooming` and provide a detailed breakdown of any detected grooming stages.
+
+## Resources
+
+The MCP server also exposes resources for context:
+
+| Resource | Description |
+|----------|-------------|
+| `tuteliq://kosa-categories` | List of all nine KOSA harm categories |
+| `tuteliq://age-groups` | Available age group brackets and their calibration |
+| `tuteliq://credit-costs` | Per-endpoint credit costs |
+
+## Error handling
+
+If the API key is invalid or credits are exhausted, the tool will return a structured error message that the AI assistant can interpret and relay to the user.
+
+## Configuration options
+
+Environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TUTELIQ_API_KEY` | Your Tuteliq API key | Required |
+| `TUTELIQ_BASE_URL` | API base URL | `https://api.tuteliq.ai` |
+| `TUTELIQ_TIMEOUT` | Request timeout in ms | `30000` |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/sdks/cli">
+    See the CLI guide.
+  </Card>
+</CardGroup>

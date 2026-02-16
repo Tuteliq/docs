@@ -1,0 +1,194 @@
+---
+title: .NET SDK
+sidebarTitle: .NET
+icon: microsoft
+description: Install and use the Tuteliq .NET SDK
+keywords: [dotnet, csharp, SDK, nuget]
+---
+
+The Tuteliq .NET SDK provides an async client for the Tuteliq child safety API. It supports .NET 6.0+ and ships with full XML documentation and nullable reference type annotations.
+
+## Installation
+
+Install via NuGet:
+
+```bash
+dotnet add package Tuteliq
+```
+
+Or via the Package Manager Console:
+
+```powershell
+Install-Package Tuteliq
+```
+
+## Initialize the client
+
+```csharp
+using Tuteliq;
+
+var tuteliq = new TuteliqClient("YOUR_API_KEY");
+```
+
+<Warning>
+  Never hardcode API keys in source code. Use `IConfiguration`, user secrets, or a secrets manager.
+</Warning>
+
+```csharp
+using Microsoft.Extensions.Configuration;
+
+var config = new ConfigurationBuilder()
+    .AddUserSecrets<Program>()
+    .Build();
+
+var tuteliq = new TuteliqClient(config["Tuteliq:ApiKey"]);
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```csharp
+var result = await tuteliq.DetectUnsafeAsync(
+    text: "Let's meet at the park after school, don't tell your parents",
+    ageGroup: AgeGroup.TenToTwelve
+);
+
+Console.WriteLine(result.Safe);        // false
+Console.WriteLine(result.Severity);    // Severity.High
+Console.WriteLine(result.Categories);  // [Category.Grooming, Category.Secrecy]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```csharp
+var result = await tuteliq.DetectGroomingAsync(
+    messages: new[]
+    {
+        new Message(Role.Stranger, "Hey, how old are you?"),
+        new Message(Role.Child, "I'm 11"),
+        new Message(Role.Stranger, "Cool. Do you have your own phone?"),
+        new Message(Role.Stranger, "Let's talk on a different app, just us"),
+    },
+    ageGroup: AgeGroup.TenToTwelve
+);
+
+Console.WriteLine(result.GroomingDetected); // true
+Console.WriteLine(result.RiskScore);        // 0.92
+Console.WriteLine(result.Stage);            // GroomingStage.Isolation
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```csharp
+var result = await tuteliq.AnalyzeEmotionsAsync(
+    text: "Nobody at school talks to me anymore. I just sit alone every day.",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Console.WriteLine(result.Emotions);   // [Emotion { Label = "sadness", Score = 0.87 }, ...]
+Console.WriteLine(result.Distress);   // true
+Console.WriteLine(result.RiskLevel);  // RiskLevel.Elevated
+```
+
+## Analyze voice
+
+Upload an audio file for transcription and safety analysis.
+
+```csharp
+var audioBytes = await File.ReadAllBytesAsync("recording.wav");
+
+var result = await tuteliq.AnalyzeVoiceAsync(
+    file: audioBytes,
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Console.WriteLine(result.Transcript);
+Console.WriteLine(result.Safe);
+Console.WriteLine(result.Emotions);
+```
+
+## Dependency injection
+
+<Info>
+  The SDK provides extension methods for `IServiceCollection` to integrate with ASP.NET Core dependency injection.
+</Info>
+
+```csharp
+// Program.cs or Startup.cs
+builder.Services.AddTuteliq(options =>
+{
+    options.ApiKey = builder.Configuration["Tuteliq:ApiKey"];
+    options.Timeout = TimeSpan.FromSeconds(30);
+    options.Retries = 2;
+});
+```
+
+Then inject `ITuteliqClient` into your controllers or services:
+
+```csharp
+public class ModerationService
+{
+    private readonly ITuteliqClient _tuteliq;
+
+    public ModerationService(ITuteliqClient tuteliq)
+    {
+        _tuteliq = tuteliq;
+    }
+
+    public async Task<bool> IsContentSafe(string text, AgeGroup ageGroup)
+    {
+        var result = await _tuteliq.DetectUnsafeAsync(text, ageGroup);
+        return result.Safe;
+    }
+}
+```
+
+## Error handling
+
+The SDK throws typed exceptions that you can catch and inspect.
+
+```csharp
+using Tuteliq;
+
+try
+{
+    var result = await tuteliq.DetectUnsafeAsync(
+        text: "some content",
+        ageGroup: AgeGroup.TenToTwelve
+    );
+}
+catch (TuteliqException ex)
+{
+    Console.WriteLine(ex.Code);    // e.g. "AUTH_INVALID_KEY"
+    Console.WriteLine(ex.Message); // human-readable description
+    Console.WriteLine(ex.Status);  // HTTP status code
+}
+```
+
+## Configuration options
+
+```csharp
+var tuteliq = new TuteliqClient(new TuteliqOptions
+{
+    ApiKey = config["Tuteliq:ApiKey"],
+    BaseUrl = "https://api.tuteliq.ai",       // default
+    Timeout = TimeSpan.FromSeconds(30),        // request timeout
+    Retries = 2                                // automatic retries on failure
+});
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Node.js SDK" icon="node-js" href="/sdks/node">
+    See the Node.js SDK guide.
+  </Card>
+</CardGroup>

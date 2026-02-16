@@ -1,0 +1,179 @@
+---
+title: CLI
+sidebarTitle: CLI
+icon: terminal
+description: Install and use the Tuteliq command-line interface
+keywords: [cli, command line, terminal, testing]
+---
+
+The Tuteliq CLI lets you test safety endpoints, analyze files, and manage API keys directly from the terminal. It's built for developers who want to prototype and debug without writing code.
+
+## Installation
+
+```bash
+npm install -g @tuteliq/cli
+```
+
+Or with Homebrew:
+
+```bash
+brew install tuteliq/tap/tuteliq
+```
+
+## Authentication
+
+Set your API key:
+
+```bash
+tuteliq auth login
+```
+
+Or pass it as an environment variable:
+
+```bash
+export TUTELIQ_API_KEY=your_api_key
+```
+
+## Detect unsafe content
+
+Analyze a text string:
+
+```bash
+tuteliq detect unsafe "Let's meet at the park after school, don't tell your parents" --age-group 10-12
+```
+
+Output:
+
+```json
+{
+  "safe": false,
+  "severity": "high",
+  "categories": ["grooming", "secrecy"],
+  "risk_score": 87,
+  "rationale": "Message contains secrecy request and meeting solicitation..."
+}
+```
+
+## Detect grooming patterns
+
+Analyze a conversation from a JSON file:
+
+```bash
+tuteliq detect grooming --file conversation.json --age-group 10-12
+```
+
+Where `conversation.json` contains:
+
+```json
+{
+  "messages": [
+    { "role": "stranger", "text": "Hey, how old are you?" },
+    { "role": "child", "text": "I'm 11" },
+    { "role": "stranger", "text": "Cool. Do you have your own phone?" },
+    { "role": "stranger", "text": "Let's talk on a different app, just us" }
+  ]
+}
+```
+
+## Analyze emotions
+
+```bash
+tuteliq analyze emotions "Nobody at school talks to me anymore. I just sit alone every day." --age-group 13-15
+```
+
+## Analyze voice
+
+Analyze an audio file:
+
+```bash
+tuteliq analyze voice recording.wav --age-group 13-15
+```
+
+## Analyze image
+
+Analyze an image file:
+
+```bash
+tuteliq analyze image screenshot.png --age-group 10-12
+```
+
+## Batch processing
+
+Analyze multiple inputs from a file:
+
+```bash
+tuteliq batch detect unsafe --file messages.jsonl --age-group 13-15 --output results.jsonl
+```
+
+<Info>
+  Batch mode processes inputs in parallel and writes results as newline-delimited JSON (JSONL).
+</Info>
+
+## Output formats
+
+Control output format with `--format`:
+
+```bash
+# JSON (default)
+tuteliq detect unsafe "text" --format json
+
+# Table view
+tuteliq detect unsafe "text" --format table
+
+# Minimal (just severity)
+tuteliq detect unsafe "text" --format minimal
+```
+
+## API key management
+
+```bash
+# View current key info
+tuteliq auth status
+
+# Check credit balance
+tuteliq usage
+
+# Rotate key
+tuteliq auth rotate
+```
+
+## Configuration
+
+View and set defaults:
+
+```bash
+# Set default age group
+tuteliq config set age-group 13-15
+
+# Set default output format
+tuteliq config set format table
+
+# View all settings
+tuteliq config list
+```
+
+## All commands
+
+| Command | Description |
+|---------|-------------|
+| `tuteliq detect unsafe` | Detect unsafe content in text |
+| `tuteliq detect bullying` | Detect bullying in text |
+| `tuteliq detect grooming` | Detect grooming in conversations |
+| `tuteliq analyze emotions` | Analyze emotional well-being |
+| `tuteliq analyze voice` | Analyze audio files |
+| `tuteliq analyze image` | Analyze image files |
+| `tuteliq batch` | Batch-process multiple inputs |
+| `tuteliq auth` | Manage API key authentication |
+| `tuteliq usage` | View credit balance and usage |
+| `tuteliq config` | View and set CLI configuration |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Node.js SDK" icon="node-js" href="/sdks/node">
+    See the Node.js SDK guide.
+  </Card>
+</CardGroup>

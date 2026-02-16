@@ -1,0 +1,198 @@
+---
+title: Unity SDK
+sidebarTitle: Unity
+icon: gamepad
+description: Install and use the Tuteliq Unity SDK
+keywords: [unity, game, SDK, C#, game engine]
+---
+
+The Tuteliq Unity SDK provides a client for the Tuteliq child safety API designed for Unity 2021.3 LTS and later. It supports both coroutine and async/await patterns.
+
+## Installation
+
+### Unity Package Manager
+
+1. Open **Window > Package Manager**.
+2. Click **+** and select **Add package from git URL**.
+3. Enter:
+
+```
+https://github.com/Tuteliq/unity.git
+```
+
+### Manual installation
+
+Download the latest `.unitypackage` from the [GitHub releases](https://github.com/Tuteliq/unity/releases) and import it into your project.
+
+## Initialize the client
+
+```csharp
+using Tuteliq;
+
+var tuteliq = new TuteliqClient("YOUR_API_KEY");
+```
+
+<Warning>
+  Never hardcode API keys in source code. Use ScriptableObject configs, environment variables, or Unity's built-in encryption for key storage.
+</Warning>
+
+```csharp
+[SerializeField] private TuteliqConfig config;
+
+void Start()
+{
+    var tuteliq = new TuteliqClient(config.ApiKey);
+}
+```
+
+## Detect unsafe content
+
+Scan a single text input for harmful content across all KOSA categories.
+
+```csharp
+var result = await tuteliq.DetectUnsafeAsync(
+    text: "Let's meet at the park after school, don't tell your parents",
+    ageGroup: AgeGroup.TenToTwelve
+);
+
+Debug.Log(result.Safe);        // false
+Debug.Log(result.Severity);    // Severity.High
+Debug.Log(result.Categories);  // [Category.Grooming, Category.Secrecy]
+```
+
+## Detect grooming patterns
+
+Analyze a conversation history for grooming indicators.
+
+```csharp
+var result = await tuteliq.DetectGroomingAsync(
+    messages: new[]
+    {
+        new Message(Role.Stranger, "Hey, how old are you?"),
+        new Message(Role.Child, "I'm 11"),
+        new Message(Role.Stranger, "Cool. Do you have your own phone?"),
+        new Message(Role.Stranger, "Let's talk on a different app, just us"),
+    },
+    ageGroup: AgeGroup.TenToTwelve
+);
+
+Debug.Log(result.GroomingDetected); // true
+Debug.Log(result.RiskScore);        // 0.92
+Debug.Log(result.Stage);            // GroomingStage.Isolation
+```
+
+## Analyze emotions
+
+Evaluate emotional well-being from conversation text.
+
+```csharp
+var result = await tuteliq.AnalyzeEmotionsAsync(
+    text: "Nobody at school talks to me anymore. I just sit alone every day.",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Debug.Log(result.Emotions);   // [Emotion { Label = "sadness", Score = 0.87 }, ...]
+Debug.Log(result.Distress);   // true
+Debug.Log(result.RiskLevel);  // RiskLevel.Elevated
+```
+
+## Analyze voice
+
+Analyze in-game voice chat for safety concerns.
+
+```csharp
+var audioClip = Microphone.Start(null, false, 10, 16000);
+// ... record audio ...
+Microphone.End(null);
+
+var audioData = AudioClipToWav(audioClip);
+
+var result = await tuteliq.AnalyzeVoiceAsync(
+    file: audioData,
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Debug.Log(result.Transcript);
+Debug.Log(result.Safe);
+Debug.Log(result.Emotions);
+```
+
+## Coroutine support
+
+For projects that prefer coroutines over async/await:
+
+```csharp
+using UnityEngine;
+using Tuteliq;
+
+public class ChatModerator : MonoBehaviour
+{
+    private TuteliqClient _tuteliq;
+
+    void Start()
+    {
+        _tuteliq = new TuteliqClient(config.ApiKey);
+    }
+
+    public void CheckMessage(string text)
+    {
+        StartCoroutine(_tuteliq.DetectUnsafe(
+            text: text,
+            ageGroup: AgeGroup.ThirteenToFifteen,
+            onComplete: result =>
+            {
+                if (!result.Safe)
+                {
+                    Debug.LogWarning($"Unsafe content: {result.Severity}");
+                    // Block message, notify moderator, etc.
+                }
+            }
+        ));
+    }
+}
+```
+
+<Info>
+  Both coroutine and async/await patterns use the same underlying HTTP client. Choose whichever fits your project architecture.
+</Info>
+
+## Error handling
+
+The SDK throws typed exceptions that you can catch and inspect.
+
+```csharp
+try
+{
+    var result = await tuteliq.DetectUnsafeAsync(
+        text: "some content",
+        ageGroup: AgeGroup.TenToTwelve
+    );
+}
+catch (TuteliqException ex)
+{
+    Debug.LogError($"{ex.Code}: {ex.Message}");
+}
+```
+
+## Configuration options
+
+```csharp
+var tuteliq = new TuteliqClient(new TuteliqOptions
+{
+    ApiKey = config.ApiKey,
+    BaseUrl = "https://api.tuteliq.ai",       // default
+    Timeout = TimeSpan.FromSeconds(30),        // request timeout
+    Retries = 2                                // automatic retries on failure
+});
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title=".NET SDK" icon="microsoft" href="/sdks/dotnet">
+    See the .NET SDK guide.
+  </Card>
+</CardGroup>

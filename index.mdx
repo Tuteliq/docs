@@ -2,18 +2,39 @@
 title: Introduction
 sidebarTitle: Introduction
 icon: book-open
-description: AI-powered child safety API covering all nine KOSA harm categories
-keywords: [child safety, API, KOSA, moderation]
+description: Detect grooming, bullying, self-harm, and more with a single API call
+keywords: [child safety, API, KOSA, moderation, grooming detection, content moderation]
 ---
 
-Tuteliq is an AI-powered child safety API that helps platforms detect harmful content, analyze emotional well-being, and maintain compliance with child protection regulations including KOSA and GDPR. Integrate real-time safety analysis into any application with a single API call.
+## Ship child-safe apps without building content moderation from scratch
+
+Tuteliq is a content moderation API aligned with KOSA. Detect grooming, bullying, self-harm, and more — with age-calibrated risk scoring in under 400ms. One API call replaces months of in-house ML work.
+
+<CardGroup cols={2}>
+  <Card title="Get API Key — Free" icon="key" href="https://tuteliq.ai/dashboard">
+    Create your account and start analyzing content immediately.
+  </Card>
+  <Card title="Read the Docs" icon="book" href="/quickstart">
+    Follow the quickstart guide to make your first API call.
+  </Card>
+</CardGroup>
+
+<Info>
+  Built for platforms where minors interact online — from gaming chat to classroom apps.
+</Info>
+
+## The problem
+
+Child safety compliance shouldn't require a machine learning team. KOSA requires platforms to protect minors from nine categories of harm — bullying, grooming, eating disorders, substance use, self-harm, depression, compulsive usage, sexual exploitation, and unsafe visual content. Building detection for even one of these categories takes months of ML engineering, training data, and ongoing maintenance. Building for all nine, across text, voice, and images, with age-appropriate calibration? That's a team-year of work.
+
+Tuteliq does it in a single API call.
 
 <CardGroup cols={2}>
   <Card title="Safety Detection" icon="shield-halved" href="/quickstart">
-    Detect bullying, grooming, and unsafe content in text with per-message risk scoring aligned to KOSA harm categories.
+    Per-message risk scoring for bullying, grooming, self-harm, substance use, and more — calibrated by age group and aligned to all nine KOSA harm categories.
   </Card>
-  <Card title="Emotional Analysis" icon="brain" href="/sdks/node">
-    Analyze emotional patterns across conversation histories to identify distress signals and behavioral shifts.
+  <Card title="Emotional Analysis" icon="brain" href="/api-reference/introduction">
+    Track emotional trends over time to catch depression, anxiety, and declining mental health before they escalate — not just per-message, but across entire conversation histories.
   </Card>
   <Card title="Voice & Image" icon="microphone" href="/voice-streaming">
     Process audio recordings and images for safety analysis, including transcription, OCR, and content classification.
@@ -29,14 +50,37 @@ Tuteliq is an AI-powered child safety API that helps platforms detect harmful co
   </Card>
 </CardGroup>
 
+## Why Tuteliq
+
+<CardGroup cols={2}>
+  <Card title="Age-Calibrated Severity" icon="child">
+    A joke between 16-year-olds isn't the same as a message to an 8-year-old. Risk scores automatically adjust across four age brackets so your moderation matches developmental context.
+  </Card>
+  <Card title="Context, Not Keywords" icon="brain-circuit">
+    A teen texting "I'm literally going to die if I don't get those shoes" shouldn't trigger the same response as genuine crisis language. Tuteliq's context engine understands the difference — dramatically reducing false positives.
+  </Card>
+  <Card title="Beyond Detection" icon="clipboard-list">
+    Most safety APIs stop at a risk score. Tuteliq generates age-appropriate action plans for children, parents, and moderators, plus professional incident reports ready for school counselors and compliance audits.
+  </Card>
+  <Card title="Full KOSA Coverage" icon="shield-check">
+    Nine out of nine harm categories covered out of the box. No mix-and-match from multiple vendors. One integration, full compliance.
+  </Card>
+  <Card title="Multimodal" icon="layer-group">
+    Text, voice, and images analyzed through a single API. Audio is transcribed and safety-analyzed with timestamped segments. Images are classified visually and OCR-scanned for embedded text.
+  </Card>
+  <Card title="Built for Production" icon="server">
+    Sub-400ms latency. 99.9% uptime SLA. Batch processing for up to 50 items per request. HMAC-signed webhooks with automatic retry. GDPR-compliant data management on every tier.
+  </Card>
+</CardGroup>
+
 ## Who uses Tuteliq
 
-Tuteliq is built for any platform where minors interact online:
+Built for platforms where minors interact:
 
-- **Gaming platforms** — moderate in-game chat, voice comms, and user-generated content
-- **Social apps** — detect grooming, bullying, and self-harm signals in DMs and feeds
-- **Ed-tech** — ensure safe learning environments with real-time content filtering
-- **Messaging apps** — analyze conversations for emotional distress and predatory behavior
+- **Gaming platforms** — Moderate in-game chat, voice comms, and user-generated content in real time.
+- **Social apps** — Detect grooming, bullying, and self-harm signals in DMs and feeds before they escalate.
+- **Ed-tech** — Ensure safe learning environments with content filtering that understands classroom context.
+- **Messaging apps** — Analyze conversations for emotional distress and predatory behavior across text and voice.
 
 ## Performance
 
@@ -46,6 +90,8 @@ Tuteliq is built for any platform where minors interact online:
 | Uptime SLA | 99.9% |
 | KOSA categories covered | 9/9 |
 | Supported input types | Text, voice, image |
+| Rate limits | 60–5,000 req/min depending on [tier](/authentication) |
+| Credit costs | 1–5 credits per call — see [Pricing & Credits](/credits) |
 
 ## Get started
 
