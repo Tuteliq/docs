@@ -173,16 +173,14 @@
     }
   },
   "seo": {
-    "indexHiddenPages": false,
-    "metatags": [
-      { "name": "robots", "content": "index, follow" },
-      { "name": "author", "content": "Tuteliq" }
-    ]
+    "indexHiddenPages": false
   },
   "metadata": {
     "og:site_name": "Tuteliq Docs",
     "og:image": "https://tuteliq.ai/og-image.png",
-    "twitter:site": "@tuteliq"
+    "twitter:site": "@tuteliq",
+    "robots": "index, follow",
+    "author": "Tuteliq"
   },
   "redirects": [
     { "source": "/docs", "destination": "/index" },
