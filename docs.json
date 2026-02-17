@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Tuteliq",
-  "description": "Documentation for the Tuteliq API — AI-powered child safety detection for text, voice, and images.",
+  "description": "Documentation for the Tuteliq API — AI-powered child safety detection for text, voice, images, and video.",
   "colors": {
     "primary": "#2DD4BF",
     "light": "#5EEAD4",
@@ -76,6 +76,7 @@
             "pages": [
               "languages",
               "voice-streaming",
+              "video-analysis",
               "webhooks",
               "error-handling"
             ]

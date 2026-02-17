@@ -20,6 +20,9 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 | `generateReport` | 3 | Structured output |
 | `analyzeVoice` | 5 | Transcription + analysis |
 | `analyzeImage` | 3 | Vision + OCR + analysis |
+| `analyzeVideo` | 10 | Frame extraction + per-frame vision |
+| Voice stream (per flush) | 1 | Real-time transcription + analysis |
+| Video stream (per frame) | 3 | Per-frame vision analysis |
 
 <Info>
   For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) = 3` credits.

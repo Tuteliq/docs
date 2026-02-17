@@ -1,0 +1,205 @@
+---
+title: Video Analysis
+sidebarTitle: Video Analysis
+icon: video
+description: Analyze uploaded videos for visual safety concerns across extracted frames
+keywords: [video, frames, moderation, ffmpeg, visual safety, content moderation]
+---
+
+Tuteliq can analyze uploaded video files by extracting key frames at even intervals and running vision analysis on each frame. This is ideal for moderating user-uploaded videos, screen recordings, and video messages.
+
+## Endpoint
+
+```
+POST /api/v1/safety/video
+Content-Type: multipart/form-data
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Upload">
+    Send a video file as `multipart/form-data`. Supported formats: **MP4, WebM, QuickTime, AVI**. Max file size: **100MB**. Max duration: **10 minutes**.
+  </Step>
+  <Step title="Frame Extraction">
+    The server uses ffmpeg to extract key frames at even intervals. You can control the number of frames with `max_frames` (default: 10, max: 20).
+  </Step>
+  <Step title="Vision Analysis">
+    Each extracted frame is analyzed by the vision model for visual safety concerns — violence, sexual content, self-harm imagery, substance use, and more. Frames are processed in parallel batches of 3 for speed.
+  </Step>
+  <Step title="Aggregation">
+    Results are aggregated into an `overall_risk_score` (the max across all frames) and `overall_severity`. Frames above the risk threshold are returned as `flagged_timestamps` with specific reasons.
+  </Step>
+</Steps>
+
+## Request
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | File | Yes | Video file (mp4, webm, quicktime, avi). Max 100MB. |
+| `analysis_type` | string | No | `unsafe` or `all` (default: `all`) |
+| `max_frames` | number | No | Maximum frames to extract (default: 10, max: 20) |
+| `file_id` | string | No | Your file reference, echoed in response |
+| `external_id` | string | No | Your correlation ID, echoed in response |
+| `customer_id` | string | No | Multi-tenant customer ID, echoed in response |
+| `age_group` | string | No | Age group for calibrated scoring (e.g., `"11-13"`) |
+| `platform` | string | No | Platform name (e.g., `"TikTok"`, `"Discord"`) |
+| `metadata` | JSON string | No | Arbitrary key-value metadata (max 20 properties) |
+
+## Response
+
+```json
+{
+  "file_id": "vid_abc123",
+  "frames_analyzed": 10,
+  "duration_seconds": 30.5,
+  "frame_results": [
+    {
+      "frame_index": 0,
+      "timestamp_s": 0,
+      "vision": {
+        "extracted_text": "",
+        "visual_categories": [],
+        "visual_severity": "none",
+        "visual_confidence": 0.92,
+        "visual_description": "Normal video frame showing a chat interface",
+        "contains_text": true,
+        "contains_faces": false
+      },
+      "risk_score": 0,
+      "severity": "none"
+    },
+    {
+      "frame_index": 5,
+      "timestamp_s": 15.3,
+      "vision": {
+        "extracted_text": "",
+        "visual_categories": ["violence"],
+        "visual_severity": "high",
+        "visual_confidence": 0.88,
+        "visual_description": "Video frame depicting violent content",
+        "contains_text": false,
+        "contains_faces": true
+      },
+      "risk_score": 0.8,
+      "severity": "high"
+    }
+  ],
+  "overall_risk_score": 0.8,
+  "overall_severity": "high",
+  "flagged_timestamps": [
+    {
+      "timestamp_s": 15.3,
+      "reason": "violence",
+      "severity": "high"
+    }
+  ],
+  "credits_used": 10
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `frames_analyzed` | number | Number of frames extracted and analyzed |
+| `duration_seconds` | number | Video duration in seconds |
+| `frame_results` | array | Per-frame analysis results (see below) |
+| `overall_risk_score` | number | Maximum risk score across all frames (0.0–1.0) |
+| `overall_severity` | string | `none`, `low`, `medium`, `high`, or `critical` |
+| `flagged_timestamps` | array | Frames with risk score above the low threshold |
+| `credits_used` | number | Always 10 |
+
+### Per-Frame Result
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `frame_index` | number | 0-based index of the frame |
+| `timestamp_s` | number | Timestamp in the video (seconds) |
+| `vision.visual_categories` | string[] | Detected harm categories |
+| `vision.visual_severity` | string | Frame-level severity |
+| `vision.visual_confidence` | number | Confidence of the visual classification |
+| `vision.visual_description` | string | Human-readable description of the frame |
+| `vision.extracted_text` | string | Any text found in the frame via OCR |
+| `vision.contains_text` | boolean | Whether the frame contains text |
+| `vision.contains_faces` | boolean | Whether the frame contains faces |
+| `risk_score` | number | Numeric risk score for the frame (0.0–1.0) |
+| `severity` | string | Severity level for the frame |
+
+## Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.tuteliq.ai/api/v1/safety/video \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@screen_recording.mp4" \
+  -F "analysis_type=unsafe" \
+  -F "max_frames=15" \
+  -F "age_group=11-13" \
+  -F "platform=Discord"
+```
+
+```typescript Node.js
+import { Tuteliq } from "@tuteliq/sdk";
+import { readFileSync } from "fs";
+
+const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY });
+
+const result = await tuteliq.analyzeVideo({
+  file: readFileSync("./clip.mp4"),
+  filename: "clip.mp4",
+  analysisType: "unsafe",
+  maxFrames: 15,
+  ageGroup: "11-13",
+  platform: "Discord",
+});
+
+if (result.overall_severity === "high" || result.overall_severity === "critical") {
+  console.log("Unsafe video detected!");
+  console.log("Flagged timestamps:", result.flagged_timestamps);
+}
+```
+
+```python Python
+from tuteliq import Tuteliq
+
+client = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
+
+result = client.analyze_video(
+    file=open("clip.mp4", "rb"),
+    analysis_type="unsafe",
+    max_frames=15,
+    age_group="11-13",
+    platform="Discord",
+)
+
+if result.overall_severity in ("high", "critical"):
+    print("Unsafe video detected!")
+    for ts in result.flagged_timestamps:
+        print(f"  {ts.timestamp_s}s: {ts.reason} ({ts.severity})")
+```
+</CodeGroup>
+
+## Severity Thresholds
+
+The `overall_severity` is derived from the highest `risk_score` across all frames:
+
+| Risk Score | Severity |
+|------------|----------|
+| < 0.3 | none |
+| 0.3 – 0.5 | low |
+| 0.5 – 0.7 | medium |
+| 0.7 – 0.9 | high |
+| >= 0.9 | critical |
+
+## Credits
+
+Video analysis costs **10 credits** per request, regardless of the number of frames extracted. For real-time video monitoring with per-frame billing, see [Voice & Video Streaming](/voice-streaming).
+
+## Webhooks
+
+When a video is flagged with severity `medium` or above, Tuteliq automatically triggers any configured [webhooks](/webhooks) with the `video` analysis type. The webhook payload includes the flagged timestamps, overall risk score, and detected categories.
+
+<Note>
+  Video analysis requires **ffmpeg** to be installed on the server for frame extraction. The official Docker image and Cloud Run deployment include ffmpeg by default.
+</Note>

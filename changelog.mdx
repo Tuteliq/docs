@@ -6,6 +6,31 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.2.0 — February 2026
+
+### Video Analysis
+- `POST /v1/safety/video` — upload a video file (mp4, webm, quicktime, avi — max 100MB, 10 min) and receive per-frame vision analysis with flagged timestamps
+- Frame extraction powered by ffmpeg with configurable `max_frames` (default 10, max 20)
+- Aggregated `overall_risk_score` and `overall_severity` across all frames
+- Automatic incident recording and webhook alerts for flagged videos
+- 10 credits per video analysis
+
+### Video Streaming
+- WebSocket voice streaming now supports **video frames** alongside audio
+- Send video frames as binary with a `0x01` prefix byte; audio uses `0x00` or no prefix (backward compatible)
+- New `frame_analysis` server event with per-frame vision results
+- New config options: `enable_video`, `frame_interval_seconds` (min 3s, default 5s)
+- `session_summary` event now includes `video_frames_analyzed` count
+- 3 credits per video frame analysis
+
+### Voice Streaming Enhancements
+- Updated authentication: `?api_key=` query param or `Authorization: Bearer` header
+- Tier-based connection limits (1 for Starter, up to unlimited for Enterprise)
+- Subscription-aware credit tracking per flush
+- Heartbeat ping/pong every 30 seconds for stale connection detection
+
+---
+
 ## v1.1.0 — February 2026
 
 ### Multilingual Support

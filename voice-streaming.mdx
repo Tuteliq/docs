@@ -1,24 +1,48 @@
 ---
-title: Voice Streaming
-sidebarTitle: Voice Streaming
+title: Voice & Video Streaming
+sidebarTitle: Voice & Video Streaming
 icon: microphone
-description: Real-time voice moderation via WebSocket
-keywords: [WebSocket, audio, real-time, transcription]
+description: Real-time voice and video moderation via WebSocket
+keywords: [WebSocket, audio, video, real-time, transcription, streaming]
 ---
 
-Tuteliq provides a WebSocket-based voice streaming endpoint that transcribes audio in real time and emits safety alerts as they are detected. This allows you to moderate voice chat, calls, and other live audio without waiting for the full recording to finish.
+Tuteliq provides a WebSocket-based streaming endpoint that transcribes audio in real time, analyzes video frames, and emits safety alerts as they are detected. This allows you to moderate voice chat, video calls, and other live media without waiting for the full recording to finish.
 
 ## Endpoint
 
 ```
-wss://api.tuteliq.ai/safety/voice/stream?token=YOUR_API_KEY
+wss://api.tuteliq.ai/api/v1/safety/voice/stream?api_key=YOUR_API_KEY
 ```
 
-Authentication is handled via the `token` query parameter. The connection will be rejected with a `4001` close code if the key is invalid or expired.
+Authentication is handled via the `api_key` query parameter or the `Authorization: Bearer YOUR_API_KEY` header. The connection will be rejected with a `4001` close code if the key is invalid or expired.
 
-## Audio Format
+### Connection Limits
 
-Send audio data as **binary WebSocket frames**. The recommended format is:
+Concurrent WebSocket connections are limited by your plan tier:
+
+| Plan | Max Connections |
+|------|-----------------|
+| Starter (Free) | 1 |
+| Indie | 3 |
+| Pro | 10 |
+| Business | 50 |
+| Enterprise | Unlimited |
+
+Exceeding your limit returns close code `4029`.
+
+## Binary Protocol
+
+Send media data as **binary WebSocket frames**. A prefix byte discriminates between audio and video:
+
+| Prefix Byte | Meaning |
+|-------------|---------|
+| *(none)* | Audio chunk (backward compatible) |
+| `0x00` | Audio chunk (explicit tag) |
+| `0x01` | Video frame (JPEG/PNG) |
+
+### Audio Format
+
+The recommended audio format is:
 
 | Parameter   | Value          |
 |-------------|----------------|
@@ -31,61 +55,114 @@ Send audio data as **binary WebSocket frames**. The recommended format is:
   Other sample rates (8 kHz, 44.1 kHz, 48 kHz) are accepted but will be resampled server-side, which adds latency. 16 kHz mono gives the best balance of accuracy and speed.
 </Note>
 
+### Video Frames
+
+Send JPEG or PNG frames with a `0x01` prefix byte. Frames are analyzed at the configured `frame_interval_seconds` (default 5s, minimum 3s). Each frame must be under 5MB.
+
+```javascript
+// Tag a JPEG frame with the 0x01 prefix
+const tagged = Buffer.concat([Buffer.from([0x01]), jpegBuffer]);
+ws.send(tagged);
+```
+
 ## Connection Lifecycle
 
 <Steps>
   <Step title="Connect">
     Open a WebSocket connection to the streaming endpoint with your API key.
   </Step>
+  <Step title="Receive Ready">
+    The server sends a `ready` event with your `session_id` and default config.
+  </Step>
   <Step title="Configure (optional)">
-    Send a JSON text frame to adjust settings before streaming audio.
+    Send a JSON `config` message to adjust analysis settings.
   </Step>
-  <Step title="Send Audio">
-    Stream binary audio chunks continuously. The server begins transcription and analysis immediately.
+  <Step title="Stream Media">
+    Send binary audio chunks (and optionally video frames) continuously. The server transcribes audio and analyzes video at configured intervals.
   </Step>
-  <Step title="Receive Alerts">
-    The server sends JSON text frames containing partial transcriptions and safety alerts as they are detected.
+  <Step title="Receive Events">
+    The server sends JSON text frames containing transcriptions, safety alerts, and video frame analysis results.
   </Step>
-  <Step title="Close">
-    Close the connection normally. The server will flush any remaining audio and send a final summary frame.
+  <Step title="End Session">
+    Send a `{"type": "end"}` message or close the connection. The server flushes remaining data and sends a `session_summary` event.
   </Step>
 </Steps>
 
-## Configuration
+## Client Messages (JSON)
 
-After connecting, you can send a JSON text frame to configure the session:
+### Config
+
+Update session settings at any time. The server responds with a `config_updated` event.
 
 ```json
 {
   "type": "config",
-  "flush_interval_ms": 2000,
-  "categories": ["grooming", "bullying", "self_harm", "substance", "sexual_content"],
-  "language": "en",
-  "min_severity": "medium"
+  "interval_seconds": 10,
+  "analysis_types": ["bullying", "unsafe", "grooming", "emotions"],
+  "enable_video": true,
+  "frame_interval_seconds": 5,
+  "context": {
+    "age_group": "11-13",
+    "platform": "Discord",
+    "language": "en"
+  }
 }
 ```
 
-| Field                | Type     | Default | Description                                      |
-|----------------------|----------|---------|--------------------------------------------------|
-| `flush_interval_ms`  | number   | 3000    | How often (in ms) the server emits transcription results. Lower values give faster feedback but may be less accurate. |
-| `categories`         | string[] | all     | Safety categories to monitor. Omit to enable all. |
-| `language`           | string   | `"en"`  | Language hint for transcription.                  |
-| `min_severity`       | string   | `"low"` | Minimum severity level to trigger alerts (`low`, `medium`, `high`, `critical`). |
+| Field                    | Type     | Default                         | Description |
+|--------------------------|----------|---------------------------------|-------------|
+| `interval_seconds`       | number   | 10                              | Audio flush interval in seconds (5–30). |
+| `analysis_types`         | string[] | all                             | Safety categories to analyze: `bullying`, `unsafe`, `grooming`, `emotions`. |
+| `enable_video`           | boolean  | false                           | Enable video frame analysis. |
+| `frame_interval_seconds` | number   | 5                               | Minimum interval between video frame analyses (min 3s). |
+| `context`                | object   | —                               | Analysis context: `age_group`, `platform`, `language`, `child_age`. |
 
-## Server Messages
+### End
 
-### Transcription Frame
+Gracefully close the session. The server flushes remaining data and sends a summary.
+
+```json
+{ "type": "end" }
+```
+
+## Server Events
+
+### `ready`
+
+Sent immediately after authentication succeeds.
+
+```json
+{
+  "type": "ready",
+  "session_id": "abc123",
+  "config": {
+    "interval_seconds": 10,
+    "analysis_types": ["bullying", "unsafe", "grooming", "emotions"],
+    "enable_video": false,
+    "frame_interval_seconds": 5
+  }
+}
+```
+
+### `transcription`
+
+Emitted after each audio flush with transcribed text and timestamped segments.
 
 ```json
 {
   "type": "transcription",
   "text": "hey do you want to come over to my place after school",
-  "is_partial": false,
-  "timestamp_ms": 14200
+  "segments": [
+    { "start": 0.0, "end": 2.5, "text": "hey do you want to" },
+    { "start": 2.5, "end": 5.1, "text": "come over to my place after school" }
+  ],
+  "flush_index": 3
 }
 ```
 
-### Safety Alert Frame
+### `alert`
+
+Safety concern detected in the latest audio flush.
 
 ```json
 {
@@ -93,24 +170,80 @@ After connecting, you can send a JSON text frame to configure the session:
   "category": "grooming",
   "severity": "high",
   "risk_score": 0.87,
-  "text": "hey do you want to come over to my place after school",
-  "description": "Potential grooming pattern detected: private meeting solicitation directed at a minor.",
-  "timestamp_ms": 14200
+  "details": {
+    "is_grooming": true,
+    "flags": ["secrecy_request", "private_meeting"],
+    "confidence": 0.91,
+    "rationale": "Potential grooming pattern: solicitation of a private meeting with secrecy directive.",
+    "recommended_action": "immediate_intervention"
+  },
+  "flush_index": 3
 }
 ```
 
-### Session Summary Frame
+Categories: `bullying`, `unsafe`, `grooming`, `emotions`, `visual`.
 
-Sent when the connection closes:
+### `frame_analysis`
+
+Emitted for each analyzed video frame when `enable_video` is true.
 
 ```json
 {
-  "type": "summary",
-  "duration_ms": 62000,
-  "alerts_count": 2,
-  "highest_severity": "high",
-  "categories_flagged": ["grooming"],
-  "transcript_length": 347
+  "type": "frame_analysis",
+  "session_id": "abc123",
+  "frame_index": 5,
+  "timestamp": "2026-02-17T10:30:15.000Z",
+  "vision": {
+    "extracted_text": "",
+    "visual_categories": ["violence"],
+    "visual_severity": "high",
+    "visual_confidence": 0.88,
+    "visual_description": "Frame depicts violent content",
+    "contains_text": false,
+    "contains_faces": true
+  },
+  "risk_score": 0.8,
+  "severity": "high"
+}
+```
+
+### `session_summary`
+
+Sent when the session ends (via `end` message or connection close).
+
+```json
+{
+  "type": "session_summary",
+  "session_id": "abc123",
+  "duration_seconds": 120,
+  "overall_risk": "medium",
+  "overall_risk_score": 0.55,
+  "total_flushes": 12,
+  "transcript": "Full concatenated transcript of the session...",
+  "video_frames_analyzed": 8
+}
+```
+
+### `config_updated`
+
+Confirmation after a `config` message is processed.
+
+```json
+{
+  "type": "config_updated",
+  "config": { "interval_seconds": 10, "enable_video": true, "..." : "..." }
+}
+```
+
+### `error`
+
+Sent when something goes wrong.
+
+```json
+{
+  "type": "error",
+  "code": "WS_10005",
+  "message": "Invalid WebSocket message format."
 }
 ```
 
@@ -121,59 +254,96 @@ Sent when the connection closes:
 import WebSocket from "ws";
 
 const ws = new WebSocket(
-  "wss://api.tuteliq.ai/safety/voice/stream?token=YOUR_API_KEY"
+  "wss://api.tuteliq.ai/api/v1/safety/voice/stream?api_key=YOUR_API_KEY"
 );
 
 ws.on("open", () => {
-  // Optional: configure the session
+  // Configure for voice + video monitoring
   ws.send(JSON.stringify({
     type: "config",
-    flush_interval_ms: 2000,
-    categories: ["grooming", "bullying", "self_harm"],
-    min_severity: "medium",
+    interval_seconds: 10,
+    analysis_types: ["bullying", "unsafe", "grooming"],
+    enable_video: true,
+    frame_interval_seconds: 5,
+    context: { age_group: "11-13" },
   }));
 
   // Stream audio from a source (e.g., microphone, file, or RTC track)
-  const audioStream = getAudioStream(); // your PCM 16-bit 16kHz mono source
+  const audioStream = getAudioStream();
   audioStream.on("data", (chunk) => {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(chunk);
+      ws.send(chunk); // Binary audio (no prefix needed)
     }
   });
 
-  audioStream.on("end", () => {
-    ws.close(1000, "stream_complete");
+  // Stream video frames with 0x01 prefix
+  const videoCapture = getVideoCapture();
+  videoCapture.on("frame", (jpegBuffer) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      const tagged = Buffer.concat([Buffer.from([0x01]), jpegBuffer]);
+      ws.send(tagged);
+    }
   });
 });
 
 ws.on("message", (data) => {
-  const message = JSON.parse(data.toString());
+  const event = JSON.parse(data.toString());
 
-  if (message.type === "alert") {
-    console.log(
-      `[${message.severity.toUpperCase()}] ${message.category}: ${message.description}`
-    );
-    // Trigger your moderation workflow here
-  }
+  switch (event.type) {
+    case "ready":
+      console.log(`Session started: ${event.session_id}`);
+      break;
 
-  if (message.type === "transcription" && !message.is_partial) {
-    console.log(`Transcript: ${message.text}`);
-  }
+    case "transcription":
+      console.log(`Transcript: ${event.text}`);
+      break;
 
-  if (message.type === "summary") {
-    console.log(`Session ended. Alerts: ${message.alerts_count}`);
+    case "alert":
+      console.log(`[${event.severity.toUpperCase()}] ${event.category}`);
+      if (event.severity === "critical") {
+        // Trigger immediate moderation
+      }
+      break;
+
+    case "frame_analysis":
+      if (event.risk_score > 0.7) {
+        console.log(`Unsafe frame at index ${event.frame_index}`);
+      }
+      break;
+
+    case "session_summary":
+      console.log(`Session ended. Risk: ${event.overall_risk}, Flushes: ${event.total_flushes}, Frames: ${event.video_frames_analyzed}`);
+      break;
   }
 });
 
-ws.on("close", (code, reason) => {
-  console.log(`Connection closed: ${code} ${reason}`);
-});
-
-ws.on("error", (err) => {
-  console.error("WebSocket error:", err.message);
-});
+// End the session gracefully
+function endSession() {
+  ws.send(JSON.stringify({ type: "end" }));
+}
 ```
 </CodeGroup>
+
+## Credits
+
+| Action | Credits |
+|--------|---------|
+| Audio flush (transcription + analysis) | 1 per flush |
+| Video frame analysis | 3 per frame |
+
+Credits are deducted as each flush or frame is processed. Use the `interval_seconds` and `frame_interval_seconds` settings to control how frequently credits are consumed.
+
+## Session Limits
+
+| Limit | Value |
+|-------|-------|
+| Max session duration | 1 hour |
+| Audio flush interval | 5–30 seconds (default: 10s) |
+| Video frame interval | min 3 seconds (default: 5s) |
+| Max audio buffer per flush | 10MB |
+| Max video frame size | 5MB |
+| Grooming context window | Last 50 messages |
+| Max transcript length | 100,000 characters |
 
 ## Close Codes
 
@@ -181,11 +351,9 @@ ws.on("error", (err) => {
 |------|--------------------------------------|
 | 1000 | Normal closure                      |
 | 4001 | Authentication failed               |
-| 4002 | Rate limit exceeded                 |
-| 4003 | Invalid audio format                |
-| 4008 | Session duration limit reached      |
-| 4500 | Internal server error               |
+| 4003 | Subscription limit exceeded / message limit reached |
+| 4029 | Connection limit exceeded for your tier |
 
 <Warning>
-  Voice streaming sessions have a maximum duration of **10 minutes** on the free tier and **60 minutes** on paid tiers. The server will send a summary frame and close the connection with code `4008` when the limit is reached.
+  Voice streaming sessions have a maximum duration of **1 hour**. The server will send a `session_summary` event and close the connection when the limit is reached. Heartbeat pings are sent every 30 seconds — connections that miss a pong will be terminated as stale.
 </Warning>
