@@ -74,6 +74,7 @@
             "group": "Advanced",
             "icon": "bolt",
             "pages": [
+              "languages",
               "voice-streaming",
               "webhooks",
               "error-handling"

@@ -1,0 +1,124 @@
+---
+title: Language Support
+sidebarTitle: Languages
+icon: globe
+description: "Automatic language detection and culture-aware safety analysis in 10 languages"
+keywords: [language detection, multilingual, i18n, localization, auto-detect]
+---
+
+Tuteliq detects and analyzes content in 10 languages. Language is auto-detected — no configuration required.
+
+## Supported Languages
+
+| Code | Language   | Status | Notes |
+|------|-----------|--------|-------|
+| `en` | English    | Stable | Full production support |
+| `es` | Spanish    | Beta   | Including Latin American variants |
+| `pt` | Portuguese | Beta   | Including Brazilian Portuguese |
+| `uk` | Ukrainian  | Beta   | |
+| `sv` | Swedish    | Beta   | |
+| `no` | Norwegian  | Beta   | Bokmål and Nynorsk |
+| `da` | Danish     | Beta   | |
+| `fi` | Finnish    | Beta   | |
+| `de` | German     | Beta   | |
+| `fr` | French     | Beta   | |
+
+<Info>
+  **Stable** means fully validated with comprehensive test coverage. **Beta** languages are production-ready but may have slightly lower accuracy on edge cases. All beta languages include culture-specific analysis guidelines.
+</Info>
+
+## How Detection Works
+
+Language detection uses a three-layer approach for maximum reliability:
+
+<Steps>
+  <Step title="Explicit code">
+    If you pass a `language` parameter in the request context, it is used directly. This is the fastest path and guarantees the correct language is used.
+  </Step>
+  <Step title="Trigram detection">
+    If no explicit language is given, the API runs trigram-based analysis on the input text to infer the language. This works well for most languages and requires no extra latency.
+  </Step>
+  <Step title="LLM confirmation">
+    The LLM also identifies the content language during its analysis (at zero extra cost — same API call). When the LLM's detection is a supported language, it takes precedence over the trigram result. This ensures correct detection for closely related languages like Norwegian/Swedish/Danish.
+  </Step>
+</Steps>
+
+## Response Fields
+
+Every safety endpoint response includes language information:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `language` | `string` | Final resolved language code (ISO 639-1) used for analysis |
+| `language_status` | `string` | `"stable"` for English, `"beta"` for all other supported languages |
+| `detected_language` | `string` | Language code reported by the LLM |
+
+## Culture-Aware Analysis
+
+Each supported language includes culture-specific guidelines that are injected into the classification prompt:
+
+- **Local slang and idioms** — Ensures teen slang and cultural expressions are correctly interpreted rather than triggering false positives.
+- **Harmful terms** — Language-specific lists of slurs, hate speech, and harmful terminology.
+- **Cultural context** — For example, Finnish profanity (e.g., "perkele") is culturally common and treated differently than targeted insults. Norwegian analysis accounts for the janteloven cultural norm. Danish analysis is calibrated for sarcastic and self-deprecating communication styles.
+
+## Examples
+
+### Auto-detection (Norwegian)
+
+```bash
+curl -X POST https://api.tuteliq.ai/v1/safety/bullying \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Ingen liker deg, bare forlat gruppen allerede."}'
+```
+
+```json
+{
+  "is_bullying": true,
+  "severity": "medium",
+  "risk_score": 0.75,
+  "language": "no",
+  "language_status": "beta",
+  "detected_language": "no",
+  "credits_used": 1
+}
+```
+
+### Explicit language code (French)
+
+```bash
+curl -X POST https://api.tuteliq.ai/v1/safety/unsafe \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Je veux me faire du mal. Rien ne compte.",
+    "context": { "language": "fr", "age_group": "14-17" }
+  }'
+```
+
+```json
+{
+  "unsafe": true,
+  "categories": ["self_harm"],
+  "severity": "critical",
+  "language": "fr",
+  "language_status": "beta",
+  "detected_language": "fr",
+  "credits_used": 1
+}
+```
+
+### Unsupported language
+
+If the detected language is not in the supported set and the text is long enough for reliable detection, the API returns an error:
+
+```json
+{
+  "error": {
+    "code": "ANALYSIS_6009",
+    "message": "Detected language \"Chinese\" is not supported. Supported languages: en, es, pt, uk, sv, no, da, fi, de, fr."
+  }
+}
+```
+
+For short texts where detection is unreliable, the API proceeds without language-specific guidelines rather than rejecting the request.

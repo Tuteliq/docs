@@ -10,9 +10,17 @@ Tuteliq processes content through a multi-stage AI pipeline designed specificall
 
 ## The detection pipeline
 
-### 1. Content ingestion
+### 1. Content ingestion & language detection
 
-When you send a request to any Safety endpoint, Tuteliq first normalizes the input. Text is analyzed directly. Audio files are transcribed via Whisper and then analyzed as text with timestamped segments preserved. Images are processed through Vision AI for visual classification and OCR text extraction simultaneously — so a screenshot of a harmful conversation is caught by both the visual and textual classifiers.
+When you send a request to any Safety endpoint, Tuteliq first normalizes the input and detects the content language. Text is analyzed directly. Audio files are transcribed via Whisper and then analyzed as text with timestamped segments preserved. Images are processed through Vision AI for visual classification and OCR text extraction simultaneously — so a screenshot of a harmful conversation is caught by both the visual and textual classifiers.
+
+Language detection uses a layered approach for maximum reliability:
+
+1. **Explicit code** — If you pass a `language` parameter, it is used directly.
+2. **Trigram detection** — If no explicit language is given, the API runs trigram-based analysis on the input text.
+3. **LLM confirmation** — The LLM also identifies the content language during analysis. When the LLM's detection is a supported language, it takes precedence — this ensures correct detection for closely related languages like Norwegian, Swedish, and Danish.
+
+The detected language is used to inject culture-specific analysis guidelines (local slang, idioms, harmful terms) into the classification prompts. Ten languages are supported: English (stable), Spanish, Portuguese, Ukrainian, Swedish, Norwegian, Danish, Finnish, German, and French (beta).
 
 ### 2. Multi-model classification
 
@@ -63,6 +71,8 @@ Every response includes:
 - **`confidence`** (float) — Model confidence in the classification.
 - **`rationale`** (string) — Human-readable explanation of why the content was flagged. Useful for trust & safety review and audit trails.
 - **`recommended_action`** (string) — Suggested next step, such as "Escalate to counselor" or "Block and report."
+- **`language`** (string) — Resolved language code (ISO 639-1) used for analysis, auto-detected or explicit.
+- **`language_status`** (string) — `"stable"` for English, `"beta"` for all other supported languages.
 
 ## Beyond detection
 

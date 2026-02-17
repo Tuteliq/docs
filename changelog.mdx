@@ -6,6 +6,17 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.1.0 — February 2026
+
+### Multilingual Support
+- **10 languages supported** — English (stable), Spanish, Portuguese, Ukrainian, Swedish, Norwegian, Danish, Finnish, German, French (beta)
+- **Layered auto-detection** — Trigram analysis (franc) confirmed by LLM-based detection for maximum reliability
+- **Culture-aware analysis** — Language-specific guidelines for local slang, idioms, and harmful terms injected into classification prompts
+- All safety endpoints now return `language`, `language_status`, and `detected_language` fields in responses
+- No explicit `language` parameter required — detection is fully automatic
+
+---
+
 ## v1.0.0 — February 2026
 
 Initial public release of the Tuteliq API.

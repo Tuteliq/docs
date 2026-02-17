@@ -79,6 +79,10 @@ The `/safety/image` endpoint analyzes images for inappropriate visual content in
 
 Age calibration is applied automatically across all harm categories when the parameter is present. This helps platforms implement age-appropriate safety measures as recommended by KOSA.
 
+## Multilingual KOSA Coverage
+
+All KOSA harm categories are detected across 10 languages: English (stable), Spanish, Portuguese, Ukrainian, Swedish, Norwegian, Danish, Finnish, German, and French (beta). Language is auto-detected — no explicit parameter is required. Each language includes culture-specific analysis guidelines for local slang, idioms, and harmful terms, ensuring that detection quality is maintained across linguistic contexts.
+
 ## Implementation Guidance
 
 To achieve full KOSA coverage, integrate the following endpoints into your content pipeline:
