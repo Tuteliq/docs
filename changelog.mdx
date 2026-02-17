@@ -10,7 +10,7 @@ keywords: [changelog, updates, releases, versions]
 
 ### Fraud Detection Endpoints
 - `POST /v1/fraud/social-engineering` — detect social engineering tactics: pretexting, impersonation, urgency manipulation, authority exploitation
-- `POST /v1/fraud/app-detection` — identify fraudulent app promotion, fake reviews, malicious download links, and clone app distribution
+- `POST /v1/fraud/app-fraud` — identify fraudulent app promotion, fake reviews, malicious download links, and clone app distribution
 - `POST /v1/fraud/romance-scam` — detect romance scam patterns: love-bombing, financial requests, identity fabrication, isolation tactics
 - `POST /v1/fraud/mule-recruitment` — flag money mule recruitment: easy money offers, account sharing requests, laundering language
 
@@ -25,6 +25,11 @@ keywords: [changelog, updates, releases, versions]
 - Automatic vulnerability modifier: when `vulnerability-exploitation` is included, its cross-endpoint modifier adjusts severity scores across all other results
 - Aggregated response with `summary.highest_severity`, `summary.total_credits_used`, and per-endpoint breakdown
 - Supports both legacy (bullying, grooming, unsafe) and new detection endpoints
+
+### SDK & Tool Support
+- All new endpoints available across all SDKs: [Node.js](/sdks/node), [Python](/sdks/python), [Swift](/sdks/swift), [Kotlin](/sdks/kotlin), [Flutter](/sdks/flutter), [React Native](/sdks/react-native), [.NET](/sdks/dotnet), [Unity](/sdks/unity)
+- [CLI](/sdks/cli) — new `detect social-engineering`, `detect app-fraud`, `detect romance-scam`, `detect mule-recruitment`, `detect gambling-harm`, `detect coercive-control`, `detect vulnerability-exploitation`, `detect radicalisation`, and `detect multi` commands
+- [MCP Server](/sdks/mcp) — 10 new tools for fraud, extended safety, multi-endpoint analysis, and video analysis
 
 ### Tier Access
 - New endpoints require **Indie** tier or above (Starter tier retains access to bullying, grooming, and unsafe only)
@@ -99,10 +104,17 @@ Initial public release of the Tuteliq API.
 - Consent management endpoints for granular data processing consent
 - Public transparency endpoints: DPA, sub-processors, retention policy
 
-### SDKs
+### SDKs & Tools
 - [Node.js SDK](/sdks/node) — `@tuteliq/sdk` on npm
 - [Python SDK](/sdks/python) — `tuteliq` on PyPI
 - [Swift SDK](/sdks/swift) — via Swift Package Manager
+- [Kotlin SDK](/sdks/kotlin) — via Maven Central
+- [Flutter SDK](/sdks/flutter) — `tuteliq` on pub.dev
+- [React Native SDK](/sdks/react-native) — `@tuteliq/react-native` on npm
+- [.NET SDK](/sdks/dotnet) — `Tuteliq` on NuGet
+- [Unity SDK](/sdks/unity) — via Unity Package Manager
+- [CLI](/sdks/cli) — `@tuteliq/cli` on npm / Homebrew
+- [MCP Server](/sdks/mcp) — `@tuteliq/mcp` on npm
 
 ### Platform
 - Credit-based billing with per-endpoint pricing
