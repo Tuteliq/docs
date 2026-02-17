@@ -76,9 +76,19 @@ Once configured, the following tools are available to the AI assistant:
 | `detect_unsafe` | Detect harmful content in text | `text`, `age_group` |
 | `detect_bullying` | Detect bullying in text | `text`, `age_group` |
 | `detect_grooming` | Detect grooming patterns in conversations | `messages`, `age_group` |
-| `analyze_emotions` | Analyze emotional well-being | `text`, `age_group` |
+| `detect_social_engineering` | Detect social engineering tactics | `text`, `age_group` |
+| `detect_app_fraud` | Detect app-based fraud patterns | `text`, `age_group` |
+| `detect_romance_scam` | Detect romance scam patterns | `text`, `age_group` |
+| `detect_mule_recruitment` | Detect money mule recruitment | `text`, `age_group` |
+| `detect_gambling_harm` | Detect gambling harm indicators | `text`, `age_group` |
+| `detect_coercive_control` | Detect coercive control patterns | `text`, `age_group` |
+| `detect_vulnerability_exploitation` | Detect vulnerability exploitation | `text`, `age_group` |
+| `detect_radicalisation` | Detect radicalisation indicators | `text`, `age_group` |
+| `analyse_multi` | Run multiple detections on one text | `text`, `detections`, `age_group` |
 | `analyze_voice` | Analyze audio files | `file_path`, `age_group` |
 | `analyze_image` | Analyze image files | `file_path`, `age_group` |
+| `analyze_video` | Analyze video files | `file_path`, `age_group` |
+| `analyze_emotions` | Analyze emotional well-being | `text`, `age_group` |
 | `get_action_plan` | Generate age-appropriate guidance | `detection_result`, `audience` |
 | `generate_report` | Create incident reports | `conversation`, `age_group` |
 
@@ -93,6 +103,18 @@ The assistant will call `detect_unsafe` and return the full safety analysis incl
 > "Analyze this conversation for grooming patterns" (with a conversation pasted or in a file)
 
 The assistant will call `detect_grooming` and provide a detailed breakdown of any detected grooming stages.
+
+> "Check this message for social engineering: 'If you really trusted me you'd send your address'"
+
+The assistant will call `detect_social_engineering` and return whether manipulation tactics were detected.
+
+> "Run grooming, romance scam, and social engineering detection on this message"
+
+The assistant will call `analyse_multi` with all three endpoints and return combined results with an overall risk level.
+
+> "Analyze this video for safety concerns" (with a file path)
+
+The assistant will call `analyze_video` and return frame-by-frame safety findings.
 
 ## Resources
 

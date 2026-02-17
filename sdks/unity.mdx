@@ -117,6 +117,109 @@ Debug.Log(result.Safe);
 Debug.Log(result.Emotions);
 ```
 
+## Fraud detection
+
+Detect financial exploitation and scam patterns in in-game or social features. Other methods — `DetectAppFraudAsync`, `DetectMuleRecruitmentAsync` — follow the same pattern.
+
+### Detect social engineering
+
+```csharp
+var result = await tuteliq.DetectSocialEngineeringAsync(
+    text: "If you really trusted me you'd share your account password. All my friends do.",
+    ageGroup: AgeGroup.TenToTwelve
+);
+
+Debug.Log(result.Detected);    // true
+Debug.Log(result.RiskScore);   // 0.88
+Debug.Log(result.Level);       // "high"
+```
+
+### Detect romance scam
+
+```csharp
+var result = await tuteliq.DetectRomanceScamAsync(
+    text: "I've never felt this way about anyone. You're so mature. Keep us a secret.",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Debug.Log(result.Detected);   // true
+Debug.Log(result.RiskScore);  // 0.91
+```
+
+## Safety extended
+
+Detect extended safety threats including gambling harm, coercive control, vulnerability exploitation, and radicalisation.
+
+### Detect gambling harm
+
+```csharp
+var result = await tuteliq.DetectGamblingHarmAsync(
+    text: "I know a way to get free V-Bucks. Just put in your parent's card and I'll double it.",
+    ageGroup: AgeGroup.TenToTwelve
+);
+
+Debug.Log(result.Detected);   // true
+Debug.Log(result.RiskScore);  // 0.82
+```
+
+### Detect vulnerability exploitation
+
+```csharp
+var result = await tuteliq.DetectVulnerabilityExploitationAsync(
+    text: "I know you said your parents don't listen. I'm different — I actually care.",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Debug.Log(result.Detected);   // true
+Debug.Log(result.RiskScore);  // 0.85
+```
+
+## Multi-endpoint analysis
+
+Run multiple detection endpoints on a single text in one API call.
+
+```csharp
+var result = await tuteliq.AnalyseMultiAsync(
+    text: "You're so special. Nobody understands you like I do. Send me a photo.",
+    detections: new[] { Detection.SocialEngineering, Detection.Grooming, Detection.RomanceScam },
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Debug.Log(result.Summary.OverallRiskLevel);  // "high"
+Debug.Log(result.Summary.DetectedCount);     // 2
+
+foreach (var r in result.Results)
+{
+    Debug.Log($"{r.Endpoint}: {r.Detected} (risk: {r.RiskScore})");
+}
+```
+
+<Info>
+  `AnalyseMultiAsync` is billed per individual detection endpoint, not per request.
+</Info>
+
+## Analyze video
+
+Upload a video file for frame-by-frame safety analysis.
+
+```csharp
+var videoBytes = await File.ReadAllBytesAsync("clip.mp4");
+
+var result = await tuteliq.AnalyzeVideoAsync(
+    file: videoBytes,
+    filename: "clip.mp4",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Debug.Log(result.FramesAnalyzed);
+Debug.Log(result.OverallRiskScore);
+
+foreach (var finding in result.SafetyFindings)
+{
+    Debug.Log($"Frame {finding.FrameIndex}: {finding.Description} ({finding.Severity})");
+}
+```
+
 ## Coroutine support
 
 For projects that prefer coroutines over async/await:

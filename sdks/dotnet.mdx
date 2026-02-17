@@ -112,6 +112,110 @@ Console.WriteLine(result.Safe);
 Console.WriteLine(result.Emotions);
 ```
 
+## Fraud detection
+
+Detect financial exploitation, social engineering, and scam patterns targeting minors. Other methods — `DetectAppFraudAsync`, `DetectMuleRecruitmentAsync` — follow the same pattern.
+
+### Detect social engineering
+
+```csharp
+var result = await tuteliq.DetectSocialEngineeringAsync(
+    text: "If you really trusted me you'd send me your home address. All my real friends do.",
+    ageGroup: AgeGroup.TenToTwelve
+);
+
+Console.WriteLine(result.Detected);    // true
+Console.WriteLine(result.RiskScore);   // 0.88
+Console.WriteLine(result.Level);       // "high"
+Console.WriteLine(result.Categories);  // [{ Tag = "TRUST_EXPLOITATION", ... }]
+```
+
+### Detect romance scam
+
+```csharp
+var result = await tuteliq.DetectRomanceScamAsync(
+    text: "I've never felt this way about anyone before. You're so mature for your age. Keep us a secret.",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Console.WriteLine(result.Detected);   // true
+Console.WriteLine(result.RiskScore);  // 0.91
+```
+
+## Safety extended
+
+Detect extended safety threats including gambling harm, coercive control, vulnerability exploitation, and radicalisation.
+
+### Detect vulnerability exploitation
+
+```csharp
+var result = await tuteliq.DetectVulnerabilityExploitationAsync(
+    text: "I know you said your parents don't listen to you. I'm different — I actually care.",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Console.WriteLine(result.Detected);   // true
+Console.WriteLine(result.RiskScore);  // 0.85
+```
+
+### Detect radicalisation
+
+```csharp
+var result = await tuteliq.DetectRadicalisationAsync(
+    text: "They're all against us. Only our group understands the truth. Are you ready to act?",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Console.WriteLine(result.Detected);   // true
+Console.WriteLine(result.Level);      // "high"
+```
+
+## Multi-endpoint analysis
+
+Run multiple detection endpoints on a single text in one API call.
+
+```csharp
+var result = await tuteliq.AnalyseMultiAsync(
+    text: "You're so special. Nobody else understands you like I do. Send me a photo.",
+    detections: new[] { Detection.SocialEngineering, Detection.Grooming, Detection.RomanceScam },
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Console.WriteLine(result.Summary.OverallRiskLevel);  // "high"
+Console.WriteLine(result.Summary.DetectedCount);     // 2
+
+foreach (var r in result.Results)
+{
+    Console.WriteLine($"{r.Endpoint}: {r.Detected} (risk: {r.RiskScore})");
+}
+```
+
+<Info>
+  `AnalyseMultiAsync` is billed per individual detection endpoint, not per request.
+</Info>
+
+## Analyze video
+
+Upload a video file for frame-by-frame safety analysis.
+
+```csharp
+var videoBytes = await File.ReadAllBytesAsync("clip.mp4");
+
+var result = await tuteliq.AnalyzeVideoAsync(
+    file: videoBytes,
+    filename: "clip.mp4",
+    ageGroup: AgeGroup.ThirteenToFifteen
+);
+
+Console.WriteLine(result.FramesAnalyzed);
+Console.WriteLine(result.OverallRiskScore);
+
+foreach (var finding in result.SafetyFindings)
+{
+    Console.WriteLine($"Frame {finding.FrameIndex}: {finding.Description} ({finding.Severity})");
+}
+```
+
 ## Dependency injection
 
 <Info>

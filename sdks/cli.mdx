@@ -97,6 +97,90 @@ Analyze an image file:
 tuteliq analyze image screenshot.png --age-group 10-12
 ```
 
+## Fraud detection
+
+Detect social engineering, app fraud, romance scams, and mule recruitment.
+
+```bash
+# Detect social engineering
+tuteliq detect social-engineering "If you really trusted me you'd send your address" --age-group 10-12
+
+# Detect romance scam
+tuteliq detect romance-scam "You're so mature for your age. Keep us a secret." --age-group 13-15
+
+# Detect app fraud
+tuteliq detect app-fraud "Download this app and enter your parent's card details" --age-group 10-12
+
+# Detect mule recruitment
+tuteliq detect mule-recruitment "I just need you to receive some money in your account" --age-group 13-15
+```
+
+## Safety extended
+
+Detect gambling harm, coercive control, vulnerability exploitation, and radicalisation.
+
+```bash
+# Detect gambling harm
+tuteliq detect gambling-harm "I know a way to get free V-Bucks, just put in your card" --age-group 10-12
+
+# Detect coercive control
+tuteliq detect coercive-control "You're not allowed to talk to anyone else. Only me." --age-group 13-15
+
+# Detect vulnerability exploitation
+tuteliq detect vulnerability-exploitation "I know your parents don't listen. I actually care about you." --age-group 13-15
+
+# Detect radicalisation
+tuteliq detect radicalisation "They're all against us. Only our group understands the truth." --age-group 13-15
+```
+
+## Multi-endpoint analysis
+
+Run multiple detections on a single text in one command.
+
+```bash
+tuteliq detect multi "You're so special. Send me a photo." \
+  --endpoints social-engineering,grooming,romance-scam \
+  --age-group 13-15
+```
+
+Output:
+
+```json
+{
+  "summary": {
+    "overall_risk_level": "high",
+    "detected_count": 2,
+    "total_endpoints": 3
+  },
+  "results": [
+    { "endpoint": "social-engineering", "detected": false, "risk_score": 0.2 },
+    { "endpoint": "grooming", "detected": true, "risk_score": 0.87 },
+    { "endpoint": "romance-scam", "detected": true, "risk_score": 0.91 }
+  ]
+}
+```
+
+## Analyze video
+
+Analyze a video file for safety concerns.
+
+```bash
+tuteliq analyze video clip.mp4 --age-group 13-15
+```
+
+Output:
+
+```json
+{
+  "frames_analyzed": 24,
+  "overall_risk_score": 0.65,
+  "overall_severity": "medium",
+  "safety_findings": [
+    { "frame_index": 12, "timestamp": 4.5, "description": "...", "severity": 0.7 }
+  ]
+}
+```
+
 ## Batch processing
 
 Analyze multiple inputs from a file:
@@ -159,9 +243,19 @@ tuteliq config list
 | `tuteliq detect unsafe` | Detect unsafe content in text |
 | `tuteliq detect bullying` | Detect bullying in text |
 | `tuteliq detect grooming` | Detect grooming in conversations |
+| `tuteliq detect social-engineering` | Detect social engineering tactics |
+| `tuteliq detect app-fraud` | Detect app-based fraud patterns |
+| `tuteliq detect romance-scam` | Detect romance scam patterns |
+| `tuteliq detect mule-recruitment` | Detect money mule recruitment |
+| `tuteliq detect gambling-harm` | Detect gambling harm indicators |
+| `tuteliq detect coercive-control` | Detect coercive control patterns |
+| `tuteliq detect vulnerability-exploitation` | Detect vulnerability exploitation |
+| `tuteliq detect radicalisation` | Detect radicalisation indicators |
+| `tuteliq detect multi` | Run multiple detections on one text |
 | `tuteliq analyze emotions` | Analyze emotional well-being |
 | `tuteliq analyze voice` | Analyze audio files |
 | `tuteliq analyze image` | Analyze image files |
+| `tuteliq analyze video` | Analyze video files |
 | `tuteliq batch` | Batch-process multiple inputs |
 | `tuteliq auth` | Manage API key authentication |
 | `tuteliq usage` | View credit balance and usage |
