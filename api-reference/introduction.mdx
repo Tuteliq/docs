@@ -56,10 +56,11 @@ Rate limits are enforced per API key based on your plan tier:
 
 | Tier       | Requests per minute |
 | ---------- | ------------------- |
-| Free       | 60                  |
-| Basic      | 300                 |
-| Premium    | 1,000               |
-| Enterprise | 5,000               |
+| Starter (Free) | 60              |
+| Indie      | 300                 |
+| Pro        | 1,000               |
+| Business   | 3,000               |
+| Enterprise | 10,000              |
 
 When you exceed your rate limit, the API returns a `429 Too Many Requests` status with the `RATE_LIMIT_EXCEEDED` error code.
 
@@ -86,6 +87,9 @@ The API is organized into the following groups:
 | Group | Description |
 |-------|-------------|
 | **Safety** | Content safety analysis — bullying, grooming, unsafe content, voice, image, and video |
+| **Fraud Detection** | Financial and social fraud — social engineering, app fraud, romance scams, mule recruitment |
+| **Safety Extended** | Extended safety — gambling harm, coercive control, vulnerability exploitation, radicalisation |
+| **Multi-Endpoint Analysis** | Fan-out a single text to multiple detection endpoints in parallel |
 | **Analysis** | In-depth emotional and behavioral analysis |
 | **Guidance** | Age-appropriate guidance and action plan generation |
 | **Reports** | Structured safety and compliance report generation |

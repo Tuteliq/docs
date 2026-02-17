@@ -98,6 +98,80 @@ print(result.safe)
 print(result.emotions)
 ```
 
+## Fraud detection and safety extended
+
+These methods cover financial exploitation, romance scams, and coercive behaviour targeting minors. Other endpoints — `detect_app_fraud`, `detect_mule_recruitment`, `detect_gambling_harm`, `detect_coercive_control`, and `detect_radicalisation` — follow the same call pattern shown here.
+
+### Detect social engineering
+
+Identify manipulation tactics designed to trick a child into disclosing information or taking unsafe actions.
+
+```python
+result = client.detect_social_engineering(
+    text="If you really trusted me you'd send me your home address. All my real friends do.",
+    age_group="10-12",
+)
+
+print(result.detected)     # True
+print(result.tactics)      # ["trust_exploitation", "peer_pressure"]
+print(result.risk_score)   # 0.88
+```
+
+### Detect romance scam
+
+Analyze conversation text for romantic manipulation patterns that may indicate an adult posing as a peer.
+
+```python
+result = client.detect_romance_scam(
+    messages=[
+        {"role": "stranger", "text": "I've never felt this way about anyone before. You're so mature for your age."},
+        {"role": "child", "text": "Really? That makes me really happy."},
+        {"role": "stranger", "text": "I need you to keep us a secret. People wouldn't understand."},
+    ],
+    age_group="13-15",
+)
+
+print(result.detected)     # True
+print(result.risk_score)   # 0.91
+print(result.indicators)   # ["love_bombing", "secrecy_request", "age_flattery"]
+```
+
+### Detect vulnerability exploitation
+
+Detect attempts to identify and target emotional or situational vulnerabilities in a child.
+
+```python
+result = client.detect_vulnerability_exploitation(
+    text="I know you said your parents don't listen to you. I'm different — I actually care. You can tell me anything.",
+    age_group="13-15",
+)
+
+print(result.detected)          # True
+print(result.risk_score)        # 0.85
+print(result.vulnerabilities)   # ["parental_conflict", "emotional_neglect"]
+```
+
+### Analyse multiple texts in one request
+
+Run any supported detection across multiple texts in a single API call to reduce round-trips.
+
+```python
+result = client.analyse_multi(
+    inputs=[
+        {"text": "You're so special. Nobody else understands you like I do.", "age_group": "13-15"},
+        {"text": "Can you keep a secret from your mum?", "age_group": "10-12"},
+    ],
+    detections=["social-engineering", "romance-scam", "grooming"],
+)
+
+print(result.results[0].detections)  # {"social_engineering": {"detected": True, ...}, ...}
+print(result.results[1].detections)  # {"grooming": {"detected": True, ...}, ...}
+```
+
+<Info>
+  `analyse_multi` is billed per individual input × detection combination, not per request.
+</Info>
+
 ## Async support
 
 For asynchronous applications, use the `AsyncTuteliq` client. It exposes the same methods with `await` syntax.

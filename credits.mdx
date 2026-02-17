@@ -10,14 +10,50 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 ## Per-endpoint costs
 
+### Core Safety
+
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
 | `detectBullying` | 1 | Single text analysis |
 | `detectUnsafe` | 1 | Single text analysis |
 | `detectGrooming` | 1 per 10 msgs | `ceil(messages / 10)`, minimum 1 |
+
+### Fraud Detection
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| `detectSocialEngineering` | 1 | Social engineering tactic detection |
+| `detectAppFraud` | 1 | Fraudulent app/download detection |
+| `detectRomanceScam` | 1 | Romance scam pattern detection |
+| `detectMuleRecruitment` | 1 | Money mule recruitment detection |
+
+### Safety Extended
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| `detectGamblingHarm` | 1 | Gambling harm detection |
+| `detectCoerciveControl` | 1 | Coercive control detection |
+| `detectVulnerabilityExploitation` | 1 | Vulnerability exploitation + cross-endpoint modifier |
+| `detectRadicalisation` | 1 | Radicalisation indicator detection |
+
+### Multi-Endpoint Analysis
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| `analyseMulti` | Sum of endpoints | Fan-out to up to 10 endpoints in one call |
+
+### Analysis & Guidance
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
 | `analyzeEmotions` | 1 per 10 msgs | `ceil(messages / 10)`, minimum 1 |
 | `getActionPlan` | 2 | Longer generation |
 | `generateReport` | 3 | Structured output |
+
+### Media Analysis
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
 | `analyzeVoice` | 5 | Transcription + analysis |
 | `analyzeImage` | 3 | Vision + OCR + analysis |
 | `analyzeVideo` | 10 | Frame extraction + per-frame vision |
@@ -54,8 +90,11 @@ Every API response includes a `credits_used` field showing the credits consumed 
 
 ```json
 {
-  "severity": "high",
-  "categories": ["bullying"],
+  "detected": true,
+  "severity": 0.85,
+  "confidence": 0.91,
+  "risk_score": 0.87,
+  "categories": [{ "tag": "AUTH_IMPERSONATION", "label": "Authority Impersonation", "confidence": 0.92 }],
   "credits_used": 1
 }
 ```

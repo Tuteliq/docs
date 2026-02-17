@@ -36,8 +36,18 @@ Rather than relying on a single model, Tuteliq runs content through specialized 
 | **Depression & Anxiety** | Persistent mood indicators, hopelessness patterns, withdrawal signals |
 | **Compulsive Usage** | Engagement manipulation, addiction-pattern reinforcement, dark patterns targeting minors |
 | **Sexual Exploitation** | Explicit solicitation, sextortion patterns, inappropriate sexual content directed at minors |
+| **Social Engineering** | Pretexting, impersonation, urgency manipulation, authority exploitation targeting minors |
+| **App Fraud** | Fake app promotion, malicious download links, clone app distribution, fraudulent reviews |
+| **Romance Scam** | Love-bombing, financial requests, identity fabrication, isolation from support networks |
+| **Mule Recruitment** | Easy money offers, account sharing requests, laundering language, recruitment pressure |
+| **Gambling Harm** | Underage gambling promotion, addiction patterns, predatory odds, bet pressure tactics |
+| **Coercive Control** | Isolation tactics, financial control, monitoring/surveillance, threat patterns in relationships |
+| **Vulnerability Exploitation** | Targeting based on age, disability, emotional state, or financial hardship — with cross-endpoint vulnerability profiling |
+| **Radicalisation** | Extremist rhetoric, us-vs-them framing, recruitment patterns, dehumanisation of outgroups |
 
 Each classifier produces an independent confidence score. When multiple classifiers fire on the same content (e.g., grooming + sexual exploitation), Tuteliq combines the signals to produce a holistic risk assessment.
+
+The `/analyse/multi` endpoint lets you run up to 10 classifiers on a single piece of content in one API call. When vulnerability exploitation detection is included, it produces a cross-endpoint vulnerability modifier that automatically adjusts severity scores across all other results — amplifying risk when the content targets vulnerable individuals.
 
 ### 3. Context engine
 
@@ -64,10 +74,10 @@ You specify the `age_group` in your request context. If omitted, Tuteliq default
 
 Every response includes:
 
-- **`unsafe`** (boolean) — Clear yes/no for immediate routing decisions.
+- **`unsafe`** (boolean, legacy endpoints) or **`detected`** (boolean, new detection endpoints) — Clear yes/no for immediate routing decisions. Legacy endpoints return `unsafe`; newer detection endpoints use `detected` instead.
 - **`categories`** (array) — Which KOSA harm categories were triggered.
 - **`severity`** (string) — `low`, `medium`, `high`, or `critical`, calibrated to the age group.
-- **`risk_score`** (integer, 0–100) — Granular score for threshold-based automation.
+- **`risk_score`** (float, 0.0–1.0) — Granular score for threshold-based automation.
 - **`confidence`** (float) — Model confidence in the classification.
 - **`rationale`** (string) — Human-readable explanation of why the content was flagged. Useful for trust & safety review and audit trails.
 - **`recommended_action`** (string) — Suggested next step, such as "Escalate to counselor" or "Block and report."

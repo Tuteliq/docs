@@ -17,10 +17,25 @@ The **Kids Online Safety Act (KOSA)** requires covered platforms to prevent and 
 | Suicidal Behaviors     | `/safety/unsafe`                             | Covered   |
 | Depression & Anxiety   | `/safety/unsafe` + `/analysis/emotions`      | Covered   |
 | Compulsive Usage       | `/safety/unsafe`                             | Covered   |
-| Harassment & Bullying  | `/safety/bullying`                           | Covered   |
+| Harassment & Bullying  | `/safety/bullying` + `/safety/coercive-control` | Covered   |
 | Sexual Exploitation    | `/safety/grooming` + `/safety/unsafe`        | Covered   |
 | Voice & Audio Threats  | `/safety/voice`                              | Covered   |
 | Visual Content Risks   | `/safety/image`                              | Covered   |
+
+### Extended Coverage (Beyond KOSA)
+
+Tuteliq also provides detection for harm categories beyond the core nine KOSA requirements:
+
+| Category                   | Tuteliq Endpoint(s)                              | Notes |
+|----------------------------|--------------------------------------------------|-------|
+| Social Engineering         | `/fraud/social-engineering`                      | Pretexting, impersonation, urgency manipulation |
+| App & Download Fraud       | `/fraud/app-detection`                           | Fake apps, malicious links, clone distribution |
+| Romance Scams              | `/fraud/romance-scam`                            | Love-bombing, financial exploitation |
+| Money Mule Recruitment     | `/fraud/mule-recruitment`                        | Laundering recruitment targeting minors |
+| Gambling Harm              | `/safety/gambling-harm`                          | Underage gambling, addiction patterns |
+| Coercive Control           | `/safety/coercive-control`                       | Isolation, financial control, surveillance |
+| Vulnerability Exploitation | `/safety/vulnerability-exploitation`             | Cross-endpoint vulnerability profiling |
+| Radicalisation             | `/safety/radicalisation`                         | Extremist rhetoric, recruitment patterns |
 
 ## Category Details
 
@@ -67,13 +82,13 @@ The `/safety/image` endpoint analyzes images for inappropriate visual content in
 ## Age-Calibrated Severity
 
 <Info>
-  All Tuteliq safety endpoints accept an optional `age` parameter (integer, 0-17). When provided, severity scores are calibrated to the developmental stage of the minor. Content that may be flagged as `medium` for a 16-year-old could be elevated to `high` or `critical` for an 8-year-old.
+  All Tuteliq safety endpoints accept an optional `age_group` parameter within the `context` object. When provided, severity scores are calibrated to the developmental stage of the minor. Content that may be flagged as `medium` for a 16-year-old could be elevated to `high` or `critical` for an 8-year-old.
 </Info>
 
 ```json
 {
   "text": "let's play a secret game, just between us",
-  "age": 9
+  "context": { "age_group": "under-10" }
 }
 ```
 
@@ -89,7 +104,10 @@ To achieve full KOSA coverage, integrate the following endpoints into your conte
 
 <Steps>
   <Step title="Text Content">
-    Route user-generated text through `/safety/unsafe`, `/safety/bullying`, and `/safety/grooming`. This covers eating disorders, substance use, suicidal behaviors, compulsive usage, harassment, and sexual exploitation.
+    Route user-generated text through `/safety/unsafe`, `/safety/bullying`, and `/safety/grooming`. This covers eating disorders, substance use, suicidal behaviors, compulsive usage, harassment, and sexual exploitation. For broader coverage, use `/analyse/multi` to fan-out to multiple detection endpoints in a single call.
+  </Step>
+  <Step title="Fraud & Extended Safety">
+    For platforms handling financial interactions or vulnerable users, add `/fraud/social-engineering`, `/fraud/romance-scam`, `/fraud/mule-recruitment`, `/safety/gambling-harm`, `/safety/coercive-control`, and `/safety/radicalisation` to your pipeline. Include `/safety/vulnerability-exploitation` to get a cross-endpoint vulnerability modifier that adjusts severity across all results.
   </Step>
   <Step title="Emotional Monitoring">
     For messaging and social features, use `/analysis/emotions` to detect sustained patterns of depression and anxiety in conversations.

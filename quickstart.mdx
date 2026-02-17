@@ -91,6 +91,74 @@ keywords: [getting started, setup, first call, SDK]
 
 </Steps>
 
+<Step title="Try fraud detection">
+  Use the fraud detection endpoints to analyze content for social engineering, scams, and more.
+
+  <CodeGroup>
+    ```typescript Node.js
+    const result = await tuteliq.detectSocialEngineering({
+      text: "I'm from your school's IT department. I need your password to fix your account urgently.",
+      context: { ageGroup: "10-12" },
+    });
+
+    console.log(result.detected);           // true
+    console.log(result.severity);            // 0.89
+    console.log(result.categories);          // [{ tag: "AUTH_IMPERSONATION", label: "Authority Impersonation", confidence: 0.92 }]
+    console.log(result.recommended_action);  // "Block and report to platform administrators"
+    ```
+    ```python Python
+    result = client.detect_social_engineering(
+        text="I'm from your school's IT department. I need your password to fix your account urgently.",
+        context={"age_group": "10-12"},
+    )
+
+    print(result.detected)            # True
+    print(result.severity)            # 0.89
+    print(result.categories)          # [{"tag": "AUTH_IMPERSONATION", "label": "Authority Impersonation", "confidence": 0.92}]
+    print(result.recommended_action)  # "Block and report to platform administrators"
+    ```
+    ```bash cURL
+    curl -X POST https://api.tuteliq.ai/v1/fraud/social-engineering \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "text": "I'\''m from your school'\''s IT department. I need your password to fix your account urgently.",
+        "context": { "ageGroup": "10-12" }
+      }'
+    ```
+  </CodeGroup>
+</Step>
+
+<Step title="Multi-endpoint analysis">
+  Analyze content against multiple detectors in a single API call using `/analyse/multi`.
+
+  <CodeGroup>
+    ```typescript Node.js
+    const result = await tuteliq.analyseMulti({
+      text: "Send me your bank details and I'll transfer the money. Don't tell anyone about this.",
+      endpoints: ["social-engineering", "mule-recruitment", "coercive-control"],
+      context: { ageGroup: "13-15" },
+    });
+
+    console.log(result.summary.highest_severity);   // "critical"
+    console.log(result.summary.total_credits_used);  // 3
+    console.log(result.results.length);              // 3
+    ```
+    ```bash cURL
+    curl -X POST https://api.tuteliq.ai/v1/analyse/multi \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "text": "Send me your bank details and I'\''ll transfer the money. Don'\''t tell anyone about this.",
+        "endpoints": ["social-engineering", "mule-recruitment", "coercive-control"],
+        "context": { "ageGroup": "13-15" }
+      }'
+    ```
+  </CodeGroup>
+</Step>
+
+</Steps>
+
 <Tip>
   **What's next?** Explore the full [API Reference](/api-reference/introduction) or dive into the [Node.js SDK](/sdks/node), [Python SDK](/sdks/python), or [Swift SDK](/sdks/swift) for deeper integration.
 </Tip>

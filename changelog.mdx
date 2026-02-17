@@ -6,6 +6,32 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.3.0 — February 2026
+
+### Fraud Detection Endpoints
+- `POST /v1/fraud/social-engineering` — detect social engineering tactics: pretexting, impersonation, urgency manipulation, authority exploitation
+- `POST /v1/fraud/app-detection` — identify fraudulent app promotion, fake reviews, malicious download links, and clone app distribution
+- `POST /v1/fraud/romance-scam` — detect romance scam patterns: love-bombing, financial requests, identity fabrication, isolation tactics
+- `POST /v1/fraud/mule-recruitment` — flag money mule recruitment: easy money offers, account sharing requests, laundering language
+
+### Safety Extended Endpoints
+- `POST /v1/safety/gambling-harm` — detect gambling harm: underage gambling promotion, addiction patterns, predatory odds, bet pressure
+- `POST /v1/safety/coercive-control` — identify coercive control: isolation tactics, financial control, monitoring/surveillance, threat patterns
+- `POST /v1/safety/vulnerability-exploitation` — detect exploitation of vulnerable individuals with cross-endpoint vulnerability modifier and vulnerability profile scoring
+- `POST /v1/safety/radicalisation` — flag radicalisation indicators: extremist rhetoric, us-vs-them framing, recruitment patterns, dehumanisation
+
+### Multi-Endpoint Analysis
+- `POST /v1/analyse/multi` — fan-out a single text to up to 10 detection endpoints in parallel
+- Automatic vulnerability modifier: when `vulnerability-exploitation` is included, its cross-endpoint modifier adjusts severity scores across all other results
+- Aggregated response with `summary.highest_severity`, `summary.total_credits_used`, and per-endpoint breakdown
+- Supports both legacy (bullying, grooming, unsafe) and new detection endpoints
+
+### Tier Access
+- New endpoints require **Indie** tier or above (Starter tier retains access to bullying, grooming, and unsafe only)
+- All new endpoints cost 1 credit per call; multi-endpoint costs the sum of individual endpoints
+
+---
+
 ## v1.2.0 — February 2026
 
 ### Video Analysis
@@ -47,19 +73,19 @@ keywords: [changelog, updates, releases, versions]
 Initial public release of the Tuteliq API.
 
 ### Safety Endpoints
-- `POST /v1/safety/detect-unsafe` — detect harmful content across all nine KOSA categories
-- `POST /v1/safety/detect-bullying` — dedicated bullying and harassment detection
-- `POST /v1/safety/detect-grooming` — conversation-level grooming pattern analysis
+- `POST /v1/safety/unsafe` — detect harmful content across all nine KOSA categories
+- `POST /v1/safety/bullying` — dedicated bullying and harassment detection
+- `POST /v1/safety/grooming` — conversation-level grooming pattern analysis
 - `POST /v1/safety/voice` — audio file transcription and safety analysis
 - `POST /v1/safety/image` — image analysis for visual content risks
 
-### Analysis Endpoints
+### Analysis & Guidance Endpoints
 - `POST /v1/analysis/emotions` — emotional well-being analysis from text and conversations
-- `POST /v1/analysis/action-plan` — age-appropriate guidance and intervention recommendations
-- `POST /v1/analysis/report` — structured safety report generation
+- `POST /v1/guidance/action-plan` — age-appropriate guidance and intervention recommendations
+- `POST /v1/reports/incident` — structured safety report generation
 
 ### Voice Streaming
-- `WSS /safety/voice/stream` — real-time voice moderation via WebSocket with configurable severity thresholds
+- `WSS /v1/safety/voice/stream` — real-time voice moderation via WebSocket with configurable severity thresholds
 
 ### Webhooks
 - `POST /v1/webhooks` — register webhook endpoints for safety alerts and batch events

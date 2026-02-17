@@ -136,6 +136,80 @@ function SafetyScreen() {
 }
 ```
 
+## Fraud detection and safety extended
+
+These methods cover financial exploitation, romance scams, and coercive behaviour targeting minors. Other endpoints — `detectAppFraud`, `detectMuleRecruitment`, `detectGamblingHarm`, `detectCoerciveControl`, and `detectRadicalisation` — follow the same call pattern shown here.
+
+### Detect social engineering
+
+Identify manipulation tactics designed to trick a child into disclosing information or taking unsafe actions.
+
+```typescript
+const result = await tuteliq.detectSocialEngineering({
+  text: "If you really trusted me you'd send me your home address. All my real friends do.",
+  ageGroup: '10-12',
+});
+
+console.log(result.detected);     // true
+console.log(result.tactics);      // ["trust_exploitation", "peer_pressure"]
+console.log(result.riskScore);    // 0.88
+```
+
+### Detect romance scam
+
+Analyze conversation text for romantic manipulation patterns that may indicate an adult posing as a peer.
+
+```typescript
+const result = await tuteliq.detectRomanceScam({
+  messages: [
+    { role: 'stranger', text: "I've never felt this way about anyone before. You're so mature for your age." },
+    { role: 'child', text: 'Really? That makes me really happy.' },
+    { role: 'stranger', text: "I need you to keep us a secret. People wouldn't understand." },
+  ],
+  ageGroup: '13-15',
+});
+
+console.log(result.detected);        // true
+console.log(result.riskScore);       // 0.91
+console.log(result.indicators);      // ["love_bombing", "secrecy_request", "age_flattery"]
+```
+
+### Detect vulnerability exploitation
+
+Detect attempts to identify and target emotional or situational vulnerabilities in a child.
+
+```typescript
+const result = await tuteliq.detectVulnerabilityExploitation({
+  text: "I know you said your parents don't listen to you. I'm different — I actually care. You can tell me anything.",
+  ageGroup: '13-15',
+});
+
+console.log(result.detected);         // true
+console.log(result.riskScore);        // 0.85
+console.log(result.vulnerabilities);  // ["parental_conflict", "emotional_neglect"]
+```
+
+### Analyse multiple texts in one request
+
+Run any supported detection across multiple texts in a single API call to reduce round-trips.
+
+```typescript
+const result = await tuteliq.analyseMulti({
+  inputs: [
+    { text: "You're so special. Nobody else understands you like I do.", ageGroup: '13-15' },
+    { text: "Can you keep a secret from your mum?", ageGroup: '10-12' },
+  ],
+  detections: ['social-engineering', 'romance-scam', 'grooming'],
+});
+
+console.log(result.results[0].detections);  // { socialEngineering: { detected: true, ... }, ... }
+console.log(result.results[1].detections);  // { grooming: { detected: true, ... }, ... }
+```
+
+<Info>
+  `analyseMulti` is billed per individual input × detection combination, not per request.
+</Info>
+
 ## Error handling
 
 The SDK throws typed errors that you can catch and inspect.

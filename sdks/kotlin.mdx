@@ -129,6 +129,80 @@ viewModelScope.launch {
   The SDK uses OkHttp under the hood and integrates with any coroutine scope — `viewModelScope`, `lifecycleScope`, or custom scopes.
 </Info>
 
+## Fraud detection and safety extended
+
+These methods cover financial exploitation, romance scams, and coercive behaviour targeting minors. Other endpoints — `detectAppFraud`, `detectMuleRecruitment`, `detectGamblingHarm`, `detectCoerciveControl`, and `detectRadicalisation` — follow the same call pattern shown here.
+
+### Detect social engineering
+
+Identify manipulation tactics designed to trick a child into disclosing information or taking unsafe actions.
+
+```kotlin
+val result = tuteliq.detectSocialEngineering(
+    text = "If you really trusted me you'd send me your home address. All my real friends do.",
+    ageGroup = AgeGroup.TEN_TO_TWELVE
+)
+
+println(result.detected)    // true
+println(result.tactics)     // [Tactic.TRUST_EXPLOITATION, Tactic.PEER_PRESSURE]
+println(result.riskScore)   // 0.88
+```
+
+### Detect romance scam
+
+Analyze conversation text for romantic manipulation patterns that may indicate an adult posing as a peer.
+
+```kotlin
+val result = tuteliq.detectRomanceScam(
+    messages = listOf(
+        Message(role = Role.STRANGER, text = "I've never felt this way about anyone before. You're so mature for your age."),
+        Message(role = Role.CHILD, text = "Really? That makes me really happy."),
+        Message(role = Role.STRANGER, text = "I need you to keep us a secret. People wouldn't understand."),
+    ),
+    ageGroup = AgeGroup.THIRTEEN_TO_FIFTEEN
+)
+
+println(result.detected)    // true
+println(result.riskScore)   // 0.91
+println(result.indicators)  // [Indicator.LOVE_BOMBING, Indicator.SECRECY_REQUEST, Indicator.AGE_FLATTERY]
+```
+
+### Detect vulnerability exploitation
+
+Detect attempts to identify and target emotional or situational vulnerabilities in a child.
+
+```kotlin
+val result = tuteliq.detectVulnerabilityExploitation(
+    text = "I know you said your parents don't listen to you. I'm different — I actually care. You can tell me anything.",
+    ageGroup = AgeGroup.THIRTEEN_TO_FIFTEEN
+)
+
+println(result.detected)         // true
+println(result.riskScore)        // 0.85
+println(result.vulnerabilities)  // [Vulnerability.PARENTAL_CONFLICT, Vulnerability.EMOTIONAL_NEGLECT]
+```
+
+### Analyse multiple texts in one request
+
+Run any supported detection across multiple texts in a single API call to reduce round-trips.
+
+```kotlin
+val result = tuteliq.analyseMulti(
+    inputs = listOf(
+        AnalyseMultiInput(text = "You're so special. Nobody else understands you like I do.", ageGroup = AgeGroup.THIRTEEN_TO_FIFTEEN),
+        AnalyseMultiInput(text = "Can you keep a secret from your mum?", ageGroup = AgeGroup.TEN_TO_TWELVE),
+    ),
+    detections = listOf(Detection.SOCIAL_ENGINEERING, Detection.ROMANCE_SCAM, Detection.GROOMING)
+)
+
+println(result.results[0].detections)  // AnalyseMultiDetections(socialEngineering=..., ...)
+println(result.results[1].detections)  // AnalyseMultiDetections(grooming=..., ...)
+```
+
+<Info>
+  `analyseMulti` is billed per individual input × detection combination, not per request.
+</Info>
+
 ## Error handling
 
 The SDK throws typed exceptions that you can catch and inspect.
