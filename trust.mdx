@@ -1,0 +1,63 @@
+---
+title: Trust Center
+sidebarTitle: Trust Center
+icon: shield-check
+description: Security, compliance, and transparency at Tuteliq
+keywords: [trust, security, compliance, transparency, privacy, SOC2, GDPR]
+---
+
+## Trust starts with transparency
+
+The **Tuteliq Trust Center** at [trust.tuteliq.ai](https://trust.tuteliq.ai) is where you can verify our security posture, compliance status, and data handling practices — all in one place.
+
+<Card title="Visit Trust Center" icon="arrow-right" href="https://trust.tuteliq.ai" horizontal>
+  View real-time security and compliance information at **trust.tuteliq.ai**
+</Card>
+
+## What you'll find
+
+<CardGroup cols={2}>
+  <Card title="Security Practices" icon="lock">
+    Infrastructure security, encryption standards, access controls, and vulnerability management policies.
+  </Card>
+  <Card title="Compliance Status" icon="scale-balanced">
+    Current compliance posture for GDPR, KOSA, EU Digital Services Act, UK Online Safety Act, and more.
+  </Card>
+  <Card title="Sub-Processors" icon="sitemap">
+    Full list of third-party sub-processors, their locations, purposes, and DPA links.
+  </Card>
+  <Card title="Data Handling" icon="database">
+    Retention policies, data minimization practices, and encryption-at-rest and in-transit details.
+  </Card>
+</CardGroup>
+
+## Key commitments
+
+| Area | Commitment |
+|------|-----------|
+| **Encryption** | TLS 1.3 in transit, AES-256 at rest |
+| **Data residency** | US and EU regions available |
+| **Retention** | Analysis results: 90 days · Audio files: 24 hours · API logs: 30 days |
+| **Erasure** | Full data deletion within 1 hour of request |
+| **Access control** | Role-based access, audit logging, API key scoping |
+| **Incident response** | 24-hour notification for security incidents |
+
+## Compliance documentation
+
+The following endpoints are publicly accessible and require no authentication:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /compliance/dpa` | Current Data Processing Agreement (PDF) |
+| `GET /compliance/sub-processors` | List of sub-processors with locations and roles |
+| `GET /compliance/retention` | Data retention policy by data type |
+
+See the [GDPR Compliance](/gdpr) page for detailed data subject rights endpoints and consent management.
+
+## Certification
+
+Tuteliq also offers a **free certification program** for individuals and organizations who want to demonstrate their commitment to child safety. See the [Certification](/certification) page for details, or start directly at [tuteliq.ai/certify](https://tuteliq.ai/certify).
+
+## Questions
+
+For security inquiries, compliance questions, or to request our latest penetration test report, contact [security@tuteliq.ai](mailto:security@tuteliq.ai).

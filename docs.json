@@ -86,7 +86,9 @@
             "icon": "scale-balanced",
             "pages": [
               "kosa-compliance",
-              "gdpr"
+              "gdpr",
+              "trust",
+              "certification"
             ]
           }
         ]
