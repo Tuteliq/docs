@@ -1,0 +1,139 @@
+---
+title: Secure Development Lifecycle
+sidebarTitle: SDLC
+icon: code-branch
+description: How Tuteliq develops, reviews, tests, and deploys code to production
+keywords: [SDLC, development, code review, CI/CD, security, deployment]
+---
+
+## Overview
+
+Tuteliq follows a structured development lifecycle to ensure all code changes are reviewed, tested, and safely deployed to production. This document describes the end-to-end process from development to production release.
+
+## Branch Strategy
+
+Tuteliq uses a **trunk-based development** model with short-lived feature branches:
+
+| Branch | Purpose | Protection |
+|--------|---------|-----------|
+| `main` | Production-ready code | Protected — no direct pushes, requires PR |
+| `feat/*` | New features | Developer branch |
+| `fix/*` | Bug fixes | Developer branch |
+| `hotfix/*` | Critical production fixes | Expedited review process |
+
+## Code Merge Process
+
+<Steps>
+  <Step title="Feature Branch">
+    All changes begin on a dedicated branch created from `main`. Branch naming follows the convention `feat/description`, `fix/description`, or `hotfix/description`.
+
+    ```bash
+    git checkout -b feat/add-new-detection-endpoint
+    ```
+  </Step>
+
+  <Step title="Development & Local Testing">
+    Developers write code and run the full test suite locally before pushing:
+
+    - Unit tests
+    - Integration tests
+    - Type checking (TypeScript strict mode, mypy, swiftformat, dart analyze)
+    - Linting (ESLint, Prettier, SwiftFormat, Ruff)
+
+    All code must pass local CI checks before a pull request is created.
+  </Step>
+
+  <Step title="Pull Request">
+    A pull request is opened against `main` with:
+
+    - Clear description of the change and its purpose
+    - Link to the relevant issue or task
+    - Test plan describing how the change was verified
+    - Screenshots or examples for UI or API response changes
+  </Step>
+
+  <Step title="Automated CI Checks">
+    Every pull request triggers automated CI pipelines that must pass before merge:
+
+    - **Build** — Compilation and type checking across all supported targets
+    - **Test** — Full unit and integration test suite
+    - **Lint** — Code style and formatting enforcement
+    - **Security** — Dependency vulnerability scanning (Dependabot / GitHub Advisory Database)
+
+    <Warning>
+      Pull requests cannot be merged if any CI check fails.
+    </Warning>
+  </Step>
+
+  <Step title="Code Review">
+    All pull requests require at least **one approving review** from a team member before merge. Reviewers evaluate:
+
+    - Correctness and logic
+    - Security implications (injection, auth bypass, data exposure)
+    - Performance impact
+    - Test coverage for new or changed functionality
+    - API contract and backward compatibility
+    - Adherence to coding standards and project conventions
+  </Step>
+
+  <Step title="Merge to Main">
+    After CI passes and review is approved, the pull request is merged into `main` using **squash merge** to maintain a clean commit history. The feature branch is automatically deleted after merge.
+  </Step>
+
+  <Step title="Production Deployment">
+    Merges to `main` trigger automatic deployment to production via the CI/CD pipeline:
+
+    - **API** — Deployed to Google Cloud Run with zero-downtime rolling updates
+    - **SDKs** — Published to respective package registries (npm, PyPI, pub.dev, Maven Central, NuGet, Swift Package Index) on tagged releases
+    - **Documentation** — Auto-deployed via Mintlify on push to `main`
+
+    Deployments are monitored for errors and latency regressions. Automatic rollback is triggered if health checks fail.
+  </Step>
+</Steps>
+
+## Hotfix Process
+
+For critical production issues:
+
+1. A `hotfix/*` branch is created directly from `main`
+2. The fix is implemented with targeted tests
+3. An expedited code review is performed
+4. The hotfix is merged and deployed immediately
+5. A post-incident review is conducted within 24 hours
+
+## Security Controls
+
+| Control | Implementation |
+|---------|---------------|
+| **Branch protection** | `main` requires PR, passing CI, and approving review |
+| **Dependency scanning** | Automated via GitHub Dependabot with weekly scans |
+| **Secret detection** | Pre-commit hooks and CI checks prevent secrets from being committed |
+| **Access control** | Repository access follows least-privilege principle |
+| **Audit trail** | All changes tracked via Git history and GitHub audit log |
+| **Signed releases** | SDK releases are tagged and published through CI with verified provenance |
+
+## Environment Promotion
+
+Code progresses through environments before reaching production:
+
+| Environment | Purpose | Trigger |
+|-------------|---------|---------|
+| **Development** | Local development and testing | Developer machine |
+| **Staging** | Pre-production validation | Push to `main` (pre-deploy step) |
+| **Production** | Live customer traffic | Automatic after staging health checks pass |
+
+<Info>
+  All environments use isolated infrastructure, separate API keys, and independent databases. Production credentials are never accessible from development or staging.
+</Info>
+
+## Monitoring & Rollback
+
+- **Health checks** — Automated HTTP health probes on every deployment
+- **Error tracking** — Real-time error monitoring with alerting
+- **Latency monitoring** — P50/P95/P99 latency tracked per endpoint
+- **Automatic rollback** — Cloud Run reverts to the previous revision if the new deployment fails health checks
+- **Manual rollback** — Any team member can trigger an immediate rollback via the deployment dashboard
+
+## Questions
+
+For questions about our development process or to request additional documentation, contact [security@tuteliq.ai](mailto:security@tuteliq.ai).
