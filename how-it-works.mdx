@@ -54,7 +54,7 @@ The `/analyse/multi` endpoint lets you run up to 10 classifiers on a single piec
 This is where Tuteliq diverges from keyword-based filters. The context engine evaluates:
 
 - **Linguistic intent** — Is "I want to kill myself" an expression of frustration over a video game, or a genuine crisis signal? Tuteliq analyzes surrounding context, tone, and conversational history to distinguish the two.
-- **Relationship dynamics** — In grooming detection, a single message may appear harmless. The context engine tracks multi-turn escalation patterns — compliments, then secrecy requests, then isolation attempts, then boundary violations — that only become visible across a conversation.
+- **Relationship dynamics** — A single message may appear harmless. The context engine tracks multi-turn escalation patterns — compliments, then secrecy requests, then isolation attempts, then boundary violations — that only become visible across a conversation. Every conversation-aware endpoint returns a `message_analysis` array that shows exactly how risk escalates message by message, with individual risk scores and detected tactics for each entry.
 - **Platform norms** — Teen slang, gaming culture, and social media language evolve fast. The context engine recognizes that "I'm literally dead" in a group chat has a fundamentally different risk profile than the same phrase in a private message to a younger child.
 
 ### 4. Age-calibrated scoring
@@ -80,6 +80,7 @@ Every response includes:
 - **`risk_score`** (float, 0.0–1.0) — Granular score for threshold-based automation.
 - **`confidence`** (float) — Model confidence in the classification.
 - **`rationale`** (string) — Human-readable explanation of why the content was flagged. Useful for trust & safety review and audit trails.
+- **`message_analysis`** (array, conversation-aware endpoints) — Per-message risk breakdown, returned when `conversation_history` is provided. Each entry contains `message_index`, `risk_score`, `flags`, and `summary`, making the escalation sequence visible for dashboards and reporting. Available on grooming, social engineering, app fraud, romance scam, mule recruitment, gambling harm, coercive control, vulnerability exploitation, and radicalisation endpoints.
 - **`recommended_action`** (string) — Suggested next step, such as "Escalate to counselor" or "Block and report."
 - **`language`** (string) — Resolved language code (ISO 639-1) used for analysis, auto-detected or explicit.
 - **`language_status`** (string) — `"stable"` for English, `"beta"` for all other supported languages.
