@@ -49,7 +49,7 @@ console.log(result.categories)  // ["grooming", "secrecy"]
 
 ## Detect grooming patterns
 
-Analyze a conversation history for grooming indicators.
+Analyze a conversation history for grooming indicators. The response includes a per-message risk breakdown showing how risk escalates across the conversation.
 
 ```typescript
 const result = await tuteliq.detectGrooming({
@@ -65,6 +65,15 @@ const result = await tuteliq.detectGrooming({
 console.log(result.groomingDetected) // true
 console.log(result.riskScore)        // 0.92
 console.log(result.stage)            // "isolation"
+
+// Per-message risk breakdown
+for (const msg of result.messageAnalysis) {
+  console.log(`Message ${msg.messageIndex}: risk=${msg.riskScore}, flags=${msg.flags}`)
+}
+// Message 1: risk=0.2,  flags=["information_seeking"]
+// Message 2: risk=0.1,  flags=[]
+// Message 3: risk=0.5,  flags=["information_seeking"]
+// Message 4: risk=0.92, flags=["isolation", "secrecy_request"]
 ```
 
 ## Analyze emotions
@@ -107,17 +116,30 @@ These methods cover financial exploitation, romance scams, and coercive behaviou
 
 ### Detect social engineering
 
-Identify manipulation tactics designed to trick a child into disclosing information or taking unsafe actions.
+Identify manipulation tactics designed to trick a child into disclosing information or taking unsafe actions. When you provide `conversationHistory`, the response includes a per-message risk breakdown — the same `messageAnalysis` field available on all conversation-aware endpoints.
 
 ```typescript
 const result = await tuteliq.detectSocialEngineering({
-  text: "If you really trusted me you'd send me your home address. All my real friends do.",
+  text: "All my real friends share their address. Don't you trust me?",
   ageGroup: '10-12',
+  conversationHistory: [
+    { role: 'stranger', text: "Hey, what school do you go to?" },
+    { role: 'child', text: "Why do you want to know?" },
+    { role: 'stranger', text: "If you really trusted me you'd send me your home address." },
+  ],
 })
 
 console.log(result.detected)     // true
 console.log(result.tactics)      // ["trust_exploitation", "peer_pressure"]
 console.log(result.riskScore)    // 0.88
+
+// Per-message risk breakdown (available on all conversation-aware endpoints)
+for (const msg of result.messageAnalysis) {
+  console.log(`Message ${msg.messageIndex}: risk=${msg.riskScore}, flags=${msg.flags}`)
+}
+// Message 1: risk=0.4,  flags=["information_seeking"]
+// Message 2: risk=0.1,  flags=[]
+// Message 3: risk=0.85, flags=["trust_exploitation", "peer_pressure"]
 ```
 
 ### Detect romance scam
