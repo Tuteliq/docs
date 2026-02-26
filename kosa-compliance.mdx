@@ -69,7 +69,7 @@ The dedicated `/safety/bullying` endpoint is purpose-built to detect direct insu
 
 ### Sexual Exploitation
 
-This category uses two endpoints for layered detection. The `/safety/grooming` endpoint identifies predatory behavior patterns such as trust-building, isolation tactics, boundary testing, and secret-keeping. The `/safety/unsafe` endpoint catches explicit sexual content, sextortion language, and exploitation material references.
+This category uses two endpoints for layered detection. The `/safety/grooming` endpoint identifies predatory behavior patterns such as trust-building, isolation tactics, boundary testing, and secret-keeping. It also returns a per-message risk breakdown (`message_analysis`) showing how tactics escalate across the conversation — useful for incident timelines and audit trails. The `/safety/unsafe` endpoint catches explicit sexual content, sextortion language, and exploitation material references.
 
 ### Voice & Audio Threats
 
