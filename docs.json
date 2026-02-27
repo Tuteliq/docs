@@ -71,6 +71,13 @@
             ]
           },
           {
+            "group": "Integrations",
+            "icon": "plug",
+            "pages": [
+              "integrations/roblox"
+            ]
+          },
+          {
             "group": "Advanced",
             "icon": "bolt",
             "pages": [
