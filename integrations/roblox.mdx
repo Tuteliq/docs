@@ -1,0 +1,219 @@
+---
+title: Roblox Integration
+sidebarTitle: Roblox
+icon: gamepad
+description: Add real-time child safety moderation to your Roblox experience
+keywords: [roblox, luau, lua, game, integration, chat moderation]
+---
+
+The Tuteliq Roblox module is a pure Luau library that monitors in-game chat for grooming, bullying, and unsafe content via the Tuteliq API. Drop it into any experience and start protecting players with two lines of code.
+
+<CardGroup cols={3}>
+  <Card title="GitHub" icon="github" href="https://github.com/Tuteliq/roblox-sdk">
+    Source code and releases
+  </Card>
+  <Card title="Wally" icon="cube" href="https://wally.run/package/tuteliq/tuteliq-safety">
+    Install via Wally registry
+  </Card>
+  <Card title=".rbxm Download" icon="download" href="https://github.com/Tuteliq/roblox-sdk/releases/latest">
+    Download the latest model file
+  </Card>
+</CardGroup>
+
+## Installation
+
+### Wally (recommended)
+
+Add to your `wally.toml`:
+
+```toml
+[dependencies]
+TuteliqSafety = "tuteliq/tuteliq-safety@1.0.0"
+```
+
+Then run:
+
+```bash
+wally install
+```
+
+### Rojo model file
+
+Download `TuteliqSafety.rbxm` from the [latest GitHub release](https://github.com/Tuteliq/roblox-sdk/releases/latest) and insert it into `ServerScriptService` in Roblox Studio.
+
+### Roblox Creator Store
+
+Search for **TuteliqSafety** in the Creator Marketplace toolbox inside Roblox Studio, then insert the model into `ServerScriptService`.
+
+### Manual
+
+Copy the `TuteliqSafety/` folder into `ServerScriptService` in Roblox Studio.
+
+## Prerequisites
+
+- **Enable HTTP Requests** — In Roblox Studio go to **Game Settings → Security → Allow HTTP Requests** and turn it on.
+- **Get an API key** — Sign up at [tuteliq.ai](https://tuteliq.ai) and create a key starting with `tq_`.
+
+## Quick start
+
+Create a **Script** in `ServerScriptService`:
+
+```lua
+local TuteliqSafety = require(game.ServerScriptService.TuteliqSafety)
+
+TuteliqSafety.start({
+    apiKey = "tq_live_YOUR_API_KEY_HERE",
+    sensitivity = "high",
+    detect = { "bullying", "grooming", "unsafe" },
+})
+```
+
+<Warning>
+  Never hardcode API keys in production. Use Roblox **Secrets Store** or a server-side configuration service to load keys at runtime.
+</Warning>
+
+## How it works
+
+Every chat message goes through a three-stage pipeline:
+
+1. **Crisis keywords** — Phrases like "kill myself" or "send me pictures" trigger an immediate API call to `/safety/unsafe` for instant analysis.
+2. **Grooming buffer** — Messages are accumulated per channel. When the buffer reaches 5+ messages from 2+ unique senders, a conversation analysis is sent to `/safety/grooming`.
+3. **Batch queue** — All other messages are batched (25 per request or every 5 seconds) and sent to `/batch/analyze` for efficient bullying and unsafe content detection.
+
+When a threat is detected above your sensitivity threshold, the module takes automatic actions based on severity:
+
+| Severity | Actions |
+|---|---|
+| Low | Log to output |
+| Medium | Log + notify admins via BindableEvent + webhook |
+| High | Log + notify + mute player for 60s + webhook |
+| Critical | Log + notify + mute + kick player (if enabled) + webhook |
+
+## Listen for detections
+
+Connect to the `TuteliqAlert` BindableEvent to build custom admin UI or notifications:
+
+```lua
+local alertEvent = TuteliqSafety.onDetection()
+
+alertEvent.Event:Connect(function(data)
+    -- data.type:              "bullying" | "grooming" | "unsafe"
+    -- data.severity:          "low" | "medium" | "high" | "critical"
+    -- data.confidence:        number (0–1)
+    -- data.riskScore:         number (0–1)
+    -- data.rationale:         string
+    -- data.recommendedAction: string
+    -- data.playerName:        string
+    -- data.playerId:          number
+    -- data.message:           string
+    -- data.timestamp:         number
+
+    warn(string.format(
+        "[ALERT] %s | %s | Player: %s",
+        data.type, data.severity, data.playerName
+    ))
+end)
+```
+
+## Integrate muting with your chat system
+
+Muted players have the attribute `TuteliqMuted` set to `true`. Use this to filter messages in your chat UI:
+
+```lua
+player:GetAttributeChangedSignal("TuteliqMuted"):Connect(function()
+    if player:GetAttribute("TuteliqMuted") then
+        -- Block this player's messages in your UI
+    end
+end)
+```
+
+## Manual analysis
+
+Analyze a specific message on demand, bypassing the batch queue:
+
+```lua
+TuteliqSafety.analyzeNow(
+    "some suspicious message",
+    "bullying",   -- "bullying" | "unsafe"
+    player        -- optional Player instance
+)
+```
+
+<Info>
+  `analyzeNow` does not support grooming detection directly. Grooming requires conversation context, which is handled automatically by the conversation buffer.
+</Info>
+
+## Configuration
+
+```lua
+TuteliqSafety.start({
+    apiKey = "tq_live_...",                  -- Required. Your Tuteliq API key.
+    sensitivity = "medium",                  -- Threshold: low (0.7) | medium (0.5) | high (0.3) | maximum (0.1)
+    detect = { "bullying", "grooming", "unsafe" },
+
+    actions = {
+        mute = true,                         -- Temporarily mute flagged players
+        kick = false,                        -- Kick on critical severity (disabled by default)
+        notifyAdmins = true,                 -- Fire TuteliqAlert BindableEvent
+        log = true,                          -- Log detections to output
+    },
+
+    muteDurationSeconds = 60,                -- How long muted players stay muted
+    batchSize = 25,                          -- Messages per batch API call (1–50)
+    batchFlushIntervalSeconds = 5,           -- Seconds between batch flushes
+    httpBudgetPerMinute = 400,               -- Max HTTP requests per minute
+    webhookUrl = nil,                        -- Optional external webhook URL
+})
+```
+
+### Sensitivity levels
+
+| Level | Threshold | Best for |
+|---|---|---|
+| `low` | 0.7 | Minimal false positives, only flags high-confidence threats |
+| `medium` | 0.5 | Balanced — good default for most experiences |
+| `high` | 0.3 | Catches more subtle threats, may increase false positives |
+| `maximum` | 0.1 | Maximum protection — flags nearly everything suspicious |
+
+## API
+
+| Method | Description |
+|---|---|
+| `TuteliqSafety.start(config)` | Start monitoring chat |
+| `TuteliqSafety.stop()` | Stop monitoring and clean up connections |
+| `TuteliqSafety.onDetection()` | Returns the `TuteliqAlert` BindableEvent |
+| `TuteliqSafety.analyzeNow(text, type?, player?)` | Manually analyze a message |
+| `TuteliqSafety.isRunning()` | Check if the module is active |
+
+## Architecture
+
+```
+TuteliqSafety/
+├── init.lua               — Main entry point
+├── Types.lua              — Luau type definitions
+├── Config.lua             — Validation, defaults, thresholds
+├── Logger.lua             — Structured logging
+├── HttpClient.lua         — API communication via HttpService
+├── RateLimiter.lua        — Token bucket rate limiter
+├── BatchQueue.lua         — Message batching with timer/size flush
+├── ConversationBuffer.lua — Ring buffer for grooming context
+├── CrisisDetector.lua     — Keyword matching for immediate analysis
+└── ActionDispatcher.lua   — Mute/kick/notify based on severity
+```
+
+## Rate limiting
+
+The module uses a token bucket rate limiter defaulting to 400 requests per minute. This is conservative and leaves room for your game's other HTTP calls. Roblox enforces a global limit of 500 HTTP requests per minute per server.
+
+Batch processing lets you analyze up to ~10,000 messages per minute within this budget.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Unity SDK" icon="gamepad" href="/sdks/unity">
+    See the Unity SDK guide for C# game integration.
+  </Card>
+</CardGroup>
