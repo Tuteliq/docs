@@ -1,0 +1,179 @@
+---
+title: Discord Integration
+sidebarTitle: Discord
+icon: discord
+description: AI-powered child safety monitoring for Discord servers
+keywords: [discord, bot, integration, chat moderation, child safety]
+---
+
+The Tuteliq Discord bot monitors text channels for grooming, bullying, and unsafe content in real time using the Tuteliq API. Add the hosted bot with one click or self-host on your own infrastructure.
+
+<CardGroup cols={3}>
+  <Card title="Add to Discord" icon="robot" href="https://discord.com/oauth2/authorize?client_id=1470719024320090154">
+    Invite the hosted bot to your server
+  </Card>
+  <Card title="Landing Page" icon="globe" href="https://tuteliq.ai/integrations/discord">
+    Features overview and pricing
+  </Card>
+  <Card title="Self-Host" icon="github" href="https://github.com/Tuteliq/discord">
+    Clone and deploy on your own infrastructure
+  </Card>
+</CardGroup>
+
+## Installation
+
+### Hosted bot (recommended)
+
+Click the **Add to Discord** link above to invite the bot. No code required — configure everything with slash commands.
+
+The bot needs the following permissions:
+
+- Send Messages
+- Embed Links
+- Read Message History
+- Manage Messages
+- Moderate Members
+
+Make sure **Message Content Intent** is enabled for the bot application.
+
+### Self-host
+
+```bash
+git clone https://github.com/Tuteliq/discord.git
+cd discord
+npm install
+cp .env.example .env
+# Fill in your values (see Self-Hosting section below)
+npm run deploy:commands
+npm run build
+npm start
+```
+
+## Quick start
+
+<Steps>
+  <Step title="Configure your API key">
+    Run `/tuteliq setup` and enter your Tuteliq API key (starts with `tq_`). The key is encrypted at rest with AES-256.
+  </Step>
+  <Step title="Add channels to monitor">
+    Run `/tuteliq monitor add #channel` for each text channel you want to protect.
+  </Step>
+  <Step title="Set the alert channel">
+    Run `/tuteliq alerts channel #admin-alerts` to choose where safety alerts are posted.
+  </Step>
+</Steps>
+
+## How it works
+
+Messages in monitored channels flow through a multi-stage pipeline:
+
+1. **Collect** — Each message is added to a per-channel sliding window buffer.
+2. **Batch analyze** — The buffer is periodically flushed and sent to the Tuteliq API, which detects bullying, grooming, unsafe content, and emotional distress.
+3. **Alert** — When a risk score exceeds your sensitivity threshold, a rich embed is posted to the alert channel with severity, risk score, message excerpt, and recommended action.
+4. **Act** — Admins take action directly from the alert embed using interactive buttons.
+
+## Slash commands
+
+All commands live under the `/tuteliq` prefix and require **Administrator** or **Manage Server** permission.
+
+| Command | Description |
+|---|---|
+| `/tuteliq setup` | Configure the bot with your Tuteliq API key |
+| `/tuteliq monitor add #channel` | Start monitoring a text channel |
+| `/tuteliq monitor remove #channel` | Stop monitoring a channel |
+| `/tuteliq monitor list` | List all monitored channels |
+| `/tuteliq alerts channel #channel` | Set the channel for safety alerts |
+| `/tuteliq alerts dm enable/disable` | Toggle admin DM notifications for high/critical threats |
+| `/tuteliq alerts test` | Send a test alert to verify setup |
+| `/tuteliq sensitivity set <level>` | Set detection sensitivity |
+| `/tuteliq sensitivity view` | View current sensitivity settings and thresholds |
+| `/tuteliq status` | View bot status, rate limits, and quota usage |
+| `/tuteliq link` | Generate a parent link code (expires in 15 minutes) |
+| `/tuteliq reset` | Remove all Tuteliq configuration from the server |
+
+## Alert actions
+
+When a threat is detected, the alert embed includes interactive buttons:
+
+| Action | Effect |
+|---|---|
+| **Delete Message** | Removes the flagged message from the channel |
+| **Timeout User** | Temporarily mutes the user server-wide |
+| **View Full Report** | Opens the detailed analysis with rationale and context |
+| **Dismiss** | Closes the alert without action |
+
+Admins with DM notifications enabled also receive a direct message for high and critical severity threats.
+
+## Sensitivity levels
+
+| Level | Threshold | Best for |
+|---|---|---|
+| `low` | 70%+ | Minimal alerts, only clear violations |
+| `medium` | 50%+ | Balanced — good default for most servers |
+| `high` | 30%+ | Stricter monitoring, catches more subtle threats |
+| `maximum` | 10%+ | Maximum protection — useful for testing or high-risk communities |
+
+Set the level with `/tuteliq sensitivity set <level>`.
+
+## Parent linking
+
+The `/tuteliq link` command generates a one-time code that parents can enter in the Tuteliq mobile app to receive notifications when their child is involved in a flagged conversation. Link codes expire after 15 minutes.
+
+## Self-hosting
+
+### Requirements
+
+- Node.js 20+
+- Discord bot application with Message Content Intent enabled
+- Tuteliq API key
+- Firebase project with Firestore enabled
+- Firebase service account key (JSON)
+
+### Environment variables
+
+```bash
+# Discord Bot
+DISCORD_TOKEN=your-bot-token
+DISCORD_CLIENT_ID=your-client-id
+
+# Tuteliq API
+TUTELIQ_API_URL=https://api.tuteliq.ai
+
+# Encryption (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+ENCRYPTION_KEY=your-64-hex-char-encryption-key
+
+# Firebase
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+
+# Server
+PORT=8080
+NODE_ENV=production
+LOG_LEVEL=info
+```
+
+### Docker
+
+```bash
+docker compose up -d
+```
+
+### Cloud Run
+
+```bash
+gcloud builds submit --config=discord/cloudbuild.yaml .
+```
+
+### Health check
+
+The bot exposes a health endpoint at `GET /health` on the configured port (default `8080`). It returns `200` when the bot is connected to Discord.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Roblox Integration" icon="gamepad" href="/integrations/roblox">
+    See the Roblox integration for in-game chat protection.
+  </Card>
+</CardGroup>

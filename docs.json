@@ -74,7 +74,8 @@
             "group": "Integrations",
             "icon": "plug",
             "pages": [
-              "integrations/roblox"
+              "integrations/roblox",
+              "integrations/discord"
             ]
           },
           {
