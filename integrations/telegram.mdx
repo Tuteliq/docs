@@ -1,0 +1,190 @@
+---
+title: Telegram Integration
+sidebarTitle: Telegram
+icon: telegram
+description: AI-powered child safety monitoring for Telegram groups
+keywords: [telegram, bot, integration, chat moderation, child safety, group]
+---
+
+The Tuteliq Telegram bot monitors group chats for grooming, bullying, and unsafe content in real time using the Tuteliq API. Add the bot to any group or self-host on your own infrastructure.
+
+<CardGroup cols={2}>
+  <Card title="Landing Page" icon="globe" href="https://tuteliq.ai/integrations/telegram">
+    Features overview and pricing
+  </Card>
+  <Card title="Self-Host" icon="github" href="https://github.com/Tuteliq/telegram">
+    Clone and deploy on your own infrastructure
+  </Card>
+</CardGroup>
+
+## Installation
+
+### Hosted bot (recommended)
+
+Search for **@TuteliqBot** on Telegram and add it to your group. No code required — configure everything with bot commands.
+
+The bot needs the following group permissions:
+
+- Delete Messages
+- Restrict Members
+
+### Self-host
+
+```bash
+git clone https://github.com/Tuteliq/telegram.git
+cd telegram
+npm install
+cp .env.example .env
+# Fill in your values (see Self-Hosting section below)
+npm run build
+npm start
+```
+
+## Quick start
+
+<Steps>
+  <Step title="Add the bot to your group">
+    Add @TuteliqBot to the group and grant it admin permissions (Delete Messages and Restrict Members).
+  </Step>
+  <Step title="Configure your API key">
+    Run `/setup` in the group. The bot will ask you to open a DM and send your Tuteliq API key there (starts with `tq_`). This keeps your key private. The key is encrypted at rest with AES-256.
+  </Step>
+  <Step title="Verify the setup">
+    Run `/status` in the group to confirm the bot is active and view your current configuration.
+  </Step>
+</Steps>
+
+## How it works
+
+Messages in the group flow through a multi-stage pipeline:
+
+1. **Crisis keywords** — Messages containing crisis phrases (e.g. self-harm, exploitation) trigger an immediate API call for instant analysis.
+2. **Grooming buffer** — Messages are accumulated per group. When the buffer has enough context from multiple senders, a conversation analysis is sent for grooming detection.
+3. **Batch queue** — All other messages are batched and sent to the Tuteliq API for efficient bullying and unsafe content detection.
+4. **Alert** — When a risk score exceeds your sensitivity threshold, an alert is sent as a DM to the group admin with severity, risk score, message excerpt, and recommended action.
+5. **Act** — Admins take action directly from the alert using inline buttons.
+
+<Info>
+  Alerts are sent as direct messages to the admin who configured the bot, keeping moderation activity private from the group.
+</Info>
+
+## Bot commands
+
+All commands require group admin permissions. Most commands only work inside groups, not in DMs.
+
+| Command | Description |
+|---|---|
+| `/setup` | Configure the bot with your Tuteliq API key (DM-based flow) |
+| `/status` | View current configuration, stats, and quota usage |
+| `/sensitivity <level>` | Set detection sensitivity level |
+| `/reset` | Remove all Tuteliq configuration from the group |
+| `/help` | Display the help message |
+| `/start` | Alias for help |
+
+## Alert actions
+
+When a threat is detected, the admin DM includes inline buttons:
+
+| Action | Effect |
+|---|---|
+| **Delete** | Removes the flagged message from the group |
+| **Timeout** | Restricts the user for 5 minutes (no messages, media, or polls) |
+| **Report** | Shows the full incident report with rationale and context |
+| **Dismiss** | Marks the alert as reviewed without action |
+
+## Sensitivity levels
+
+| Level | Threshold | Best for |
+|---|---|---|
+| `low` | 70%+ | Minimal alerts, only clear violations |
+| `medium` | 50%+ | Balanced — good default for most groups |
+| `high` | 30%+ | Stricter monitoring, catches more subtle threats |
+| `maximum` | 10%+ | Maximum protection — useful for testing or high-risk communities |
+
+Set the level with `/sensitivity <level>`.
+
+## Deployment modes
+
+The Telegram bot supports two transport modes:
+
+| Mode | When | How |
+|---|---|---|
+| **Webhook** | Production | Set the `WEBHOOK_URL` environment variable. The bot receives updates via POST requests. |
+| **Polling** | Development | Omit `WEBHOOK_URL`. The bot continuously polls Telegram for updates. |
+
+Webhook mode is recommended for production as it is more efficient and scales better.
+
+## Self-hosting
+
+### Requirements
+
+- Node.js 20+
+- Telegram bot token from [@BotFather](https://t.me/BotFather)
+- Tuteliq API key
+- Firebase project with Firestore enabled
+- Firebase service account key (JSON)
+
+### Environment variables
+
+```bash
+# Telegram Bot
+TELEGRAM_TOKEN=your-bot-token
+
+# Tuteliq API
+TUTELIQ_API_URL=https://api.tuteliq.ai
+
+# Encryption (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+ENCRYPTION_KEY=your-64-hex-char-encryption-key
+
+# Firebase
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+
+# Webhook (optional — omit for polling mode)
+WEBHOOK_URL=https://your-domain.com/webhook
+WEBHOOK_SECRET=your-webhook-secret
+
+# Server
+PORT=8080
+NODE_ENV=production
+LOG_LEVEL=info
+```
+
+### Docker
+
+```bash
+docker build -t tuteliq-telegram .
+docker run -p 8080:8080 --env-file .env tuteliq-telegram
+```
+
+### Cloud Run
+
+```bash
+gcloud builds submit --config=telegram/cloudbuild.yaml .
+```
+
+<Info>
+  Cloud Run deployment uses 256 MiB memory, 1 CPU, and scales to zero when idle.
+</Info>
+
+### Health check
+
+The bot exposes a health endpoint at `GET /health` on the configured port (default `8080`). It returns `200` with status, transport mode, and bot state:
+
+```json
+{
+  "status": "ok",
+  "mode": "webhook",
+  "bot": "running"
+}
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Slack Integration" icon="slack" href="/integrations/slack">
+    See the Slack integration for workspace chat protection.
+  </Card>
+</CardGroup>

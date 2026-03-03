@@ -1,0 +1,168 @@
+---
+title: Slack Integration
+sidebarTitle: Slack
+icon: slack
+description: AI-powered child safety monitoring for Slack workspaces
+keywords: [slack, bot, integration, chat moderation, child safety, workspace]
+---
+
+The Tuteliq Slack bot monitors channels for grooming, bullying, and unsafe content in real time using the Tuteliq API. Install the app to your workspace with one click or self-host on your own infrastructure.
+
+<CardGroup cols={2}>
+  <Card title="Landing Page" icon="globe" href="https://tuteliq.ai/integrations/slack">
+    Features overview and pricing
+  </Card>
+  <Card title="Self-Host" icon="github" href="https://github.com/Tuteliq/slack">
+    Clone and deploy on your own infrastructure
+  </Card>
+</CardGroup>
+
+## Installation
+
+### Hosted app (recommended)
+
+Install the Tuteliq app from the Slack App Directory. No code required — configure everything with slash commands.
+
+The bot requires the following OAuth scopes:
+
+- `chat:write` — Post messages and alerts
+- `chat:write.public` — Post to public channels
+- `channels:manage` — Remove users from channels (timeout action)
+- `groups:write` — Manage private channels
+- `users:read` — Resolve user info for alerts
+- `commands` — Handle slash commands
+
+### Self-host
+
+```bash
+git clone https://github.com/Tuteliq/slack.git
+cd slack
+npm install
+cp .env.example .env
+# Fill in your values (see Self-Hosting section below)
+npm run build
+npm start
+```
+
+## Quick start
+
+<Steps>
+  <Step title="Configure your API key">
+    Run `/tuteliq setup` — a modal dialog will open where you enter your Tuteliq API key (starts with `tq_`) and select the alert channel. The key is encrypted at rest with AES-256.
+  </Step>
+  <Step title="Select channels to monitor">
+    Choose which channels to monitor during setup. Leave empty to monitor all channels.
+  </Step>
+  <Step title="Verify the setup">
+    Run `/tuteliq status` to confirm the bot is active and view your current configuration.
+  </Step>
+</Steps>
+
+## How it works
+
+Messages in monitored channels flow through a multi-stage pipeline:
+
+1. **Crisis keywords** — Messages containing crisis phrases (e.g. self-harm, exploitation) trigger an immediate API call for instant analysis.
+2. **Grooming buffer** — Messages are accumulated per channel. When the buffer has enough context from multiple senders, a conversation analysis is sent for grooming detection.
+3. **Batch queue** — All other messages are batched and sent to the Tuteliq API for efficient bullying and unsafe content detection.
+4. **Alert** — When a risk score exceeds your sensitivity threshold, an alert is posted to your configured alert channel with severity, risk score, message excerpt, and recommended action.
+5. **Act** — Admins take action directly from the alert using interactive buttons.
+
+## Slash commands
+
+All commands live under the `/tuteliq` prefix and require workspace admin permissions.
+
+| Command | Description |
+|---|---|
+| `/tuteliq setup` | Configure the bot with your Tuteliq API key via modal dialog |
+| `/tuteliq status` | View current configuration, stats, and quota usage |
+| `/tuteliq sensitivity <level>` | Set detection sensitivity level |
+| `/tuteliq reset` | Remove all Tuteliq configuration from the workspace |
+| `/tuteliq help` | Display the help message |
+
+## Alert actions
+
+When a threat is detected, the alert message includes interactive buttons:
+
+| Action | Effect |
+|---|---|
+| **Delete** | Removes the flagged message from the channel |
+| **Timeout** | Removes the user from the channel |
+| **Report** | Shows the full incident report with rationale and context |
+| **Dismiss** | Marks the alert as reviewed without action |
+
+## Sensitivity levels
+
+| Level | Threshold | Best for |
+|---|---|---|
+| `low` | 70%+ | Minimal alerts, only clear violations |
+| `medium` | 50%+ | Balanced — good default for most workspaces |
+| `high` | 30%+ | Stricter monitoring, catches more subtle threats |
+| `maximum` | 10%+ | Maximum protection — useful for testing or high-risk communities |
+
+Set the level with `/tuteliq sensitivity <level>`.
+
+## Self-hosting
+
+### Requirements
+
+- Node.js 20+
+- Slack app with Bot Token and Signing Secret
+- Tuteliq API key
+- Firebase project with Firestore enabled
+- Firebase service account key (JSON)
+
+### Environment variables
+
+```bash
+# Slack App
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_SIGNING_SECRET=your-signing-secret
+SLACK_APP_TOKEN=xapp-your-app-token         # Optional, for Socket Mode
+SLACK_SOCKET_MODE=false                       # Set to true for Socket Mode
+
+# Tuteliq API
+TUTELIQ_API_URL=https://api.tuteliq.ai
+
+# Encryption (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+ENCRYPTION_KEY=your-64-hex-char-encryption-key
+
+# Firebase
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+
+# Server
+PORT=8080
+NODE_ENV=production
+LOG_LEVEL=info
+```
+
+### Docker
+
+```bash
+docker compose up -d
+```
+
+### Cloud Run
+
+```bash
+gcloud builds submit --config=slack/cloudbuild.yaml .
+```
+
+<Info>
+  Cloud Run deployment uses 512 MiB memory, 1 CPU, and keeps 1 minimum instance running for low-latency responses.
+</Info>
+
+### Health check
+
+The bot exposes a health endpoint at `GET /health` on the configured port (default `8080`). It returns `200` with `{ "status": "ok" }` when the bot is running.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the full API specification.
+  </Card>
+  <Card title="Discord Integration" icon="discord" href="/integrations/discord">
+    See the Discord integration for server chat protection.
+  </Card>
+</CardGroup>
