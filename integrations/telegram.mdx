@@ -6,9 +6,12 @@ description: AI-powered child safety monitoring for Telegram groups
 keywords: [telegram, bot, integration, chat moderation, child safety, group]
 ---
 
-The Tuteliq Telegram bot monitors group chats for grooming, bullying, and unsafe content in real time using the Tuteliq API. Add the bot to any group or self-host on your own infrastructure.
+The Tuteliq Telegram bot monitors group chats for grooming, bullying, and unsafe content in real time using the Tuteliq API. Add it to any group in seconds or self-host on your own infrastructure.
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
+  <Card title="Add to Telegram" icon="plus" href="https://t.me/tuteliq_guardian_bot">
+    Add the bot to your Telegram group
+  </Card>
   <Card title="Landing Page" icon="globe" href="https://tuteliq.ai/integrations/telegram">
     Features overview and pricing
   </Card>
@@ -21,7 +24,7 @@ The Tuteliq Telegram bot monitors group chats for grooming, bullying, and unsafe
 
 ### Hosted bot (recommended)
 
-Search for **@TuteliqBot** on Telegram and add it to your group. No code required — configure everything with bot commands.
+Click **Add to Telegram** above or search for `@tuteliq_guardian_bot` in Telegram, then add the bot to your group. No code required — configure everything with bot commands.
 
 The bot needs the following group permissions:
 
@@ -44,7 +47,7 @@ npm start
 
 <Steps>
   <Step title="Add the bot to your group">
-    Add @TuteliqBot to the group and grant it admin permissions (Delete Messages and Restrict Members).
+    Open the bot profile, tap **Add to Group**, and select the group you want to protect. Grant it admin permissions (Delete Messages and Restrict Members).
   </Step>
   <Step title="Configure your API key">
     Run `/setup` in the group. The bot will ask you to open a DM and send your Tuteliq API key there (starts with `tq_`). This keeps your key private. The key is encrypted at rest with AES-256.

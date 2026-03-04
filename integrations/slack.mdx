@@ -6,9 +6,12 @@ description: AI-powered child safety monitoring for Slack workspaces
 keywords: [slack, bot, integration, chat moderation, child safety, workspace]
 ---
 
-The Tuteliq Slack bot monitors channels for grooming, bullying, and unsafe content in real time using the Tuteliq API. Install the app to your workspace with one click or self-host on your own infrastructure.
+The Tuteliq Slack bot monitors channels for grooming, bullying, and unsafe content in real time using the Tuteliq API. Add it to your workspace with one click or self-host on your own infrastructure.
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
+  <Card title="Add to Slack" icon="plus" href="https://slack.com/oauth/v2/authorize?client_id=10528926113637.10648650030896&scope=channels:join,channels:history,channels:read,chat:write,commands,groups:history,groups:read,im:history,im:write,users:read&user_scope=">
+    Add the bot to your Slack workspace
+  </Card>
   <Card title="Landing Page" icon="globe" href="https://tuteliq.ai/integrations/slack">
     Features overview and pricing
   </Card>
@@ -21,16 +24,22 @@ The Tuteliq Slack bot monitors channels for grooming, bullying, and unsafe conte
 
 ### Hosted app (recommended)
 
-Install the Tuteliq app from the Slack App Directory. No code required — configure everything with slash commands.
+Click the **Add to Slack** button above to install the bot into your workspace. No code required — configure everything with slash commands.
 
-The bot requires the following OAuth scopes:
+The bot requests the following permissions:
 
-- `chat:write` — Post messages and alerts
-- `chat:write.public` — Post to public channels
-- `channels:manage` — Remove users from channels (timeout action)
-- `groups:write` — Manage private channels
-- `users:read` — Resolve user info for alerts
-- `commands` — Handle slash commands
+| Scope | Purpose |
+|---|---|
+| `channels:join` | Join public channels selected for monitoring |
+| `channels:history` | Read messages in monitored public channels |
+| `channels:read` | List available channels |
+| `groups:history` | Read messages in monitored private channels |
+| `groups:read` | List available private channels |
+| `chat:write` | Post safety alerts to the alert channel |
+| `im:history` | Read direct messages (when opted in) |
+| `im:write` | Send DM notifications to admins |
+| `commands` | Register slash commands |
+| `users:read` | Resolve user display names in alerts |
 
 ### Self-host
 
@@ -47,6 +56,9 @@ npm start
 ## Quick start
 
 <Steps>
+  <Step title="Install the bot">
+    Click **Add to Slack** and authorize the bot in your workspace.
+  </Step>
   <Step title="Configure your API key">
     Run `/tuteliq setup` — a modal dialog will open where you enter your Tuteliq API key (starts with `tq_`) and select the alert channel. The key is encrypted at rest with AES-256.
   </Step>
