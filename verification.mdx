@@ -1,0 +1,389 @@
+---
+title: Age & Identity Verification
+sidebarTitle: Verification
+icon: id-card
+description: Verify user age and identity to protect minors and ensure platform compliance
+keywords: [age verification, identity verification, KYC, age assurance, liveness detection, document verification, KOSA, COPPA]
+---
+
+<Info>
+  Age Verification and Identity Verification are currently in **Beta**. Endpoints and response schemas may evolve based on feedback.
+</Info>
+
+Tuteliq Verification helps platforms confirm who their users are and how old they are — a critical layer for child safety compliance. Age Verification uses document analysis and biometric estimation to confirm a user's age. Identity Verification goes further with document authentication, face matching, and liveness detection to prevent impersonation.
+
+<CardGroup cols={2}>
+  <Card title="Age Verification" icon="id-card" href="#age-verification">
+    Confirm user age via document analysis or biometric estimation. Available on Pro tier and above.
+  </Card>
+  <Card title="Identity Verification" icon="fingerprint" href="#identity-verification">
+    Full identity confirmation with document auth, face matching, and liveness detection. Available on Business tier and above.
+  </Card>
+</CardGroup>
+
+## Why verification matters
+
+Content detection alone isn't enough. Platforms need to know _who_ their users are:
+
+- **KOSA compliance** requires age-appropriate protections — you can't calibrate if you don't know the user's age
+- **Predators impersonate minors** to gain access to child-focused spaces
+- **Underage users lie about their age** to access age-restricted features
+- **Parental consent flows** (COPPA) require verifying that the consenting adult is actually an adult
+
+Tuteliq Verification integrates directly with the safety API — verify once, then use the confirmed age group across all detection endpoints for properly calibrated risk scoring.
+
+## Tier availability
+
+| Feature | Minimum Tier | Credits |
+|---------|-------------|---------|
+| Age Verification | Pro ($99/mo) | 5 per verification |
+| Identity Verification | Business ($349/mo) | 10 per verification |
+
+---
+
+## Age Verification
+
+`POST /v1/verification/age`
+
+Verify a user's age through document analysis, biometric age estimation, or both. Returns a verified age range and confidence score.
+
+### Verification methods
+
+| Method | How it works | Best for |
+|--------|-------------|----------|
+| **Document** | Extracts date of birth from a government-issued ID (passport, driving licence, national ID) | High-assurance age gates, parental consent |
+| **Biometric** | Estimates age from a selfie using facial analysis | Frictionless age checks, onboarding flows |
+| **Combined** | Document + biometric cross-reference | Maximum assurance — verifies the document belongs to the person |
+
+### Request
+
+<CodeGroup>
+```typescript Node.js
+const result = await tuteliq.verifyAge({
+  document: fs.createReadStream('id-front.jpg'),     // Government-issued ID
+  selfie: fs.createReadStream('selfie.jpg'),          // Optional — for biometric estimation
+  method: 'combined',                                  // 'document' | 'biometric' | 'combined'
+});
+
+console.log(result.verified);        // true
+console.log(result.estimated_age);   // 15
+console.log(result.age_range);       // "13-15"
+console.log(result.is_minor);        // true
+console.log(result.confidence);      // 0.97
+console.log(result.document_type);   // "passport"
+```
+
+```python Python
+result = client.verify_age(
+    document=open("id-front.jpg", "rb"),    # Government-issued ID
+    selfie=open("selfie.jpg", "rb"),         # Optional — for biometric estimation
+    method="combined",                        # "document" | "biometric" | "combined"
+)
+
+print(result.verified)        # True
+print(result.estimated_age)   # 15
+print(result.age_range)       # "13-15"
+print(result.is_minor)        # True
+print(result.confidence)      # 0.97
+print(result.document_type)   # "passport"
+```
+
+```bash cURL
+curl -X POST https://api.tuteliq.ai/v1/verification/age \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "document=@id-front.jpg" \
+  -F "selfie=@selfie.jpg" \
+  -F "method=combined"
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "verified": true,
+  "estimated_age": 15,
+  "age_range": "13-15",
+  "is_minor": true,
+  "confidence": 0.97,
+  "method": "combined",
+  "document_type": "passport",
+  "document_country": "GB",
+  "biometric_age": 15,
+  "document_age": 15,
+  "credits_used": 5
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `verified` | boolean | Whether age verification succeeded |
+| `estimated_age` | integer | Best estimate of user's age |
+| `age_range` | string | Tuteliq age bracket: `under-10`, `10-12`, `13-15`, or `14-17` |
+| `is_minor` | boolean | Whether the user is under 18 |
+| `confidence` | float | Confidence score (0.0–1.0) |
+| `method` | string | Method used: `document`, `biometric`, or `combined` |
+| `document_type` | string | Type of document analyzed (if applicable) |
+| `document_country` | string | ISO 3166-1 alpha-2 country code of the document |
+| `biometric_age` | integer | Age estimated from selfie (if selfie provided) |
+| `document_age` | integer | Age calculated from document DOB (if document provided) |
+| `credits_used` | integer | Credits consumed |
+
+### Supported documents
+
+- Passport
+- Driving licence
+- National identity card
+- Residence permit
+
+Documents must be a clear, well-lit photo or scan in JPEG or PNG format. Maximum file size: 10MB.
+
+---
+
+## Identity Verification
+
+`POST /v1/verification/identity`
+
+Confirm a user's identity with document authentication, face matching between document and selfie, and liveness detection to prevent spoofing.
+
+### What it checks
+
+| Check | Description |
+|-------|-------------|
+| **Document authentication** | MRZ validation, hologram detection, tamper analysis, format verification |
+| **Face matching** | Compares the photo on the document to the selfie — confirms the document belongs to the person |
+| **Liveness detection** | Detects spoofing attempts: photo-of-photo, screen replay, printed masks, deepfakes |
+
+### Request
+
+<CodeGroup>
+```typescript Node.js
+const result = await tuteliq.verifyIdentity({
+  document: fs.createReadStream('id-front.jpg'),
+  selfie: fs.createReadStream('selfie.jpg'),
+});
+
+console.log(result.verified);                // true
+console.log(result.match_score);             // 0.98
+console.log(result.liveness_passed);         // true
+console.log(result.document_authenticated);  // true
+console.log(result.is_minor);               // false
+```
+
+```python Python
+result = client.verify_identity(
+    document=open("id-front.jpg", "rb"),
+    selfie=open("selfie.jpg", "rb"),
+)
+
+print(result.verified)                # True
+print(result.match_score)             # 0.98
+print(result.liveness_passed)         # True
+print(result.document_authenticated)  # True
+print(result.is_minor)               # False
+```
+
+```bash cURL
+curl -X POST https://api.tuteliq.ai/v1/verification/identity \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "document=@id-front.jpg" \
+  -F "selfie=@selfie.jpg"
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "verified": true,
+  "match_score": 0.98,
+  "liveness_passed": true,
+  "document_authenticated": true,
+  "estimated_age": 34,
+  "age_range": "adult",
+  "is_minor": false,
+  "confidence": 0.99,
+  "document_type": "driving_licence",
+  "document_country": "US",
+  "flags": [],
+  "checks": {
+    "mrz_valid": true,
+    "tamper_detected": false,
+    "face_match": true,
+    "liveness": true,
+    "document_expired": false
+  },
+  "credits_used": 10
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `verified` | boolean | Whether identity verification succeeded (all checks passed) |
+| `match_score` | float | Face match score between document photo and selfie (0.0–1.0) |
+| `liveness_passed` | boolean | Whether the liveness check passed |
+| `document_authenticated` | boolean | Whether the document passed authenticity checks |
+| `estimated_age` | integer | Age calculated from document DOB |
+| `age_range` | string | Tuteliq age bracket or `adult` |
+| `is_minor` | boolean | Whether the user is under 18 |
+| `confidence` | float | Overall verification confidence (0.0–1.0) |
+| `document_type` | string | Type of document |
+| `document_country` | string | ISO 3166-1 alpha-2 country code |
+| `flags` | array | Any warning flags (e.g., `document_expiring_soon`, `low_image_quality`) |
+| `checks` | object | Individual check results |
+| `credits_used` | integer | Credits consumed |
+
+### Spoofing prevention
+
+Liveness detection catches the following attack vectors:
+
+| Attack | Detection method |
+|--------|-----------------|
+| Photo-of-photo | Texture analysis, reflection detection, depth estimation |
+| Screen replay | Moire pattern detection, screen edge detection |
+| Printed mask | 3D depth analysis, material texture classification |
+| Deepfake video | Temporal consistency analysis, artifact detection |
+
+---
+
+## Integration patterns
+
+### Age gate on sign-up
+
+Verify age during onboarding and store the confirmed age group for all subsequent API calls:
+
+```typescript
+// 1. Verify age during sign-up
+const verification = await tuteliq.verifyAge({
+  selfie: selfieStream,
+  method: 'biometric',
+});
+
+// 2. Store the verified age group
+const ageGroup = verification.age_range;  // "13-15"
+
+// 3. Use verified age group in all safety calls
+const safety = await tuteliq.detectUnsafe({
+  text: messageContent,
+  ageGroup: ageGroup,  // Properly calibrated risk scoring
+});
+```
+
+### Parental consent flow (COPPA)
+
+For users verified as under 13, trigger a parental consent flow by verifying the parent's identity:
+
+```typescript
+// 1. Verify child's age
+const childAge = await tuteliq.verifyAge({
+  selfie: childSelfieStream,
+  method: 'biometric',
+});
+
+if (childAge.estimated_age < 13) {
+  // 2. Verify parent's identity
+  const parentIdentity = await tuteliq.verifyIdentity({
+    document: parentIdStream,
+    selfie: parentSelfieStream,
+  });
+
+  if (parentIdentity.verified && !parentIdentity.is_minor) {
+    // 3. Parent is verified — proceed with consent
+    await grantParentalConsent(childUserId, parentIdentity);
+  }
+}
+```
+
+### Moderator/admin verification
+
+Verify the identity of users requesting elevated privileges:
+
+```typescript
+const identity = await tuteliq.verifyIdentity({
+  document: documentStream,
+  selfie: selfieStream,
+});
+
+if (identity.verified && !identity.is_minor) {
+  await grantModeratorRole(userId);
+}
+```
+
+## Error handling
+
+Verification-specific errors use the `VRF_9xxx` code range:
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VRF_9001` | 400 | Document image is required |
+| `VRF_9002` | 400 | Document image is unreadable or too low quality |
+| `VRF_9003` | 400 | Unsupported document type |
+| `VRF_9004` | 400 | Selfie image is required for liveness check |
+| `VRF_9005` | 400 | Face not detected in selfie |
+| `VRF_9006` | 400 | Liveness check failed — possible spoofing detected |
+| `VRF_9007` | 500 | Verification service error (safe to retry) |
+| `VRF_9008` | 403 | Age verification not available on your plan (requires Pro) |
+| `VRF_9009` | 403 | Identity verification not available on your plan (requires Business) |
+
+<CodeGroup>
+```typescript Node.js
+try {
+  const result = await tuteliq.verifyAge({
+    document: documentStream,
+    method: 'document',
+  });
+} catch (error) {
+  if (error instanceof TuteliqError) {
+    switch (error.code) {
+      case 'VRF_9002':
+        // Ask user to retake photo with better lighting
+        break;
+      case 'VRF_9003':
+        // Unsupported document — ask for passport, licence, or national ID
+        break;
+      case 'VRF_9008':
+        // Plan doesn't include age verification
+        break;
+    }
+  }
+}
+```
+
+```python Python
+from tuteliq import TuteliqError
+
+try:
+    result = client.verify_age(
+        document=open("id.jpg", "rb"),
+        method="document",
+    )
+except TuteliqError as e:
+    if e.code == "VRF_9002":
+        # Ask user to retake photo
+        pass
+    elif e.code == "VRF_9008":
+        # Plan doesn't include age verification
+        pass
+```
+</CodeGroup>
+
+## Data handling
+
+<Warning>
+  Verification involves sensitive personal data. Tuteliq processes documents and selfies in real time and does **not** store images or extracted PII after the verification is complete. Only the verification result (age range, pass/fail) is retained. See the [GDPR](/gdpr) page for data handling details.
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="KOSA Compliance" icon="gavel" href="/kosa-compliance">
+    See how verification fits into your KOSA compliance strategy.
+  </Card>
+  <Card title="Credits" icon="coins" href="/credits">
+    Understand verification credit costs and usage tracking.
+  </Card>
+</CardGroup>
