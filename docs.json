@@ -87,6 +87,7 @@
               "languages",
               "voice-streaming",
               "video-analysis",
+              "verification",
               "webhooks",
               "error-handling"
             ]
