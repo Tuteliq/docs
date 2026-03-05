@@ -100,6 +100,20 @@ All Tuteliq API errors return a consistent JSON structure with a machine-readabl
 | `GDPR_8009` | 400 | Invalid consent type |
 | `GDPR_8010` | 403 | Required consent not granted |
 
+### Verification (VRF_9xxx)
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VRF_9001` | 400 | Document image is required |
+| `VRF_9002` | 400 | Document image is unreadable or too low quality |
+| `VRF_9003` | 400 | Unsupported document type |
+| `VRF_9004` | 400 | Selfie image is required for liveness check |
+| `VRF_9005` | 400 | Face not detected in selfie |
+| `VRF_9006` | 400 | Liveness check failed — possible spoofing detected |
+| `VRF_9007` | 500 | Verification service error |
+| `VRF_9008` | 403 | Age verification not available on your plan (requires Pro) |
+| `VRF_9009` | 403 | Identity verification not available on your plan (requires Business) |
+
 ### WebSocket (WS_10xxx)
 
 | Code | HTTP | Description |
@@ -125,6 +139,9 @@ Not all errors should be retried. Here's a guide:
 | `NF_*` | No | Check the endpoint URL or resource ID |
 | `ANALYSIS_6001`, `6006`, `6007` | Yes | Retry once after a short delay |
 | `SUB_7005` | No | Purchase more credits |
+| `VRF_9001`–`9006` | No | Fix the request (image quality, document type, selfie) |
+| `VRF_9007` | Yes | Retry once after a short delay |
+| `VRF_9008`, `VRF_9009` | No | Upgrade your plan |
 
 ### Exponential backoff example
 

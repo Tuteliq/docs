@@ -6,6 +6,32 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.4.0 — March 2026
+
+### Age Verification (Beta)
+- `POST /v1/verification/age` — verify user age through document analysis and biometric age estimation
+- Supports government-issued ID documents (passport, driving licence, national ID)
+- Biometric age estimation from selfie photo
+- Returns `verified`, `estimated_age`, `age_range`, `confidence`, and `document_type`
+- 5 credits per verification
+- Available on **Pro** tier and above
+
+### Identity Verification (Beta)
+- `POST /v1/verification/identity` — confirm user identity with document verification and liveness detection
+- Document authenticity checks (MRZ validation, hologram detection, tamper analysis)
+- Liveness detection to prevent spoofing (photo-of-photo, screen replay, mask attacks)
+- Face matching between document photo and selfie
+- Returns `verified`, `match_score`, `liveness_passed`, `document_authenticated`, and `flags`
+- 10 credits per verification
+- Available on **Business** tier and above
+
+### Tier Access
+- Age Verification requires **Pro** tier ($99/mo) or above
+- Identity Verification requires **Business** tier ($349/mo) or above
+- Both features are in **Beta** — endpoints and response schemas may evolve
+
+---
+
 ## v1.3.0 — February 2026
 
 ### Fraud Detection Endpoints
