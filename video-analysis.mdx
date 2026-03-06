@@ -143,7 +143,7 @@ curl -X POST https://api.tuteliq.ai/api/v1/safety/video \
 import { Tuteliq } from "@tuteliq/sdk";
 import { readFileSync } from "fs";
 
-const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY });
+const tuteliq = new Tuteliq(process.env.TUTELIQ_API_KEY);
 
 const result = await tuteliq.analyzeVideo({
   file: readFileSync("./clip.mp4"),
