@@ -165,7 +165,7 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
 }
 
 const result = await withRetry(() =>
-  tuteliq.detectUnsafe({ text: "message", ageGroup: "10-12" })
+  tuteliq.detectUnsafe({ content: "message", context: { ageGroup: "10-12" } })
 );
 ```
 

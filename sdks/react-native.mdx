@@ -25,7 +25,7 @@ yarn add @tuteliq/react-native
 ```typescript
 import { Tuteliq } from '@tuteliq/react-native';
 
-const tuteliq = new Tuteliq({ apiKey: 'YOUR_API_KEY' });
+const tuteliq = new Tuteliq('YOUR_API_KEY');
 ```
 
 <Warning>
@@ -35,7 +35,7 @@ const tuteliq = new Tuteliq({ apiKey: 'YOUR_API_KEY' });
 ```typescript
 import Config from 'react-native-config';
 
-const tuteliq = new Tuteliq({ apiKey: Config.TUTELIQ_API_KEY });
+const tuteliq = new Tuteliq(Config.TUTELIQ_API_KEY);
 ```
 
 ## Detect unsafe content
@@ -44,13 +44,14 @@ Scan a single text input for harmful content across all KOSA categories.
 
 ```typescript
 const result = await tuteliq.detectUnsafe({
-  text: "Let's meet at the park after school, don't tell your parents",
-  ageGroup: '10-12',
+  content: "Let's meet at the park after school, don't tell your parents",
+  context: { ageGroup: '10-12' },
 });
 
-console.log(result.safe);        // false
-console.log(result.severity);    // "high"
-console.log(result.categories);  // ["grooming", "secrecy"]
+console.log(result.unsafe);       // true
+console.log(result.severity);     // "high"
+console.log(result.categories);   // ["grooming", "secrecy"]
+console.log(result.risk_score);   // 0.91
 ```
 
 ## Detect grooming patterns
@@ -60,17 +61,17 @@ Analyze a conversation history for grooming indicators.
 ```typescript
 const result = await tuteliq.detectGrooming({
   messages: [
-    { role: 'stranger', text: 'Hey, how old are you?' },
-    { role: 'child', text: "I'm 11" },
-    { role: 'stranger', text: 'Cool. Do you have your own phone?' },
-    { role: 'stranger', text: "Let's talk on a different app, just us" },
+    { role: 'stranger', content: 'Hey, how old are you?' },
+    { role: 'child', content: "I'm 11" },
+    { role: 'stranger', content: 'Cool. Do you have your own phone?' },
+    { role: 'stranger', content: "Let's talk on a different app, just us" },
   ],
-  ageGroup: '10-12',
+  childAge: 11,
 });
 
-console.log(result.groomingDetected); // true
-console.log(result.riskScore);        // 0.92
-console.log(result.stage);            // "isolation"
+console.log(result.grooming_risk);  // "high"
+console.log(result.risk_score);     // 0.92
+console.log(result.flags);          // ["isolation", "secrecy"]
 ```
 
 ## Analyze emotions
@@ -79,13 +80,14 @@ Evaluate emotional well-being from conversation text.
 
 ```typescript
 const result = await tuteliq.analyzeEmotions({
-  text: 'Nobody at school talks to me anymore. I just sit alone every day.',
-  ageGroup: '13-15',
+  content: 'Nobody at school talks to me anymore. I just sit alone every day.',
+  context: { ageGroup: '13-15' },
 });
 
-console.log(result.emotions);   // [{ label: "sadness", score: 0.87 }, ...]
-console.log(result.distress);   // true
-console.log(result.riskLevel);  // "elevated"
+console.log(result.dominant_emotions);    // ["sadness", "loneliness"]
+console.log(result.emotion_scores);       // { sadness: 0.87, loneliness: 0.75, ... }
+console.log(result.trend);               // "worsening"
+console.log(result.recommended_followup); // "Check in about school relationships..."
 ```
 
 ## Analyze voice
@@ -99,12 +101,14 @@ const audioPath = `${RNFS.DocumentDirectoryPath}/recording.wav`;
 
 const result = await tuteliq.analyzeVoice({
   filePath: audioPath,
+  filename: 'recording.wav',
+  analysisType: 'all',
   ageGroup: '13-15',
 });
 
-console.log(result.transcript);
-console.log(result.safe);
-console.log(result.emotions);
+console.log(result.transcription.text);   // Full transcript
+console.log(result.overall_severity);     // "low" | "medium" | "high" | "critical"
+console.log(result.overall_risk_score);   // 0.0 - 1.0
 ```
 
 ## Hook integration
@@ -122,15 +126,15 @@ function SafetyScreen() {
 
   const checkMessage = async (text: string) => {
     const res = await tuteliq.detectUnsafe({
-      text,
-      ageGroup: '13-15',
+      content: text,
+      context: { ageGroup: '13-15' },
     });
     setResult(res);
   };
 
   return (
     <View>
-      <Text>{result?.safe ? 'Content is safe' : 'Checking...'}</Text>
+      <Text>{result?.unsafe === false ? 'Content is safe' : 'Checking...'}</Text>
     </View>
   );
 }
@@ -146,32 +150,30 @@ Identify manipulation tactics designed to trick a child into disclosing informat
 
 ```typescript
 const result = await tuteliq.detectSocialEngineering({
-  text: "If you really trusted me you'd send me your home address. All my real friends do.",
-  ageGroup: '10-12',
+  content: "If you really trusted me you'd send me your home address. All my real friends do.",
+  context: { ageGroup: '10-12' },
 });
 
-console.log(result.detected);     // true
-console.log(result.tactics);      // ["trust_exploitation", "peer_pressure"]
-console.log(result.riskScore);    // 0.88
+console.log(result.detected);           // true
+console.log(result.categories);         // [{ tag: "TRUST_EXPLOITATION", label: "Trust Exploitation", confidence: 0.92 }]
+console.log(result.risk_score);         // 0.88
+console.log(result.recommended_action); // "Block and report to platform administrators"
 ```
 
 ### Detect romance scam
 
-Analyze conversation text for romantic manipulation patterns that may indicate an adult posing as a peer.
+Analyze text for romantic manipulation patterns that may indicate an adult posing as a peer.
 
 ```typescript
 const result = await tuteliq.detectRomanceScam({
-  messages: [
-    { role: 'stranger', text: "I've never felt this way about anyone before. You're so mature for your age." },
-    { role: 'child', text: 'Really? That makes me really happy.' },
-    { role: 'stranger', text: "I need you to keep us a secret. People wouldn't understand." },
-  ],
-  ageGroup: '13-15',
+  content: "I've never felt this way about anyone before. You're so mature for your age. Keep us a secret.",
+  context: { ageGroup: '13-15' },
 });
 
-console.log(result.detected);        // true
-console.log(result.riskScore);       // 0.91
-console.log(result.indicators);      // ["love_bombing", "secrecy_request", "age_flattery"]
+console.log(result.detected);           // true
+console.log(result.risk_score);         // 0.91
+console.log(result.categories);         // [{ tag: "LOVE_BOMBING", label: "Love Bombing", confidence: 0.93 }]
+console.log(result.recommended_action); // "Immediate intervention recommended"
 ```
 
 ### Detect vulnerability exploitation
@@ -180,34 +182,34 @@ Detect attempts to identify and target emotional or situational vulnerabilities 
 
 ```typescript
 const result = await tuteliq.detectVulnerabilityExploitation({
-  text: "I know you said your parents don't listen to you. I'm different — I actually care. You can tell me anything.",
-  ageGroup: '13-15',
+  content: "I know you said your parents don't listen to you. I'm different — I actually care. You can tell me anything.",
+  context: { ageGroup: '13-15' },
 });
 
-console.log(result.detected);         // true
-console.log(result.riskScore);        // 0.85
-console.log(result.vulnerabilities);  // ["parental_conflict", "emotional_neglect"]
+console.log(result.detected);           // true
+console.log(result.risk_score);         // 0.85
+console.log(result.categories);         // [{ tag: "EMOTIONAL_EXPLOITATION", label: "Emotional Exploitation", confidence: 0.88 }]
+console.log(result.recommended_action); // "Flag for moderator review"
 ```
 
-### Analyse multiple texts in one request
+### Analyse multiple endpoints in one request
 
-Run any supported detection across multiple texts in a single API call to reduce round-trips.
+Run multiple detection endpoints on a single piece of content in one API call.
 
 ```typescript
 const result = await tuteliq.analyseMulti({
-  inputs: [
-    { text: "You're so special. Nobody else understands you like I do.", ageGroup: '13-15' },
-    { text: "Can you keep a secret from your mum?", ageGroup: '10-12' },
-  ],
+  content: "You're so special. Nobody else understands you like I do. Keep this a secret.",
   detections: ['social-engineering', 'romance-scam', 'grooming'],
+  context: { ageGroup: '13-15' },
 });
 
-console.log(result.results[0].detections);  // { socialEngineering: { detected: true, ... }, ... }
-console.log(result.results[1].detections);  // { grooming: { detected: true, ... }, ... }
+console.log(result.summary.highest_risk);       // "critical"
+console.log(result.summary.total_credits_used);  // 3
+console.log(result.results.length);              // 3
 ```
 
 <Info>
-  `analyseMulti` is billed per individual input × detection combination, not per request.
+  `analyseMulti` is billed per detection endpoint, not per request.
 </Info>
 
 ## Error handling
@@ -219,8 +221,8 @@ import { Tuteliq, TuteliqError } from '@tuteliq/react-native';
 
 try {
   const result = await tuteliq.detectUnsafe({
-    text: 'some content',
-    ageGroup: '10-12',
+    content: 'some content',
+    context: { ageGroup: '10-12' },
   });
 } catch (error) {
   if (error instanceof TuteliqError) {
@@ -234,11 +236,10 @@ try {
 ## Configuration options
 
 ```typescript
-const tuteliq = new Tuteliq({
-  apiKey: Config.TUTELIQ_API_KEY,
-  baseUrl: 'https://api.tuteliq.ai',  // default
-  timeout: 30_000,                      // request timeout in ms
-  retries: 2,                           // automatic retries on failure
+const tuteliq = new Tuteliq(Config.TUTELIQ_API_KEY, {
+  timeout: 30_000,   // request timeout in ms (default: 30000)
+  retries: 3,        // automatic retries on transient failures (default: 3)
+  retryDelay: 1000,  // initial retry delay in ms (default: 1000)
 });
 ```
 

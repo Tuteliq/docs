@@ -36,11 +36,11 @@ keywords: [getting started, setup, first call, SDK]
     ```typescript Node.js
     import { Tuteliq } from "@tuteliq/sdk";
 
-    const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY });
+    const tuteliq = new Tuteliq(process.env.TUTELIQ_API_KEY);
 
     const result = await tuteliq.detectUnsafe({
-      text: "Hey, want to meet up after school? Don't tell your parents.",
-      ageGroup: "10-12",
+      content: "Hey, want to meet up after school? Don't tell your parents.",
+      context: { ageGroup: "10-12" },
     });
 
     console.log(result.severity);    // "high"
@@ -62,12 +62,12 @@ keywords: [getting started, setup, first call, SDK]
     print(result.credits_used)  # 1
     ```
     ```bash cURL
-    curl -X POST https://api.tuteliq.ai/v1/safety/detect-unsafe \
+    curl -X POST https://api.tuteliq.ai/api/v1/safety/unsafe \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "text": "Hey, want to meet up after school? Don'\''t tell your parents.",
-        "ageGroup": "10-12"
+        "context": { "age_group": "10-12" }
       }'
     ```
   </CodeGroup>
@@ -76,12 +76,13 @@ keywords: [getting started, setup, first call, SDK]
 
   ```json
   {
-    "safe": false,
+    "unsafe": true,
     "severity": "high",
     "risk_score": 0.91,
     "categories": ["grooming"],
-    "flags": ["secrecy", "private_meeting"],
-    "summary": "Potential grooming pattern detected: solicitation of a private meeting with secrecy directive.",
+    "confidence": 0.92,
+    "rationale": "Potential grooming pattern detected: solicitation of a private meeting with secrecy directive.",
+    "recommended_action": "immediate_intervention",
     "language": "en",
     "language_status": "stable",
     "credits_used": 1
@@ -95,7 +96,7 @@ keywords: [getting started, setup, first call, SDK]
   <CodeGroup>
     ```typescript Node.js
     const result = await tuteliq.detectSocialEngineering({
-      text: "I'm from your school's IT department. I need your password to fix your account urgently.",
+      content: "I'm from your school's IT department. I need your password to fix your account urgently.",
       context: { ageGroup: "10-12" },
     });
 
@@ -133,8 +134,8 @@ keywords: [getting started, setup, first call, SDK]
   <CodeGroup>
     ```typescript Node.js
     const result = await tuteliq.analyseMulti({
-      text: "Send me your bank details and I'll transfer the money. Don't tell anyone about this.",
-      endpoints: ["social-engineering", "mule-recruitment", "coercive-control"],
+      content: "Send me your bank details and I'll transfer the money. Don't tell anyone about this.",
+      detections: ["social-engineering", "mule-recruitment", "coercive-control"],
       context: { ageGroup: "13-15" },
     });
 
