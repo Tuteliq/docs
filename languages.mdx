@@ -2,11 +2,11 @@
 title: Language Support
 sidebarTitle: Languages
 icon: globe
-description: "Automatic language detection and culture-aware safety analysis in 10 languages"
+description: "Automatic language detection and culture-aware safety analysis in 14 languages"
 keywords: [language detection, multilingual, i18n, localization, auto-detect]
 ---
 
-Tuteliq detects and analyzes content in 10 languages. Language is auto-detected — no configuration required.
+Tuteliq detects and analyzes content in 14 languages. Language is auto-detected — no configuration required.
 
 ## Supported Languages
 
@@ -22,6 +22,10 @@ Tuteliq detects and analyzes content in 10 languages. Language is auto-detected 
 | `fi` | Finnish    | Beta   | |
 | `de` | German     | Beta   | |
 | `fr` | French     | Beta   | |
+| `nl` | Dutch      | Beta   | Including Flemish |
+| `pl` | Polish     | Beta   | |
+| `it` | Italian    | Beta   | |
+| `tr` | Turkish    | Beta   | |
 
 <Info>
   **Stable** means fully validated with comprehensive test coverage. **Beta** languages are production-ready but may have slightly lower accuracy on edge cases. All beta languages include culture-specific analysis guidelines.
@@ -59,7 +63,7 @@ Each supported language includes culture-specific guidelines that are injected i
 
 - **Local slang and idioms** — Ensures teen slang and cultural expressions are correctly interpreted rather than triggering false positives.
 - **Harmful terms** — Language-specific lists of slurs, hate speech, and harmful terminology.
-- **Cultural context** — For example, Finnish profanity (e.g., "perkele") is culturally common and treated differently than targeted insults. Norwegian analysis accounts for the janteloven cultural norm. Danish analysis is calibrated for sarcastic and self-deprecating communication styles.
+- **Cultural context** — For example, Finnish profanity (e.g., "perkele") is culturally common and treated differently than targeted insults. Norwegian analysis accounts for the janteloven cultural norm. Danish analysis is calibrated for sarcastic and self-deprecating communication styles. Dutch analysis flags disease-based swearing (e.g., "kanker-" prefix). Turkish analysis considers honor-based dynamics and formal/informal pronoun shifts for grooming detection.
 
 ## Examples
 
@@ -116,7 +120,7 @@ If the detected language is not in the supported set and the text is long enough
 {
   "error": {
     "code": "ANALYSIS_6009",
-    "message": "Detected language \"Chinese\" is not supported. Supported languages: en, es, pt, uk, sv, no, da, fi, de, fr."
+    "message": "Detected language \"Chinese\" is not supported. Supported languages: en, es, pt, uk, sv, no, da, fi, de, fr, nl, pl, it, tr."
   }
 }
 ```
