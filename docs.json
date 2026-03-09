@@ -33,7 +33,7 @@
       "display": "interactive"
     },
     "examples": {
-      "languages": ["bash", "javascript", "python", "kotlin", "swift", "csharp", "dart", "java"]
+      "languages": ["bash", "javascript", "python", "kotlin", "swift", "csharp", "dart"]
     }
   },
   "openapi": "https://api.tuteliq.ai/docs/json",
