@@ -20,7 +20,7 @@ Language detection uses a layered approach for maximum reliability:
 2. **Trigram detection** — If no explicit language is given, the API runs trigram-based analysis on the input text.
 3. **LLM confirmation** — The LLM also identifies the content language during analysis. When the LLM's detection is a supported language, it takes precedence — this ensures correct detection for closely related languages like Norwegian, Swedish, and Danish.
 
-The detected language is used to inject culture-specific analysis guidelines (local slang, idioms, harmful terms) into the classification prompts. Ten languages are supported: English (stable), Spanish, Portuguese, Ukrainian, Swedish, Norwegian, Danish, Finnish, German, and French (beta).
+The detected language is used to inject culture-specific analysis guidelines (local slang, idioms, harmful terms, grooming indicators, self-harm coded vocabulary, and filter evasion techniques) into the classification prompts. 27 languages are supported: English (stable), plus all 24 EU official languages, Ukrainian, Norwegian, and Turkish (beta). See [Language Support](/languages) for the full list.
 
 ### 2. Multi-model classification
 

@@ -2,11 +2,11 @@
 title: Language Support
 sidebarTitle: Languages
 icon: globe
-description: "Automatic language detection and culture-aware safety analysis in 14 languages"
+description: "Automatic language detection and culture-aware safety analysis in 27 languages"
 keywords: [language detection, multilingual, i18n, localization, auto-detect]
 ---
 
-Tuteliq detects and analyzes content in 14 languages. Language is auto-detected — no configuration required.
+Tuteliq detects and analyzes content in 27 languages. Language is auto-detected — no configuration required.
 
 ## Supported Languages
 
@@ -26,6 +26,19 @@ Tuteliq detects and analyzes content in 14 languages. Language is auto-detected 
 | `pl` | Polish     | Beta   | |
 | `it` | Italian    | Beta   | |
 | `tr` | Turkish    | Beta   | |
+| `ro` | Romanian   | Beta   | |
+| `el` | Greek      | Beta   | Greeklish (Latin-alphabet) also recognized |
+| `cs` | Czech      | Beta   | |
+| `hu` | Hungarian  | Beta   | |
+| `bg` | Bulgarian  | Beta   | Cyrillic and Shlyokavitsa (Latin-alphabet) |
+| `hr` | Croatian   | Beta   | Also covers Serbian and Bosnian content |
+| `sk` | Slovak     | Beta   | |
+| `lt` | Lithuanian | Beta   | |
+| `lv` | Latvian    | Beta   | |
+| `et` | Estonian   | Beta   | |
+| `sl` | Slovenian  | Beta   | |
+| `mt` | Maltese    | Beta   | Heavy English-Maltese code-switching supported |
+| `ga` | Irish      | Beta   | Explicit `language: "ga"` recommended for best results |
 
 <Info>
   **Stable** means fully validated with comprehensive test coverage. **Beta** languages are production-ready but may have slightly lower accuracy on edge cases. All beta languages include culture-specific analysis guidelines.
@@ -63,7 +76,10 @@ Each supported language includes culture-specific guidelines that are injected i
 
 - **Local slang and idioms** — Ensures teen slang and cultural expressions are correctly interpreted rather than triggering false positives.
 - **Harmful terms** — Language-specific lists of slurs, hate speech, and harmful terminology.
-- **Cultural context** — For example, Finnish profanity (e.g., "perkele") is culturally common and treated differently than targeted insults. Norwegian analysis accounts for the janteloven cultural norm. Danish analysis is calibrated for sarcastic and self-deprecating communication styles. Dutch analysis flags disease-based swearing (e.g., "kanker-" prefix). Turkish analysis considers honor-based dynamics and formal/informal pronoun shifts for grooming detection.
+- **Grooming indicators** — Language-specific grooming patterns, including pronoun formality shifts, culturally-specific pet names, and platform preferences by region.
+- **Self-harm coded vocabulary** — Coded phrases for self-harm and suicidal ideation in each language, beyond literal translations.
+- **Filter evasion techniques** — Language-specific evasion patterns: diacritic omission, Cyrillic-Latin homoglyph mixing (Bulgarian), Greeklish/Shlyokavitsa (Greek/Bulgarian Latin-alphabet writing), code-switching between related languages.
+- **Cultural context** — For example, Finnish profanity (e.g., "perkele") is culturally common and treated differently than targeted insults. Norwegian analysis accounts for the janteloven cultural norm. Danish analysis is calibrated for sarcastic and self-deprecating communication styles. Dutch analysis flags disease-based swearing (e.g., "kanker-" prefix). Turkish analysis considers honor-based dynamics. Baltic and Balkan languages include parental emigration context for vulnerability assessment.
 
 ## Examples
 
@@ -120,7 +136,7 @@ If the detected language is not in the supported set and the text is long enough
 {
   "error": {
     "code": "ANALYSIS_6009",
-    "message": "Detected language \"Chinese\" is not supported. Supported languages: en, es, pt, uk, sv, no, da, fi, de, fr, nl, pl, it, tr."
+    "message": "Detected language \"Chinese\" is not supported. Supported languages: en, es, pt, uk, sv, no, da, fi, de, fr, nl, pl, it, tr, ro, el, cs, hu, bg, hr, sk, lt, lv, et, sl, mt, ga."
   }
 }
 ```

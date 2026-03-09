@@ -150,7 +150,7 @@
 
 ### 5. Ignoring Language Detection
 **Problem:** Assuming English when users write in other languages.
-**Fix:** Tuteliq auto-detects language. Check `language_status` in responses — `"beta"` means detection accuracy may vary. 14 languages supported.
+**Fix:** Tuteliq auto-detects language. Check `language_status` in responses — `"beta"` means detection accuracy may vary. 27 languages supported (all 24 EU official languages + Ukrainian, Norwegian, Turkish).
 
 ### 6. Oversized Batch Requests
 **Problem:** Sending too many items in a single batch, hitting `VAL_3005`.
