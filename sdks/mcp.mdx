@@ -222,6 +222,38 @@ The MCP server also exposes resources for context:
 | `tuteliq://age-groups` | Available age group brackets and their calibration |
 | `tuteliq://credit-costs` | Per-endpoint credit costs |
 
+## Stateless by Design
+
+Tuteliq is **fully stateless** — no conversation text, context, or session state is retained between requests. This is a deliberate **privacy-by-design** decision.
+
+When processing messages from minors under GDPR/COPPA, the safest data is data you never store. Each request arrives, is analyzed, and the content is discarded. Pass `context` (age_group, platform, conversation_history) with every call that needs it.
+
+```
+You: "Check this message for grooming. The user is 13-15 on Discord: 'Hey, you seem really mature for your age'"
+→ Tuteliq analyzes with age-calibrated scoring — no data retained
+
+You: "Now check this follow-up with the previous message as context: 'Don't tell your parents about our chats'"
+→ Pass conversation_history in context — Tuteliq detects escalation patterns across the full conversation
+```
+
+<Info>
+**Privacy-first:** No session store to breach, no conversation cache to leak, no accumulated history to subpoena. Your integration handles context; Tuteliq handles detection.
+</Info>
+
+## Sandbox mode
+
+For testing without consuming credits, use a sandbox API key. Create one in your [Dashboard](https://tuteliq.ai/dashboard) under **Settings > API Keys > Environment: Sandbox**.
+
+Sandbox keys:
+- Run **real analysis** (not mocked) so you can validate integration behavior
+- **Don't consume credits** — `credits_used` is always 0
+- Have a **daily limit of 50 calls** and **10 requests per minute**
+- Return `"sandbox": true` in every response
+
+<Warning>
+Sandbox mode is for integration testing only. For production use, switch to a production API key.
+</Warning>
+
 ## Error handling
 
 If the API key is invalid or credits are exhausted, the tool will return a structured error message that the AI assistant can interpret and relay to the user.
