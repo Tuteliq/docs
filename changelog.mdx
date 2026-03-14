@@ -6,6 +6,26 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.4.3 — March 2026
+
+### Bug Fixes & Improvements
+- **`support_threshold` now works correctly across all 11 detection endpoints** — setting `"critical"` correctly suppresses crisis helplines for High severity results. Previously the parameter was accepted without error but had no effect on the response.
+- **`sender_trust: "verified"` fully suppresses `AUTH_IMPERSONATION`** — verified senders no longer trigger impersonation detection. Routine urgency (schedules, deadlines, appointments) is also suppressed. Only genuinely malicious elements (credential theft, phishing links, financial demands) will flag a verified sender.
+- **Empty `categories` field in `detect_unsafe` fixed** — stronger prompt enforcement and code-level fallback extraction ensure the categories array is populated when the rationale references specific harms.
+- **MCP session recovery** — stale MCP sessions (after Cloud Run deployment or instance recycling) now recover transparently without requiring the client to reconnect.
+
+### Documentation
+- Added `support_threshold` behaviour reference to API docs, Node SDK, and MCP README
+- Added `sender_trust` effect on scoring to all documentation
+- Added `analyse_multi` accepted endpoint values to MCP README and API docs
+- Added complete context field reference across all packages
+
+### SDK Releases
+- `@tuteliq/sdk` v2.4.0 — adds `confidence` to `AnalyzeResult`, optional `risk_level` to `UnsafeResult`
+- `@tuteliq/mcp` v3.5.0 — wires `support_threshold` through all detection MCP tools, shows confidence and support in analyze tool
+
+---
+
 ## v1.4.2 — March 2026
 
 ### Full EU Language Coverage
