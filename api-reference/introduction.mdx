@@ -2,100 +2,273 @@
 title: API Reference
 sidebarTitle: Overview
 icon: code
-description: Complete reference for all Tuteliq API endpoints
-keywords: [API reference, endpoints, error codes, rate limits]
+description: Complete reference for all Tuteliq API endpoints — authentication, rate limits, error handling, and endpoint groups
+keywords: [API reference, endpoints, error codes, rate limits, authentication, credits, sandbox, sessions]
 ---
+
+The Tuteliq API provides AI-powered child safety detection across text, voice, images, and video. This page covers everything you need to know before making your first call.
 
 ## Base URL
 
-All API requests are made to the following base URL:
+```
+https://api.tuteliq.ai/api/v1
+```
+
+All endpoints are prefixed with `/api/v1`. For example, the bullying detection endpoint is at:
 
 ```
-https://api.tuteliq.ai
+POST https://api.tuteliq.ai/api/v1/safety/bullying
 ```
 
 ## Authentication
 
-Tuteliq supports two methods of authentication. Include one of the following in every request:
+Include your API key in every request using one of these methods:
 
-- **Bearer token** in the `Authorization` header:
-  ```
-  Authorization: Bearer YOUR_API_KEY
-  ```
-- **API key header**:
-  ```
-  x-api-key: YOUR_API_KEY
-  ```
+<CodeGroup>
+```bash Bearer Token (Recommended)
+curl -X POST https://api.tuteliq.ai/api/v1/safety/bullying \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "message to analyze"}'
+```
+
+```bash API Key Header
+curl -X POST https://api.tuteliq.ai/api/v1/safety/bullying \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "message to analyze"}'
+```
+</CodeGroup>
+
+Get your API key from the [Tuteliq Dashboard](https://tuteliq.ai/dashboard).
 
 ## Response Format
 
-All responses are returned as JSON.
+### Successful response
 
-A successful response follows this structure:
+All detection endpoints return a consistent response shape:
 
 ```json
 {
-  "data": { ... }
+  "endpoint": "bullying",
+  "detected": true,
+  "severity": 0.78,
+  "confidence": 0.92,
+  "risk_score": 0.85,
+  "level": "high",
+  "categories": [
+    { "tag": "DIRECT_INSULT", "label": "Direct Insult", "confidence": 0.95 },
+    { "tag": "EXCLUSION", "label": "Social Exclusion", "confidence": 0.72 }
+  ],
+  "evidence": [
+    { "text": "nobody wants you here", "tactic": "EXCLUSION", "weight": 0.88 }
+  ],
+  "age_calibration": {
+    "applied": true,
+    "age_group": "10-12",
+    "multiplier": 1.3
+  },
+  "recommended_action": "flag_for_review",
+  "rationale": "Direct insults combined with social exclusion targeting a 10-12 year old.",
+  "credits_used": 1,
+  "processing_time_ms": 387
 }
 ```
 
-An error response follows this structure:
+### Error response
 
 ```json
 {
   "error": {
-    "code": "ERROR_CODE",
-    "message": "A human-readable description of the error."
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "You have exceeded your rate limit of 300 requests per minute.",
+    "request_id": "req_abc123",
+    "suggestion": "Upgrade to Pro for 1,000 requests per minute.",
+    "links": {
+      "upgrade": "https://tuteliq.ai/dashboard/billing",
+      "docs": "https://docs.tuteliq.ai/error-handling"
+    }
   }
 }
 ```
 
+## Context Fields
+
+Pass a `context` object with any detection request to improve accuracy:
+
+```json
+{
+  "text": "message to analyze",
+  "context": {
+    "age_group": "13-15",
+    "language": "en",
+    "platform": "Discord",
+    "conversation_history": [
+      { "role": "user", "text": "previous message" },
+      { "role": "contact", "text": "response message" }
+    ]
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `age_group` | string | `"under 10"`, `"10-12"`, `"13-15"`, `"16-17"`, or `"under 18"`. Triggers age-calibrated severity scoring. |
+| `language` | string | ISO 639-1 code (e.g., `"en"`, `"de"`, `"sv"`). Auto-detected if omitted. [27 languages supported](/languages). |
+| `platform` | string | Platform name (e.g., `"Discord"`, `"Roblox"`, `"WhatsApp"`). Adjusts for platform-specific norms. |
+| `conversation_history` | array | Prior messages for context-aware analysis. Each message needs `role` and `text`. |
+| `sender_trust` | string | `"verified"`, `"trusted"`, or `"unknown"`. Verified senders suppress authority impersonation false positives. |
+| `sender_name` | string | Sender identifier, used alongside `sender_trust` for impersonation scoring. |
+
+## Options
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `include_evidence` | boolean | `true` | Include evidence excerpts with flagged phrases and weights |
+| `support_threshold` | string | `"high"` | Minimum severity to include crisis helplines. Values: `low`, `medium`, `high`, `critical`. Critical severity **always** includes support resources. |
+
+## Stateless by Design
+
+Tuteliq is **fully stateless** — every API call is independent, and no conversation text, context, or session state is retained between requests. This is a deliberate **privacy-by-design** decision, not a missing feature.
+
+**Why stateless?**
+
+- **GDPR compliance** — Processing children's data under GDPR/COPPA demands the strictest data minimization. By retaining no cross-request state, there is zero risk of sensitive conversation data persisting in caches, logs, or backups.
+- **No data retention surface** — There is no session store to breach, no conversation cache to leak, and no accumulated history to subpoena. Each request arrives, is analyzed, and the content is discarded.
+- **Simpler compliance audits** — "We store nothing between requests" is the easiest privacy posture to audit and certify.
+
+**What this means for developers:**
+
+- Pass `context` (age_group, platform, language, conversation_history) with **every request** that needs it.
+- Use `external_id` and `customer_id` to correlate results with your own systems — these are echoed back but not stored.
+- If you need to track risk escalation across a conversation, aggregate results on your side using the `severity`, `risk_score`, and `level` fields returned by each call.
+
+<Info>
+**This is intentional.** Many child safety APIs offer session-based context accumulation. We chose not to — because when you're processing messages from minors, the safest data is data you never store. Your integration handles context; Tuteliq handles detection.
+</Info>
+
+## Sandbox Mode
+
+API keys with `environment: "sandbox"` run real analysis without consuming credits. Sandbox responses include `"sandbox": true` and the `X-Sandbox-Mode: true` header.
+
+Create a sandbox key in your [Dashboard](https://tuteliq.ai/dashboard) under **Settings > API Keys > Environment: Sandbox**.
+
+Sandbox limits:
+- **10 requests per minute** rate limit
+- **50 calls per day** (resets at midnight UTC)
+- Real analysis, real results — not mocked
+
+<Warning>
+Sandbox mode is for integration testing only. Daily limits prevent use as a free production workaround.
+</Warning>
+
 ## Rate Limits
 
-Rate limits are enforced per API key based on your plan tier:
+Rate limits are enforced per API key per minute, based on your plan:
 
-| Tier       | Requests per minute |
-| ---------- | ------------------- |
-| Starter (Free) | 60              |
-| Indie      | 300                 |
-| Pro        | 1,000               |
-| Business   | 3,000               |
-| Enterprise | 10,000              |
+| Tier | Requests/min | Monthly calls | Credits/mo |
+|------|-------------|---------------|------------|
+| Starter (Free) | 60 | 1,000 | 1,000 |
+| Indie ($29/mo) | 300 | 10,000 | 10,000 |
+| Pro ($99/mo) | 1,000 | 50,000 | 50,000 |
+| Business ($349/mo) | 5,000 | 200,000 | 200,000 |
+| Enterprise | 10,000 | Custom | Custom |
+| Sandbox | 10 | 50/day | No credits consumed |
 
-When you exceed your rate limit, the API returns a `429 Too Many Requests` status with the `RATE_LIMIT_EXCEEDED` error code.
+Every response includes rate limit headers:
+
+```
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 994
+X-RateLimit-Reset: 1710000060
+```
+
+When exceeded, the API returns `429 Too Many Requests` with a `Retry-After` header.
+
+## Credits
+
+Each endpoint consumes a different number of credits:
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| Text detection (bullying, grooming, unsafe, etc.) | 1 | Per call |
+| Grooming / Emotions (with history) | 1 per 10 messages | `ceil(messages / 10)`, minimum 1 |
+| Action plan | 2 | Longer generation |
+| Incident report | 3 | Structured output |
+| Image analysis | 3 | Vision + OCR + safety |
+| Voice analysis | 5 | Transcription + safety |
+| Age verification | 5 | Document/biometric |
+| Video analysis | 10 | Frame extraction + per-frame analysis |
+| Identity verification | 10 | Document auth + face match + liveness |
+
+Every response includes `credits_used` and credit balance headers:
+
+```
+X-Credits-Remaining: 49,234
+X-Monthly-Used: 766
+X-Monthly-Limit: 50,000
+```
 
 ## Common Error Codes
 
-| Code                  | HTTP Status | Description                                      |
-| --------------------- | ----------- | ------------------------------------------------ |
-| `AUTH_INVALID_KEY`    | 401         | The provided API key is invalid or unrecognized. |
-| `AUTH_EXPIRED_KEY`    | 401         | The API key has expired.                         |
-| `RATE_LIMIT_EXCEEDED` | 429         | You have exceeded your rate limit.               |
-| `VAL_INVALID_INPUT`  | 400         | The request body or parameters failed validation.|
-| `SVC_INTERNAL_ERROR` | 500         | An unexpected internal error occurred.           |
+| Code | HTTP | Description |
+|------|------|-------------|
+| `AUTH_REQUIRED` | 401 | No API key provided |
+| `AUTH_INVALID_KEY` | 401 | API key is invalid or unrecognized |
+| `AUTH_EXPIRED_KEY` | 401 | API key has expired |
+| `AUTH_INACTIVE_KEY` | 401 | API key is inactive |
+| `RATE_LIMIT_EXCEEDED` | 429 | Rate limit exceeded for your tier |
+| `MESSAGE_LIMIT_REACHED` | 429 | Monthly credit limit reached |
+| `TIER_ACCESS_DENIED` | 403 | Endpoint not available on your tier |
+| `VAL_INVALID_INPUT` | 400 | Request body or parameters failed validation |
+| `SVC_INTERNAL_ERROR` | 500 | Unexpected internal error (safe to retry) |
 
-For the full error codes reference and retry strategies, see the [Error Handling guide](/error-handling).
+For the full error reference and retry strategies, see [Error Handling](/error-handling).
 
-## Endpoints
+## Endpoint Groups
 
 <Note>
-  Endpoint pages are auto-generated from the OpenAPI specification and appear in the sidebar under this tab. Each page includes request/response schemas, parameter descriptions, and an interactive playground.
+  Endpoint pages are auto-generated from the OpenAPI specification and appear in the sidebar. Each page includes request/response schemas, parameter descriptions, and an interactive playground.
 </Note>
 
-The API is organized into the following groups:
-
-| Group | Description |
-|-------|-------------|
-| **Safety** | Content safety analysis — bullying, grooming, unsafe content, voice, image, and video |
-| **Fraud Detection** | Financial and social fraud — social engineering, app fraud, romance scams, mule recruitment |
-| **Safety Extended** | Extended safety — gambling harm, coercive control, vulnerability exploitation, radicalisation |
-| **Multi-Endpoint Analysis** | Fan-out a single text to multiple detection endpoints in parallel |
-| **Analysis** | In-depth emotional and behavioral analysis |
-| **Guidance** | Age-appropriate guidance and action plan generation |
-| **Reports** | Structured safety and compliance report generation |
-| **Batch** | Bulk processing for high-volume operations |
-| **Webhooks** | Webhook configuration and event management |
-| **Usage** | Credit balance and API usage metrics |
-| **Compliance** | GDPR data subject rights and audit endpoints |
-| **Verification** | Age verification and identity verification (Beta) |
-| **Health** | Service health checks and system status |
+<CardGroup cols={2}>
+  <Card title="Safety" icon="shield-halved" href="/api-reference/safety">
+    Bullying, grooming, unsafe content, voice, image, and video analysis. Covers all 9 KOSA harm categories.
+  </Card>
+  <Card title="Fraud Detection" icon="triangle-exclamation" href="/api-reference/fraud">
+    Social engineering, app fraud, romance scams, and money mule recruitment targeting minors.
+  </Card>
+  <Card title="Safety Extended" icon="shield-plus" href="/api-reference/safety-extended">
+    Gambling harm, coercive control, vulnerability exploitation, and radicalisation detection.
+  </Card>
+  <Card title="Multi-Endpoint" icon="arrows-split-up-and-left" href="/api-reference/analyse">
+    Fan-out a single text to up to 10 detectors in parallel with aggregated results.
+  </Card>
+  <Card title="Analysis" icon="chart-line" href="/api-reference/analysis">
+    Emotional trend analysis — dominant emotions, sentiment trajectory, depression/anxiety indicators.
+  </Card>
+  <Card title="Guidance" icon="compass" href="/api-reference/guidance">
+    Age-appropriate action plans for children, parents, or professionals.
+  </Card>
+  <Card title="Reports" icon="file-lines" href="/api-reference/reports">
+    Professional incident reports for schools, counselors, and moderators.
+  </Card>
+  <Card title="Verification" icon="id-card" href="/api-reference/verification">
+    Age verification (document + biometric) and identity verification (face match + liveness).
+  </Card>
+  <Card title="Batch" icon="layer-group" href="/api-reference/batch">
+    Analyze up to 50 items in a single request with parallel processing.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/api-reference/webhooks">
+    HMAC-signed webhook alerts for critical incidents, with retry and secret rotation.
+  </Card>
+  <Card title="Usage" icon="chart-bar" href="/api-reference/usage">
+    Credit balance, daily summaries, per-tool breakdowns, and billing period usage.
+  </Card>
+  <Card title="Compliance" icon="scale-balanced" href="/api-reference/compliance">
+    GDPR data subject rights — erasure, portability, rectification, consent, audit trail.
+  </Card>
+  <Card title="Health" icon="heart-pulse" href="/api-reference/health">
+    Liveness probes, readiness checks, and component-level status.
+  </Card>
+</CardGroup>
