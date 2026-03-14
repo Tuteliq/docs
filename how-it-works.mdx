@@ -161,7 +161,7 @@ The `/reports/incident` endpoint converts raw conversation data into structured,
 
 ## Architecture principles
 
-**Stateless by default.** Each API call is independent — Tuteliq does not store conversation history unless you explicitly use the emotional trend analysis feature. This minimizes data exposure when processing children's content.
+**Fully stateless.** Every API call is independent — Tuteliq never stores conversation text, context, or session state between requests. This is a deliberate privacy-by-design decision: when processing children's data under GDPR/COPPA, the safest data is data you never store. Pass conversation history with each request that needs it; results are returned and content is discarded.
 
 **No training on your data.** Content sent to Tuteliq is used solely for real-time analysis and is not retained for model training. See the [GDPR](/gdpr) section for data retention details.
 
