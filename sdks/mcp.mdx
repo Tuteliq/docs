@@ -96,26 +96,97 @@ npm install -g @tuteliq/mcp
 
 Once configured, the following tools are available to the AI assistant:
 
-| Tool | Description | Parameters |
-|------|-------------|------------|
-| `detect_unsafe` | Detect harmful content in text | `text`, `age_group` |
-| `detect_bullying` | Detect bullying in text | `text`, `age_group` |
-| `detect_grooming` | Detect grooming patterns in conversations | `messages`, `age_group` |
-| `detect_social_engineering` | Detect social engineering tactics | `text`, `age_group` |
-| `detect_app_fraud` | Detect app-based fraud patterns | `text`, `age_group` |
-| `detect_romance_scam` | Detect romance scam patterns | `text`, `age_group` |
-| `detect_mule_recruitment` | Detect money mule recruitment | `text`, `age_group` |
-| `detect_gambling_harm` | Detect gambling harm indicators | `text`, `age_group` |
-| `detect_coercive_control` | Detect coercive control patterns | `text`, `age_group` |
-| `detect_vulnerability_exploitation` | Detect vulnerability exploitation | `text`, `age_group` |
-| `detect_radicalisation` | Detect radicalisation indicators | `text`, `age_group` |
-| `analyse_multi` | Run multiple detections on one text | `text`, `detections`, `age_group` |
-| `analyze_voice` | Analyze audio files | `file_path`, `age_group` |
-| `analyze_image` | Analyze image files | `file_path`, `age_group` |
-| `analyze_video` | Analyze video files | `file_path`, `age_group` |
-| `analyze_emotions` | Analyze emotional well-being | `text`, `age_group` |
-| `get_action_plan` | Generate age-appropriate guidance | `detection_result`, `audience` |
-| `generate_report` | Create incident reports | `conversation`, `age_group` |
+### Detection tools
+
+All detection tools accept a common set of parameters:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `content` | `string` | Yes | Text content to analyze |
+| `context` | `object` | No | Analysis context — see [Context fields](#context-fields) below |
+| `include_evidence` | `boolean` | No | When `true`, returns supporting evidence excerpts with flagged phrases and weights |
+| `support_threshold` | `string` | No | Minimum severity to include crisis helplines. Values: `low`, `medium`, `high` (default), `critical`. Critical severity **always** includes support resources regardless of this setting. |
+| `external_id` | `string` | No | Your external tracking ID (echoed in response) |
+| `customer_id` | `string` | No | Your customer identifier (echoed in response) |
+
+| Tool | Description |
+|------|-------------|
+| `detect_unsafe` | Detect harmful content across all nine KOSA categories |
+| `detect_bullying` | Detect bullying and harassment patterns |
+| `detect_grooming` | Detect grooming patterns in conversations |
+| `detect_social_engineering` | Detect social engineering tactics (pretexting, impersonation, urgency manipulation) |
+| `detect_app_fraud` | Detect app-based fraud (fake investments, phishing, subscription traps) |
+| `detect_romance_scam` | Detect romance scam patterns (love-bombing, financial requests, identity deception) |
+| `detect_mule_recruitment` | Detect money mule recruitment (easy-money offers, account sharing) |
+| `detect_gambling_harm` | Detect gambling harm indicators (chasing losses, concealment, underage gambling) |
+| `detect_coercive_control` | Detect coercive control patterns (isolation, financial control, surveillance) |
+| `detect_vulnerability_exploitation` | Detect exploitation targeting vulnerable individuals |
+| `detect_radicalisation` | Detect radicalisation indicators (extremist rhetoric, recruitment patterns) |
+
+### Multi-endpoint analysis
+
+`analyse_multi` runs up to 10 detections on a single text in one call.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `content` | `string` | Yes | Text content to analyze |
+| `endpoints` | `string[]` | Yes | List of endpoint IDs to run (see table below) |
+| `context` | `object` | No | Analysis context — see [Context fields](#context-fields) |
+| `include_evidence` | `boolean` | No | Include supporting evidence in each result |
+| `support_threshold` | `string` | No | Crisis helpline threshold (`low` / `medium` / `high` / `critical`) |
+
+**Valid endpoint values for `analyse_multi`:**
+
+| Endpoint ID | Classifier |
+|-------------|------------|
+| `bullying` | Bullying & Harassment |
+| `grooming` | Grooming Detection |
+| `unsafe` | Unsafe Content (KOSA categories) |
+| `social-engineering` | Social Engineering |
+| `app-fraud` | App-based Fraud |
+| `romance-scam` | Romance Scam |
+| `mule-recruitment` | Mule Recruitment |
+| `gambling-harm` | Gambling Harm |
+| `coercive-control` | Coercive Control |
+| `vulnerability-exploitation` | Vulnerability Exploitation |
+| `radicalisation` | Radicalisation |
+
+<Info>
+When `vulnerability-exploitation` is included, its cross-endpoint modifier automatically adjusts severity scores across all other results — amplifying risk when the content targets vulnerable individuals.
+</Info>
+
+### Media analysis tools
+
+| Tool | Parameters | Description |
+|------|------------|-------------|
+| `analyze_voice` | `file_path`, `age_group` | Transcribe and analyze audio files for safety |
+| `analyze_image` | `file_path`, `age_group` | Analyze image files for visual content risks |
+| `analyze_video` | `file_path`, `age_group` | Analyze video files with per-frame safety findings |
+
+### Guidance & reporting tools
+
+| Tool | Parameters | Description |
+|------|------------|-------------|
+| `analyze_emotions` | `content`, `context` | Analyze emotional well-being from text |
+| `get_action_plan` | `detection_result`, `audience` | Generate age-appropriate guidance (`child`, `parent`, `professional`) |
+| `generate_report` | `messages`, `childAge`, `incidentType` | Create structured incident reports for law enforcement or safeguarding teams |
+
+## Context fields
+
+Pass a `context` object with any detection tool to improve accuracy:
+
+| Field | Type | Effect |
+|-------|------|--------|
+| `ageGroup` / `age_group` | `string` | Triggers age-calibrated scoring. Values: `"under 10"`, `"10-12"`, `"13-15"`, `"16-17"`, `"under 18"` |
+| `language` | `string` | ISO 639-1 code (e.g., `"en"`, `"de"`, `"sv"`). Auto-detected if omitted. |
+| `platform` | `string` | Platform name (e.g., `"Discord"`, `"Roblox"`, `"WhatsApp"`). Adjusts for platform-specific norms. |
+| `conversation_history` | `array` | Prior messages for context-aware analysis. Returns per-message `message_analysis`. |
+| `sender_trust` | `string` | `"verified"`, `"trusted"`, or `"unknown"`. |
+| `sender_name` | `string` | Sender identifier (used with `sender_trust`). |
+
+<Info>
+When `sender_trust` is `"verified"`, the API fully suppresses `AUTH_IMPERSONATION` — a verified sender cannot be impersonating an authority by definition. Routine urgency (schedules, deadlines) is also suppressed. Only genuinely malicious content (credential theft, phishing links, financial demands) will be flagged.
+</Info>
 
 ## Example usage
 
