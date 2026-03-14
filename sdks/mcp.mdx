@@ -8,42 +8,46 @@ keywords: [mcp, model context protocol, AI, assistant, claude, cursor]
 
 The Tuteliq MCP server exposes child safety detection as tools for AI assistants that support the [Model Context Protocol](https://modelcontextprotocol.io) — including Claude Desktop, Cursor, Windsurf, and other MCP-compatible clients.
 
-## Installation
+## Setup
 
-```bash
-npm install -g @tuteliq/mcp
-```
+### Claude Desktop (Recommended)
 
-## Configuration
+Claude Desktop connects to Tuteliq via Streamable HTTP — no npm install required.
 
-### Claude Desktop
+<Steps>
 
-Add to your `claude_desktop_config.json`:
+<Step title="Generate a Secure Token">
+  Go to your [Tuteliq Dashboard](https://tuteliq.ai/dashboard), navigate to **Settings > Plugins**, and generate a **Secure Token**. This token authenticates the MCP connection.
+</Step>
 
-```json
-{
-  "mcpServers": {
-    "tuteliq": {
-      "command": "tuteliq-mcp",
-      "env": {
-        "TUTELIQ_API_KEY": "your_api_key"
-      }
-    }
-  }
-}
-```
+<Step title="Add the connector in Claude Desktop">
+  1. Open Claude Desktop and go to **Settings > Connectors**
+  2. Click **Add custom connector**
+  3. Set the name to **Tuteliq** and the URL to:
+     ```
+     https://api.tuteliq.ai/mcp
+     ```
+</Step>
+
+<Step title="Connect and authenticate">
+  Click **Connect**. When prompted, enter the Secure Token you generated in Step 1.
+
+  That's it — Tuteliq tools will be available in your next conversation.
+</Step>
+
+</Steps>
 
 ### Cursor
 
-Add to your `.cursor/mcp.json`:
+Add to your Cursor MCP settings:
 
 ```json
 {
   "mcpServers": {
     "tuteliq": {
-      "command": "tuteliq-mcp",
-      "env": {
-        "TUTELIQ_API_KEY": "your_api_key"
+      "url": "https://api.tuteliq.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer your-api-key"
       }
     }
   }
@@ -53,6 +57,27 @@ Add to your `.cursor/mcp.json`:
 ### Claude Code
 
 Add to your project's `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "tuteliq": {
+      "url": "https://api.tuteliq.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer your-api-key"
+      }
+    }
+  }
+}
+```
+
+### Other MCP clients (npx / stdio)
+
+For clients that only support stdio transport:
+
+```bash
+npm install -g @tuteliq/mcp
+```
 
 ```json
 {
