@@ -51,6 +51,22 @@ Each classifier produces an independent confidence score. When multiple classifi
 
 The `/analyse/multi` endpoint lets you run up to 10 classifiers on a single piece of content in one API call. When vulnerability exploitation detection is included, it produces a cross-endpoint vulnerability modifier that automatically adjusts severity scores across all other results — amplifying risk when the content targets vulnerable individuals.
 
+Valid endpoint values for `/analyse/multi`:
+
+| Endpoint ID | Classifier |
+|-------------|------------|
+| `bullying` | Bullying & Harassment |
+| `grooming` | Grooming Detection |
+| `unsafe` | Unsafe Content (KOSA categories) |
+| `social-engineering` | Social Engineering |
+| `app-fraud` | App-based Fraud |
+| `romance-scam` | Romance Scam |
+| `mule-recruitment` | Mule Recruitment |
+| `gambling-harm` | Gambling Harm |
+| `coercive-control` | Coercive Control |
+| `vulnerability-exploitation` | Vulnerability Exploitation |
+| `radicalisation` | Radicalisation |
+
 ### 3. Context engine
 
 This is where Tuteliq diverges from keyword-based filters. The context engine evaluates:
@@ -73,6 +89,46 @@ The same content carries different risk depending on the child's age. Tuteliq ad
 You specify the `age_group` in your request context. If omitted, Tuteliq defaults to the most protective bracket.
 
 ### 5. Response generation
+
+### Context fields
+
+You can pass a `context` object with any detection request to improve accuracy:
+
+| Field | Type | Effect |
+|-------|------|--------|
+| `age_group` / `ageGroup` | `string` | Triggers age-calibrated scoring (e.g., `"10-12"`, `"13-15"`, `"under 18"`) |
+| `language` | `string` | ISO 639-1 code. Auto-detected if omitted. |
+| `platform` | `string` | Platform name (e.g., `"Discord"`, `"Roblox"`). Adjusts for platform-specific norms. |
+| `conversation_history` | `array` | Prior messages for context-aware analysis. Returns per-message `message_analysis`. |
+| `sender_trust` | `string` | `"verified"`, `"trusted"`, or `"unknown"`. Verified senders suppress impersonation flags. |
+| `sender_name` | `string` | Sender identifier (used with `sender_trust`). |
+
+<Info>
+When `sender_trust` is `"verified"`, the API fully suppresses `AUTH_IMPERSONATION` — a verified sender cannot be impersonating an authority by definition. Routine urgency (schedules, deadlines) is also suppressed. Only genuinely malicious content (credential theft, phishing links, financial demands) will be flagged.
+</Info>
+
+### Crisis support resources (`support_threshold`)
+
+Detection responses can include country-specific crisis helplines and response guidance. The `support_threshold` parameter controls when these are included:
+
+| Value | Behavior |
+|-------|----------|
+| `low` | Include for Low severity and above |
+| `medium` | Include for Medium severity and above |
+| **`high`** | **(Default)** Include for High severity and above |
+| `critical` | Include only for Critical severity |
+
+<Note>Critical severity **always** includes support resources regardless of the threshold setting.</Note>
+
+Pass `support_threshold` in the `options` object or as a top-level request field:
+
+```json
+{
+  "text": "I don't want to be here anymore",
+  "context": { "ageGroup": "13-15" },
+  "options": { "support_threshold": "medium" }
+}
+```
 
 Every response includes:
 
