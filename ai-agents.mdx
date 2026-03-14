@@ -3,10 +3,41 @@ title: AI Agent Integration
 sidebarTitle: AI Agents
 icon: robot
 description: Machine-readable documentation for AI agents and LLM-powered applications
-keywords: [ai agents, llms.txt, openapi, mcp, machine-readable, ai plugin]
+keywords: [ai agents, llms.txt, openapi, mcp, machine-readable, ai plugin, age verification, identity verification]
 ---
 
 Tuteliq provides machine-readable documentation files so AI agents, coding assistants, and LLM-powered applications can discover and use the API without manual configuration.
+
+## What agents can do with Tuteliq
+
+Tuteliq covers four capability areas — all accessible via API, MCP tools, or OpenAPI spec:
+
+<CardGroup cols={2}>
+  <Card title="Content Safety" icon="shield-halved">
+    Detect grooming, bullying, self-harm, radicalisation, and all 9 KOSA harm categories across text, voice, images, and video.
+  </Card>
+  <Card title="Fraud Detection" icon="triangle-exclamation">
+    Identify social engineering, romance scams, app fraud, and money mule recruitment targeting minors and vulnerable users.
+  </Card>
+  <Card title="Age & Identity Verification" icon="id-card">
+    Verify user age via document analysis, biometric estimation, or both. Full identity verification with face matching and liveness detection for COPPA/KOSA compliance.
+  </Card>
+  <Card title="Analysis & Reporting" icon="chart-line">
+    Emotional trend analysis, age-appropriate action plans, and professional incident reports ready for trust & safety teams.
+  </Card>
+</CardGroup>
+
+### Verification endpoints
+
+| Endpoint | What it does | Tier |
+|----------|-------------|------|
+| `POST /api/v1/verify/age` | Document OCR, biometric age estimation, or combined — returns verified age range, `is_minor`, and confidence | Pro |
+| `POST /api/v1/verify/identity` | Document authentication + face matching + liveness detection — prevents impersonation and spoofing | Business |
+| `POST /api/v1/verify/session` | Manage multi-step verification sessions with liveness challenges | Pro |
+
+Verification integrates directly with detection — verify once, then pass the confirmed `age_group` to all safety endpoints for properly calibrated risk scoring. See the [Verification guide](/verification) for full details.
+
+---
 
 ## llms.txt
 
