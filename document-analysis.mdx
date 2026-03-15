@@ -1,0 +1,268 @@
+---
+title: Document Analysis
+sidebarTitle: Document Analysis
+icon: file-pdf
+description: Upload PDFs for multi-endpoint safety analysis with per-page detection, chain-of-custody hashing, and zero-retention processing
+keywords: [document, PDF, safety, analysis, upload, multipart, per-page, chain-of-custody, zero-retention]
+---
+
+Upload a PDF document to run safety detection across every page. Tuteliq extracts text from each page, runs your chosen detection endpoints in parallel, and returns per-page results with an overall risk assessment. No document data is stored after the response is returned.
+
+## Quick start
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.tuteliq.ai/api/v1/safety/document \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@report.pdf" \
+  -F "endpoints=[\"unsafe\",\"coercive-control\",\"radicalisation\"]"
+```
+
+```typescript Node.js
+import fs from 'fs';
+
+const form = new FormData();
+form.append('file', fs.createReadStream('report.pdf'));
+form.append('endpoints', JSON.stringify(['unsafe', 'coercive-control', 'radicalisation']));
+
+const res = await fetch('https://api.tuteliq.ai/api/v1/safety/document', {
+  method: 'POST',
+  headers: { Authorization: 'Bearer YOUR_API_KEY' },
+  body: form,
+});
+
+const result = await res.json();
+console.log(result.overall_severity);      // "high"
+console.log(result.flagged_pages.length);  // 2
+console.log(result.credits_used);          // 15
+```
+
+```python Python
+import requests
+
+with open("report.pdf", "rb") as f:
+    res = requests.post(
+        "https://api.tuteliq.ai/api/v1/safety/document",
+        headers={"Authorization": "Bearer YOUR_API_KEY"},
+        files={"file": ("report.pdf", f, "application/pdf")},
+        data={"endpoints": '["unsafe","coercive-control","radicalisation"]'},
+    )
+
+result = res.json()
+print(result["overall_severity"])
+print(result["flagged_pages"])
+```
+</CodeGroup>
+
+## How it works
+
+<Steps>
+  <Step title="Upload">
+    Send a PDF via `multipart/form-data`. Max 50 MB, max 100 pages.
+  </Step>
+  <Step title="Extract">
+    Text is extracted from each page using the PDF text layer. Pages with fewer than 20 characters of extractable text are skipped. A SHA-256 hash of the raw file is computed for chain-of-custody verification.
+  </Step>
+  <Step title="Detect">
+    Each page is analyzed against your chosen detection endpoints in parallel (bounded concurrency of 3 pages at a time). Long pages are chunked before analysis.
+  </Step>
+  <Step title="Aggregate">
+    Per-page results are aggregated into an overall risk score, severity level, and list of flagged pages. Incidents are recorded and webhooks triggered for flagged content.
+  </Step>
+</Steps>
+
+## Available endpoints
+
+You can run any combination of these 8 detection endpoints against each page:
+
+| Endpoint name | Detection type |
+|---------------|---------------|
+| `unsafe` | Harmful content across all KOSA categories |
+| `bullying` | Cyberbullying and harassment |
+| `grooming` | Grooming patterns |
+| `social-engineering` | Social engineering tactics |
+| `coercive-control` | Coercive control patterns |
+| `radicalisation` | Radicalisation indicators |
+| `romance-scam` | Romance scam patterns |
+| `mule-recruitment` | Money mule recruitment |
+
+**Default endpoints** (when `endpoints` is omitted): `unsafe`, `coercive-control`, `radicalisation`.
+
+## Request parameters
+
+Upload your PDF as a `multipart/form-data` request. The file field must be named `file`.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | file | Yes | PDF file (max 50 MB) |
+| `endpoints` | string | No | JSON array of endpoint names, or comma-separated list. Defaults to `["unsafe","coercive-control","radicalisation"]`. |
+| `file_id` | string | No | Your identifier for the file (echoed back in the response) |
+| `external_id` | string | No | External reference ID (echoed back) |
+| `customer_id` | string | No | Customer reference ID (echoed back) |
+| `age_group` | string | No | `"under 10"`, `"10-12"`, `"13-15"`, `"16-17"`, or `"under 18"` |
+| `language` | string | No | ISO 639-1 code. Auto-detected if omitted. |
+| `platform` | string | No | Platform name for context-aware scoring |
+| `support_threshold` | string | No | Minimum severity to include crisis helplines. Default: `"high"`. |
+| `metadata` | string | No | JSON object with custom metadata (echoed back) |
+
+## Response
+
+```json
+{
+  "file_id": "report.pdf",
+  "document_hash": "sha256:a1b2c3d4e5f6...",
+  "total_pages": 12,
+  "pages_analyzed": 10,
+  "extraction_summary": {
+    "text_layer_pages": 10,
+    "ocr_pages": 0,
+    "failed_pages": 2,
+    "average_ocr_confidence": 0
+  },
+  "page_results": [
+    {
+      "page_number": 1,
+      "text_preview": "Chapter 1: Introduction to the platform...",
+      "extraction_method": "text_layer",
+      "results": [
+        {
+          "endpoint": "unsafe",
+          "detected": false,
+          "severity": 0,
+          "confidence": 0.95,
+          "risk_score": 0,
+          "level": "low",
+          "categories": [],
+          "evidence": [],
+          "recommended_action": "none",
+          "rationale": "No harmful content detected."
+        }
+      ],
+      "page_risk_score": 0,
+      "page_severity": "none"
+    },
+    {
+      "page_number": 5,
+      "text_preview": "The user was told to send money...",
+      "extraction_method": "text_layer",
+      "results": [
+        {
+          "endpoint": "coercive-control",
+          "detected": true,
+          "severity": 0.82,
+          "confidence": 0.91,
+          "risk_score": 0.82,
+          "level": "critical",
+          "categories": [
+            { "tag": "FINANCIAL_CONTROL", "label": "Financial Control", "confidence": 0.91 }
+          ],
+          "evidence": [
+            { "text": "send money or else", "tactic": "FINANCIAL_CONTROL", "weight": 0.88 }
+          ],
+          "recommended_action": "flag_for_review",
+          "rationale": "Financial coercion pattern detected."
+        }
+      ],
+      "page_risk_score": 0.82,
+      "page_severity": "critical"
+    }
+  ],
+  "overall_risk_score": 0.82,
+  "overall_severity": "critical",
+  "detected_endpoints": ["coercive-control"],
+  "flagged_pages": [
+    {
+      "page_number": 5,
+      "risk_score": 0.82,
+      "severity": "critical",
+      "detected_endpoints": ["coercive-control"]
+    }
+  ],
+  "credits_used": 30,
+  "processing_time_ms": 4521,
+  "language": "en",
+  "language_status": "stable",
+  "support": {
+    "helplines": [...]
+  }
+}
+```
+
+### Key response fields
+
+| Field | Description |
+|-------|-------------|
+| `document_hash` | SHA-256 hash of the uploaded PDF for chain-of-custody verification |
+| `total_pages` | Total pages in the document |
+| `pages_analyzed` | Pages with sufficient text that were analyzed |
+| `extraction_summary` | Breakdown of text extraction results per page |
+| `page_results` | Per-page detection results from each endpoint |
+| `overall_risk_score` | Highest risk score across all pages (0.0–1.0) |
+| `overall_severity` | `none`, `low`, `medium`, `high`, or `critical` |
+| `detected_endpoints` | Unique list of endpoints that detected threats |
+| `flagged_pages` | Pages with risk score >= 0.3, with their detected endpoints |
+| `credits_used` | Dynamic credit cost based on pages analyzed and endpoints used |
+
+## Credit pricing
+
+Document analysis uses **dynamic pricing** based on the actual work performed:
+
+```
+credits = max(3, pages_analyzed × endpoint_count)
+```
+
+| Document | Endpoints | Credits |
+|----------|-----------|---------|
+| 1 page, 3 default endpoints | 3 | 3 (minimum) |
+| 5 pages, 3 default endpoints | 3 | 15 |
+| 10 pages, 1 endpoint | 1 | 10 |
+| 20 pages, 8 endpoints | 8 | 160 |
+| 100 pages, 8 endpoints | 8 | 800 |
+
+The minimum charge is **3 credits** (covers extraction overhead). Each page-endpoint combination costs 1 credit, matching the per-call cost of text detection endpoints.
+
+<Info>
+  Choose your endpoints carefully. Running 8 endpoints on a 100-page document costs 800 credits. For most use cases, the 3 default endpoints (`unsafe`, `coercive-control`, `radicalisation`) provide comprehensive coverage.
+</Info>
+
+## Chain-of-custody
+
+Every response includes a `document_hash` — a SHA-256 hash of the exact bytes uploaded. Use this to:
+
+- Prove which file was analyzed in compliance audits
+- Verify document integrity if the same file is analyzed again
+- Include in incident reports for regulatory submissions
+
+```
+sha256:a1b2c3d4e5f6789...
+```
+
+## Zero retention
+
+<Info>
+  **No document data is stored.** The PDF is processed entirely in memory, analyzed, and discarded. The response is the only output. This is the same privacy-by-design approach used across all Tuteliq endpoints.
+</Info>
+
+## Limits
+
+| Limit | Value |
+|-------|-------|
+| Max file size | 50 MB |
+| Max pages | 100 |
+| Supported formats | PDF only (`application/pdf`) |
+| Min text per page | 20 characters (pages below this are skipped) |
+| Concurrency | 3 pages analyzed simultaneously |
+
+## Tier access
+
+Document analysis is available on **Indie** tier and above. Starter tier does not have access to this endpoint.
+
+## Error codes
+
+| Code | Description |
+|------|-------------|
+| `ANALYSIS_6010` | PDF extraction failed (corrupt or password-protected file) |
+| `ANALYSIS_6011` | Document exceeds 100-page limit |
+| `FILE_MISSING` | No file uploaded |
+| `FILE_INVALID_TYPE` | Non-PDF file uploaded |
+| `FILE_TOO_LARGE` | File exceeds 50 MB |

@@ -57,6 +57,14 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 | `verifyAge` | 5 | Document analysis + biometric estimation (Pro tier and above) |
 | `verifyIdentity` | 10 | Document verification + liveness detection (Business tier and above) |
 
+### Document Analysis
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| `analyzeDocument` | Dynamic | `max(3, pages_analyzed × endpoint_count)` — minimum 3 credits |
+
+Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint combination costs 1 credit (matching text detection), with a minimum of 3 credits to cover extraction overhead. See [Document Analysis](/document-analysis#credit-pricing) for detailed examples.
+
 ### Media Analysis
 
 | Endpoint | Credits | Notes |

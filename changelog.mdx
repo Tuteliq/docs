@@ -6,6 +6,29 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.5.0 — March 2026
+
+### Document Analysis
+- **`POST /v1/safety/document`** — Upload a PDF (max 50 MB, 100 pages) for multi-endpoint safety analysis with per-page detection results
+- Supports 8 detection endpoints: `unsafe`, `bullying`, `grooming`, `social-engineering`, `coercive-control`, `radicalisation`, `romance-scam`, `mule-recruitment`
+- SHA-256 document hashing for chain-of-custody verification in compliance audits
+- Zero-retention processing — no document data stored after response
+- Bounded concurrency (3 pages at a time) with text chunking for long pages
+
+### Dynamic Credit Pricing for Documents
+- Document analysis uses **per-page, per-endpoint pricing**: `max(3, pages_analyzed × endpoint_count)`
+- Each page-endpoint combination costs 1 credit, matching text detection endpoint costs
+- Minimum charge of 3 credits covers extraction overhead
+- Examples: 5 pages × 3 endpoints = 15 credits; 20 pages × 8 endpoints = 160 credits
+
+### Model Refinements
+- **TCO Regulation classification** — Radicalisation responses now include EU Regulation 2021/784 Art. 2(7) content classification
+- **Self-harm CONTAGION sub-category** — Detects suicide pacts, method sharing, cluster effects, and gateway escalation
+- **PII/Doxxing detection** — New PII_DOXXING category for doxxing threats and digital footprint weaponisation
+- **Legacy response normalization** — Bullying, grooming, and unsafe endpoints now include a `normalized` block with a unified response shape matching newer endpoints
+
+---
+
 ## v1.4.4 — March 2026
 
 ### New Features

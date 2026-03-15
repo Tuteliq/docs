@@ -200,6 +200,7 @@ Each endpoint consumes a different number of credits:
 | Image analysis | 3 | Vision + OCR + safety |
 | Voice analysis | 5 | Transcription + safety |
 | Age verification | 5 | Document/biometric |
+| Document analysis | Dynamic | `max(3, pages × endpoints)` — [details](/document-analysis#credit-pricing) |
 | Video analysis | 10 | Frame extraction + per-frame analysis |
 | Identity verification | 10 | Document auth + face match + liveness |
 
@@ -242,6 +243,9 @@ For the full error reference and retry strategies, see [Error Handling](/error-h
   </Card>
   <Card title="Safety Extended" icon="shield-plus" href="/api-reference/safety-extended">
     Gambling harm, coercive control, vulnerability exploitation, and radicalisation detection.
+  </Card>
+  <Card title="Document Analysis" icon="file-pdf" href="/document-analysis">
+    Upload PDFs for per-page multi-endpoint safety detection with chain-of-custody hashing.
   </Card>
   <Card title="Multi-Endpoint" icon="arrows-split-up-and-left" href="/api-reference/analyse">
     Fan-out a single text to up to 10 detectors in parallel with aggregated results.
