@@ -6,6 +6,20 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.4.4 — March 2026
+
+### New Features
+- **`country` context field** — Pass an ISO 3166-1 alpha-2 country code (e.g., `"GB"`, `"US"`, `"SE"`) in the `context` object to receive geo-localised crisis helpline data in detection responses. Falls back to user profile country if omitted.
+- **Improved action escalation for minors** — All detection endpoints now enforce a minimum `flag_for_review` action when harm is detected and the subject is a minor. Criminal indicators (SEXTORTION, TRAFFICKING, CSAM, DEBT_BONDAGE, FORCED_CRIMINALITY, HONOUR_ESCALATION) targeting minors automatically escalate to `immediate_intervention`.
+- **Graduated risk scoring** — Risk scores now use the full 0.0–1.0 range with graduated bands instead of clustering around a single value.
+- **Evidence tactic normalization** — Evidence tactic fields are now always returned in SCREAMING_SNAKE_CASE format (e.g., `"EMOTIONAL_MANIPULATION"` instead of `"Emotional Manipulation"`).
+
+### SDK Releases
+- `@tuteliq/sdk` v2.5.0 — adds `country` context field, graduated risk scoring, tactic normalization
+- `@tuteliq/mcp` v3.7.0 — adds `country` context field, minor action escalation, tactic normalization
+
+---
+
 ## v1.4.3 — March 2026
 
 ### Bug Fixes & Improvements

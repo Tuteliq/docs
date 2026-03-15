@@ -6,7 +6,7 @@ description: Install and use the Tuteliq Node.js SDK
 keywords: [npm, typescript, javascript, SDK]
 ---
 
-The Tuteliq Node.js SDK provides a typed, promise-based client for the Tuteliq child safety API. It works in Node.js 18+ and includes full TypeScript definitions out of the box.
+The Tuteliq Node.js SDK (`@tuteliq/sdk` v2.5.0) provides a typed, promise-based client for the Tuteliq child safety API. It works in Node.js 18+ and includes full TypeScript definitions out of the box.
 
 ## Installation
 
@@ -37,7 +37,7 @@ Scan a single text input for harmful content across all KOSA categories.
 ```typescript
 const result = await tuteliq.detectUnsafe({
   content: "Let's meet at the park after school, don't tell your parents",
-  context: { ageGroup: '10-12' },
+  context: { ageGroup: '10-12', country: 'GB' },
 })
 
 console.log(result.unsafe)       // true

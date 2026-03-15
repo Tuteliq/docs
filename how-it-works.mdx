@@ -102,6 +102,7 @@ You can pass a `context` object with any detection request to improve accuracy:
 | `conversation_history` | `array` | Prior messages for context-aware analysis. Returns per-message `message_analysis`. |
 | `sender_trust` | `string` | `"verified"`, `"trusted"`, or `"unknown"`. Verified senders suppress impersonation flags. |
 | `sender_name` | `string` | Sender identifier (used with `sender_trust`). |
+| `country` | `string` | ISO 3166-1 alpha-2 code (e.g., `"GB"`, `"US"`, `"SE"`). Enables geo-localised crisis helpline data. Falls back to user profile country if omitted. |
 
 <Info>
 When `sender_trust` is `"verified"`, the API fully suppresses `AUTH_IMPERSONATION` — a verified sender cannot be impersonating an authority by definition. Routine urgency (schedules, deadlines) is also suppressed. Only genuinely malicious content (credential theft, phishing links, financial demands) will be flagged.
