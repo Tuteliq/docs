@@ -197,6 +197,10 @@ Each endpoint consumes a different number of credits:
 | Grooming / Emotions (with history) | 1 per 10 messages | `ceil(messages / 10)`, minimum 1 |
 | Action plan | 2 | Longer generation |
 | Incident report | 3 | Structured output |
+| Synthetic content (text) | 2 | AI-generated text detection |
+| Synthetic content (image) | 5 | Forensic vision + classification |
+| Synthetic content (audio) | 4 | Transcription + classification |
+| Synthetic content (video) | 2 + 3/frame + 2 (audio) | Frame extraction + forensic vision + transcription |
 | Image analysis | 3 | Vision + OCR + safety |
 | Voice analysis | 5 | Transcription + safety |
 | Age verification | 5 | Document/biometric |
@@ -237,6 +241,9 @@ For the full error reference and retry strategies, see [Error Handling](/error-h
 <CardGroup cols={2}>
   <Card title="Safety" icon="shield-halved" href="/api-reference/safety">
     Bullying, grooming, unsafe content, voice, image, and video analysis. Covers all 9 KOSA harm categories.
+  </Card>
+  <Card title="Synthetic Content" icon="robot" href="/synthetic-content">
+    Detect AI-generated text, deepfake images, cloned voice audio, and manipulated video across all four modalities.
   </Card>
   <Card title="Fraud Detection" icon="triangle-exclamation" href="/api-reference/fraud">
     Social engineering, app fraud, romance scams, and money mule recruitment targeting minors.

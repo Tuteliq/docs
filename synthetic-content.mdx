@@ -1,0 +1,366 @@
+---
+title: Synthetic Content Detection
+sidebarTitle: Synthetic Content
+icon: robot
+description: Detect AI-generated text, images, audio, and video — deepfakes, voice cloning, synthetic identities, and AI-enhanced child exploitation content
+keywords: [synthetic content, deepfake, AI-generated, voice cloning, CSAM, GenAI, detection, classification, forensic, blueprint]
+---
+
+Tuteliq can detect AI-generated and synthetic content across all four modalities — text, image, audio, and video. Each endpoint classifies content using the standardized taxonomy from the [Child Protection Blueprint](https://protectingchildrenonline.org): `confirmed_synthetic`, `suspected_synthetic`, `unknown`, or `confirmed_authentic`.
+
+## Classification Levels
+
+| Classification | Description |
+|---|---|
+| `confirmed_synthetic` | High confidence AI-generated content detected |
+| `suspected_synthetic` | Moderate indicators of synthetic content |
+| `unknown` | Insufficient data to determine authenticity |
+| `confirmed_authentic` | High confidence genuine, human-created content |
+
+## Category Taxonomy
+
+| Tag | Description |
+|---|---|
+| `AI_GENERATED_TEXT` | LLM-generated text (ChatGPT, Claude, etc.) |
+| `AI_GENERATED_IMAGE` | AI-generated image (Midjourney, DALL-E, Stable Diffusion) |
+| `AI_GENERATED_AUDIO` | Voice cloning, text-to-speech synthesis |
+| `AI_GENERATED_VIDEO` | Fully AI-generated video content |
+| `AI_MANIPULATED_MEDIA` | Deepfakes, face swaps, manipulated media |
+| `SYNTHETIC_IDENTITY` | Fake identity created using AI tools |
+| `SYNTHETIC_CSAM` | AI-generated child sexual abuse material |
+| `SYNTHETIC_IMPERSONATION` | AI-generated impersonation of a real person |
+| `AI_ENHANCED_GROOMING` | AI-assisted grooming scripts |
+| `AI_ENHANCED_SEXTORTION` | AI-assisted sextortion content |
+
+<Warning>
+`SYNTHETIC_CSAM` always escalates to severity 1.0, level `critical`, and recommended action `immediate_intervention` regardless of confidence score.
+</Warning>
+
+---
+
+## Text Detection
+
+Analyzes text for AI-generated content indicators — LLM-generated text, synthetic identities, AI-enhanced grooming scripts, and more.
+
+```
+POST /api/v1/safety/synthetic-content
+Content-Type: application/json
+```
+
+### Request
+
+```json
+{
+  "text": "In conclusion, it is important to note that there are several key factors to consider when evaluating the implications of this complex issue.",
+  "context": {
+    "language": "en",
+    "age_group": "13-15",
+    "platform": "discord"
+  },
+  "external_id": "msg_123",
+  "customer_id": "user_456"
+}
+```
+
+### Response
+
+```json
+{
+  "endpoint": "synthetic-content",
+  "detected": true,
+  "severity": 0.8,
+  "level": "high",
+  "classification": "suspected_synthetic",
+  "confidence": 0.9,
+  "risk_score": 0.7,
+  "categories": [
+    { "tag": "AI_GENERATED_TEXT", "label": "AI-generated text", "confidence": 0.9 }
+  ],
+  "evidence": [
+    { "text": "Uniform hedging pattern", "tactic": "STATISTICAL_LANGUAGE", "weight": 0.6 }
+  ],
+  "age_calibration": { "applied": true, "age_group": "13-15", "multiplier": 1.3 },
+  "recommended_action": "flag_for_review",
+  "rationale": "Text shows uniform style and formulaic structure typical of LLM output.",
+  "processing_time_ms": 2225,
+  "language": "en",
+  "language_status": "stable",
+  "credits_used": 2
+}
+```
+
+**Credits:** 2
+
+---
+
+## Image Detection
+
+Analyzes uploaded images for AI-generation artifacts using forensic vision analysis — checking skin texture, facial symmetry, hand anomalies, background coherence, lighting inconsistencies, and known AI model signatures.
+
+```
+POST /api/v1/safety/synthetic-content/image
+Content-Type: multipart/form-data
+```
+
+### How It Works
+
+<Steps>
+  <Step title="Upload">
+    Send an image as `multipart/form-data`. Supported formats: **JPEG, PNG, WebP, GIF**. Max file size: **10MB**.
+  </Step>
+  <Step title="Forensic Vision Analysis">
+    The image is analyzed by a dedicated forensic prompt that inspects pixel-level artifacts — face consistency, pore absence, finger anomalies, background warping, lighting mismatches, hair rendering, and resolution disparities.
+  </Step>
+  <Step title="Synthetic Classification">
+    The forensic findings are fed to the synthetic content detector, which combines artifact evidence with semantic analysis to produce a final classification.
+  </Step>
+</Steps>
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | File | Yes | Image file (JPEG, PNG, WebP, GIF). Max 10MB. |
+| `age_group` | string | No | Age group context (e.g., `"13-15"`) |
+| `language` | string | No | ISO language code |
+| `platform` | string | No | Platform context |
+| `external_id` | string | No | Your internal reference ID |
+| `customer_id` | string | No | Your customer/user ID |
+
+### Response
+
+```json
+{
+  "endpoint": "synthetic-content",
+  "detected": true,
+  "severity": 0.9,
+  "level": "high",
+  "classification": "confirmed_synthetic",
+  "confidence": 0.95,
+  "risk_score": 0.85,
+  "categories": [
+    { "tag": "AI_GENERATED_IMAGE", "label": "AI-generated image", "confidence": 0.95 }
+  ],
+  "evidence": [
+    { "text": "Uniform skin texture and symmetrical facial features", "tactic": "AI_GENERATION_ARTIFACT_DETECTION", "weight": 0.9 }
+  ],
+  "recommended_action": "flag_for_review",
+  "rationale": "Forensic analysis found AI-generation artifacts including unnatural skin texture and perfect facial symmetry.",
+  "input_type": "image",
+  "vision": {
+    "is_likely_synthetic": true,
+    "synthetic_confidence": 0.95,
+    "artifacts": [
+      "unnaturally uniform skin texture on cheeks with complete absence of pores",
+      "perfectly symmetrical facial features",
+      "blurred background with smooth transitions characteristic of AI-generated depth of field"
+    ],
+    "face_analysis": "Unnaturally smooth skin with no visible pores, perfectly symmetrical features.",
+    "overall_assessment": "Image exhibits several indicators of AI generation."
+  },
+  "processing_time_ms": 3100,
+  "credits_used": 5
+}
+```
+
+**Credits:** 5 (2 base + 3 vision)
+
+### Forensic Artifacts Checked
+
+The vision model inspects the image for these specific artifact categories:
+
+| Category | What It Checks |
+|---|---|
+| Face consistency | Asymmetric features, warped ears, pupil shape/reflection, teeth anomalies |
+| Skin texture | Pore absence, plastic appearance, uniform tone, airbrushed look |
+| Hands and fingers | Wrong finger count, fused digits, impossible poses |
+| Background coherence | Warped lines, repeating patterns, impossible geometry |
+| Lighting and shadows | Inconsistent light direction, missing shadows, unnatural reflections |
+| Hair rendering | Strands that merge unnaturally, physics-defying hair |
+| Text and symbols | Garbled text, nonsensical writing, distorted logos |
+| Resolution | Different quality levels across the image |
+| AI signatures | Midjourney, DALL-E, Stable Diffusion characteristic styles |
+
+---
+
+## Audio Detection
+
+Analyzes uploaded audio for AI-generated voice indicators — voice cloning, text-to-speech patterns, and synthetic speech markers. The audio is transcribed first, then the transcript is analyzed for synthetic content signals.
+
+```
+POST /api/v1/safety/synthetic-content/audio
+Content-Type: multipart/form-data
+```
+
+### How It Works
+
+<Steps>
+  <Step title="Upload">
+    Send an audio file as `multipart/form-data`. Supported formats: **MP3, WAV, M4A, OGG, FLAC, WebM**. Max file size: **25MB**.
+  </Step>
+  <Step title="Transcription">
+    Audio is transcribed using Whisper (EU-hosted, GDPR-compliant). The transcript includes timestamped segments and detected language.
+  </Step>
+  <Step title="Synthetic Classification">
+    The transcript and audio metadata are analyzed for AI-generated voice indicators — unnatural prosody, TTS patterns, and synthetic speech markers.
+  </Step>
+</Steps>
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | File | Yes | Audio file (MP3, WAV, M4A, OGG, FLAC, WebM). Max 25MB. |
+| `age_group` | string | No | Age group context |
+| `language` | string | No | ISO language code |
+| `platform` | string | No | Platform context |
+| `external_id` | string | No | Your internal reference ID |
+| `customer_id` | string | No | Your customer/user ID |
+
+### Response
+
+```json
+{
+  "endpoint": "synthetic-content",
+  "detected": true,
+  "severity": 0.6,
+  "level": "medium",
+  "classification": "suspected_synthetic",
+  "confidence": 0.7,
+  "risk_score": 0.5,
+  "categories": [
+    { "tag": "AI_GENERATED_AUDIO", "label": "AI-Generated Audio", "confidence": 0.7 }
+  ],
+  "recommended_action": "flag_for_review",
+  "rationale": "Audio transcript suggests synthesized voice patterns with unnatural uniformity.",
+  "input_type": "audio",
+  "transcription": {
+    "text": "Hello, I am calling about your account.",
+    "language": "en",
+    "duration": 3.5,
+    "segments": [
+      { "start": 0, "end": 3.5, "text": "Hello, I am calling about your account." }
+    ]
+  },
+  "processing_time_ms": 4200,
+  "language": "en",
+  "language_status": "stable",
+  "credits_used": 4
+}
+```
+
+**Credits:** 4 (2 base + 2 transcription)
+
+<Info>
+If the audio contains no intelligible speech, the endpoint returns `classification: "unknown"` with `detected: false` and a rationale explaining that no speech was found to analyze.
+</Info>
+
+---
+
+## Video Detection
+
+Analyzes uploaded video for deepfake indicators — frame-by-frame face consistency, AI-generation artifacts, lip-sync anomalies, and temporal artifacts. Combines forensic vision analysis on extracted frames with audio transcription.
+
+```
+POST /api/v1/safety/synthetic-content/video
+Content-Type: multipart/form-data
+```
+
+### How It Works
+
+<Steps>
+  <Step title="Upload">
+    Send a video file as `multipart/form-data`. Supported formats: **MP4, WebM, QuickTime, AVI**. Max file size: **100MB**.
+  </Step>
+  <Step title="Frame + Audio Extraction">
+    Frames are extracted at even intervals using ffmpeg (default: 6 frames, max: 20). Audio is extracted as a separate track in parallel.
+  </Step>
+  <Step title="Forensic Frame Analysis">
+    Each frame is analyzed for AI-generation artifacts (face consistency, skin texture, background coherence) using the same forensic vision model as image detection. Frames are processed in concurrent batches of 3.
+  </Step>
+  <Step title="Audio Transcription">
+    If the video has an audio track, it is transcribed using Whisper (EU-hosted) and included in the analysis.
+  </Step>
+  <Step title="Synthetic Classification">
+    Combined frame descriptions and transcript are analyzed for deepfake patterns — inconsistencies across frames, temporal artifacts, and lip-sync anomalies.
+  </Step>
+</Steps>
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | File | Yes | Video file (MP4, WebM, QuickTime, AVI). Max 100MB. |
+| `max_frames` | number | No | Frames to extract (default: 6, max: 20) |
+| `age_group` | string | No | Age group context |
+| `language` | string | No | ISO language code |
+| `platform` | string | No | Platform context |
+| `external_id` | string | No | Your internal reference ID |
+| `customer_id` | string | No | Your customer/user ID |
+
+### Response
+
+```json
+{
+  "endpoint": "synthetic-content",
+  "detected": true,
+  "severity": 0.7,
+  "level": "high",
+  "classification": "suspected_synthetic",
+  "confidence": 0.8,
+  "risk_score": 0.65,
+  "categories": [
+    { "tag": "AI_MANIPULATED_MEDIA", "label": "AI-Manipulated Media", "confidence": 0.8 }
+  ],
+  "recommended_action": "escalate",
+  "rationale": "Frame-by-frame analysis reveals face geometry inconsistencies and temporal artifacts.",
+  "input_type": "video",
+  "video": {
+    "duration_seconds": 12.5,
+    "frames_analyzed": 6,
+    "has_audio": true
+  },
+  "transcription": {
+    "text": "Speech content from the video.",
+    "language": "en",
+    "duration": 12.5
+  },
+  "processing_time_ms": 15000,
+  "language": "en",
+  "credits_used": 22
+}
+```
+
+**Credits:** 2 base + 3 per frame + 2 if audio present
+
+For example, 6 frames with audio = 2 + 18 + 2 = **22 credits**.
+
+<Info>
+If the video has no audio track, the `transcription` field is omitted and no transcription credits are charged.
+</Info>
+
+---
+
+## Credit Summary
+
+| Endpoint | Path | Credits |
+|----------|------|---------|
+| Text | `/safety/synthetic-content` | 2 |
+| Image | `/safety/synthetic-content/image` | 5 |
+| Audio | `/safety/synthetic-content/audio` | 4 |
+| Video | `/safety/synthetic-content/video` | 2 + 3/frame + 2 (audio) |
+
+## Multi-Endpoint Support
+
+The text-based synthetic content detector is available in the [Multi-Endpoint](/api-reference/analyse) fan-out. Include `"synthetic-content"` in your endpoint list:
+
+```json
+{
+  "text": "content to analyze",
+  "endpoints": ["bullying", "grooming", "synthetic-content"]
+}
+```
+
+<Note>
+Image, audio, and video synthetic detection are multipart-only and not available through the multi-endpoint batch.
+</Note>
