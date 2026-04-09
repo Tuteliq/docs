@@ -1,0 +1,124 @@
+---
+title: Liveness Detection
+sidebarTitle: Liveness Detection
+icon: video
+description: Multi-signal visual liveness analysis prevents photo, screen, printout, and deepfake spoofing attacks
+keywords: [liveness detection, anti-spoofing, face matching, biometric, landmark motion, texture analysis, depth cues]
+---
+
+Tuteliq's liveness detection combines **token-based challenge-response** with **visual analysis** across multiple frames to distinguish real people from spoofing attempts. It runs automatically during identity verification — no additional integration required.
+
+## Attack vectors covered
+
+| Attack | How it's caught |
+|--------|----------------|
+| **Printed photo** | Texture analysis detects flat/paper surfaces. No landmark motion across frames. |
+| **Photo on screen** | Moire pattern detection, screen pixel grid artifacts, unnatural glow and reflections. |
+| **Video replay** | Cross-frame luminance analysis detects zero natural variation. Background pixel-diffing catches static overlays. |
+| **3D printed mask** | Depth cue analysis — real selfies have natural depth-of-field (sharp face, slightly blurred background). Masks show uniform sharpness. |
+| **Deepfake video** | Temporal consistency analysis catches morphing artifacts. Face descriptor comparison across frames flags identity shifts. |
+| **Photo cutout overlay** | Background thumbnail comparison across frames — identical backgrounds flag static cutout overlays. |
+
+## How it works
+
+Liveness verification runs two independent layers:
+
+### Layer 1: Token-based challenge-response
+
+A cryptographic liveness token is generated for each verification session. The token is HMAC-signed with a server-side secret and includes:
+
+- Session timestamp (prevents replay across sessions)
+- Challenge nonce (prevents pre-recorded responses)
+
+The token must be submitted with the verification request and is validated server-side. Expired or reused tokens are rejected.
+
+### Layer 2: Visual liveness analysis
+
+When liveness frames are provided (multiple captures from the verification session), Tuteliq runs four parallel sub-analyzers:
+
+<CardGroup cols={2}>
+  <Card title="Landmark Motion (35%)" icon="arrows-up-down-left-right">
+    Tracks 7 key facial landmarks (nose tip, chin, brow midpoint, eye corners, mouth corners) across frames. Real people show natural micro-movements. Static photos show zero displacement. Abnormal independent landmark movement flags physiological impossibility.
+  </Card>
+  <Card title="Texture Analysis (25%)" icon="image">
+    Crops the face region and applies Laplacian kernel to measure sharpness variance. Real skin has texture (pores, fine lines). Printed photos and screens appear unnaturally smooth or show printer dot patterns. Moire detection at multiple scales catches screen recapture.
+  </Card>
+  <Card title="Depth Cues (15%)" icon="cube">
+    Compares Laplacian variance between face region and background. Real selfies show natural depth-of-field — sharp face, slightly blurred background. Flat media (screens, prints) show roughly equal sharpness everywhere. A sharpness ratio near 1.0 across all frames is suspicious.
+  </Card>
+  <Card title="Cross-Frame Consistency (25%)" icon="clone">
+    Compares 128-dimensional face descriptors across all frames (must be same person, distance < 0.55). Compares mean luminance across frames (real = slight natural variation; screen = zero variation). Diffs background thumbnails across frames (identical = cutout overlay).
+  </Card>
+</CardGroup>
+
+### Combined score
+
+Each sub-analyzer produces a pass/fail result. The combined liveness score is a weighted average:
+
+```
+score = 0.35 * landmark + 0.25 * texture + 0.15 * depth + 0.25 * cross_frame
+passed = score >= 0.6
+```
+
+The threshold is configurable per deployment.
+
+## Face matching
+
+Face matching runs alongside liveness detection as part of identity verification:
+
+1. **Face detection** on both the document photo and the live selfie using 68-point facial landmarks
+2. **128-dimensional face descriptor** extraction from both faces
+3. **Euclidean distance comparison** with a configurable similarity threshold (default: 0.6)
+4. **Match result** includes similarity score for transparency
+
+Face matching confirms the document belongs to the person presenting it. Without liveness, face matching alone can be beaten by holding up someone else's document — which is why both checks run together.
+
+## User experience
+
+The verification UI guides users through a brief liveness check:
+
+1. **Look straight** at the camera
+2. **Turn head** left and right
+3. **Blink** when prompted
+4. **Smile** for the camera
+
+These prompts are localized in 10 languages (English, Spanish, Portuguese, Ukrainian, Swedish, Norwegian, Danish, Finnish, German, French) and capture the frames needed for visual liveness analysis.
+
+## Response data
+
+When liveness analysis completes, the verification response includes:
+
+```json
+{
+  "liveness": {
+    "valid": true,
+    "visual_score": 0.87,
+    "visual_checks": {
+      "landmark_motion": true,
+      "texture": true,
+      "depth_cues": true,
+      "cross_frame": true
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `valid` | Overall liveness result |
+| `visual_score` | Combined visual liveness score (0.0-1.0) |
+| `visual_checks.landmark_motion` | Facial landmarks showed natural movement |
+| `visual_checks.texture` | Face texture consistent with real skin |
+| `visual_checks.depth_cues` | Natural depth-of-field detected |
+| `visual_checks.cross_frame` | Consistent identity and natural variation across frames |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Document Checks" icon="file-shield" href="/verification/document-checks">
+    45-country document validation and MRZ parsing.
+  </Card>
+  <Card title="Fraud Prevention" icon="shield-halved" href="/verification/fraud-prevention">
+    Multi-layer cross-referencing and authenticity analysis.
+  </Card>
+</CardGroup>

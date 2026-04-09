@@ -1,0 +1,171 @@
+---
+title: Fraud Prevention
+sidebarTitle: Fraud Prevention
+icon: shield-halved
+description: 7 cross-referencing layers, AI-powered document authenticity analysis, recapture detection, and geographic consistency checks
+keywords: [fraud prevention, document forgery, recapture detection, cross-referencing, tampering detection, document authenticity]
+---
+
+Tuteliq's fraud prevention doesn't rely on a single signal. Every verification runs **7 independent cross-referencing layers** that compare data from different sources on the same document. A forger must defeat all layers simultaneously — editing one field on the front of a document will be caught by mismatches against the MRZ, barcode, back side, or declared metadata.
+
+## Cross-referencing layers
+
+### 1. MRZ vs. OCR text
+
+When a document contains a Machine Readable Zone (passports, many ID cards), Tuteliq compares the MRZ-extracted fields against the OCR-extracted labels from the visible printed text.
+
+| Compared field | How it catches forgery |
+|---------------|----------------------|
+| **Date of birth** | MRZ says 1990-06-15 but printed DOB reads 1995-06-15 — front-side text was edited |
+| **Name** | MRZ shows SMITH but printed name shows JONES — name was changed on the visible side |
+| **Document number** | MRZ number doesn't match the printed number — number was altered |
+
+This is the **highest-value fraud signal** because the MRZ is protected by ICAO check digits that are difficult to recalculate correctly without specialized knowledge.
+
+### 2. Barcode vs. OCR text
+
+For US and Canadian driver's licenses, the PDF417 barcode on the back encodes all personal data independently of the printed text. Most forgers only edit the visual side.
+
+| Compared field | How it catches forgery |
+|---------------|----------------------|
+| **Date of birth** | Barcode says 1985-03-20 but front OCR reads 1990-06-15 — front was edited, back barcode wasn't |
+| **Name** | Barcode says JOHNSON but front says SMITH — front name was changed |
+
+### 3. Document front vs. back
+
+When both sides of a document are provided, Tuteliq extracts name and DOB from each side independently and compares them.
+
+| Signal | What it catches |
+|--------|----------------|
+| **Name mismatch** | Front says JOHN SMITH, back says JANE DOE — mismatched front/back from different documents |
+| **DOB mismatch** | Different dates on front and back — poorly assembled forgery |
+
+### 4. Document type consistency
+
+If the user declares a document type (e.g., "passport") but the MRZ indicates a different type (e.g., ID card with `I<` prefix), the mismatch is flagged.
+
+| Scenario | Signal |
+|----------|--------|
+| Declared passport, MRZ says `I<` | Document type mismatch |
+| Declared national_id, MRZ says `P<` | Document type mismatch |
+
+### 5. IP vs. document country
+
+Tuteliq compares the document's country of origin against the geographic origin of the API request. A Brazilian CPF submitted from a Vietnamese IP address isn't necessarily fraud, but it's an anomaly worth flagging.
+
+<Info>
+  Geographic inconsistency is a **soft signal** — it generates a flag but doesn't cause automatic failure. Diaspora populations, travelers, and VPN users can legitimately trigger this. It's included in `failure_reasons` for your review logic to handle appropriately.
+</Info>
+
+### 6. Age consistency (document vs. selfie)
+
+When both a document and selfie are provided, Tuteliq compares the age calculated from the document's DOB against the age estimated from the selfie by the vision AI. A discrepancy greater than 10 years is flagged.
+
+| Scenario | Signal |
+|----------|--------|
+| Document says age 25, selfie suggests ~45 | The document may belong to someone else |
+| Document says age 60, selfie suggests ~20 | Using a parent's or older person's document |
+
+### 7. OCR confidence gating
+
+When OCR confidence falls below 60%, all extracted data is flagged as potentially unreliable. This prevents the system from making verification decisions based on garbage OCR output from blurry, damaged, or deliberately obscured documents.
+
+---
+
+## Document authenticity analysis
+
+Beyond cross-referencing structured data, Tuteliq uses a **vision AI model** to analyze the document image itself for signs of forgery.
+
+### What the AI checks
+
+| Analysis | What it detects |
+|----------|----------------|
+| **Document layout** | Does the layout match known templates for the claimed document type and country? Photo position, text field placement, header/footer elements. |
+| **Security features** | Visible holograms, microprint areas, guilloche patterns, watermarks, UV-reactive zones. |
+| **Font consistency** | All text fields using expected fonts? Any signs of text overlay or digital editing? |
+| **Color and print quality** | Colors match government-issued document standards? Print quality consistent across the document? |
+| **Photo integration** | Is the ID photo properly embedded or does it look pasted/overlaid? |
+| **Language consistency** | Does the text language match the claimed country of origin? |
+| **Edge and border quality** | Clean, consistent document edges? Signs of cropping or digital manipulation? |
+
+### Response
+
+```json
+{
+  "document_authenticity": {
+    "is_authentic": true,
+    "confidence": 0.94,
+    "document_type_detected": "passport",
+    "security_features_visible": ["hologram", "microprint", "guilloche_pattern"],
+    "anomalies": [],
+    "recapture_detected": false,
+    "recapture_type": "none",
+    "overall_assessment": "Document appears genuine with visible security features"
+  }
+}
+```
+
+---
+
+## Recapture detection
+
+Recapture is one of the most common fraud vectors — photographing a document displayed on a screen or printed on paper. Tuteliq detects three types of recapture:
+
+| Type | Detection method |
+|------|-----------------|
+| **Screen** | Moire patterns (interference between screen pixels and camera sensor), screen bezels visible in frame, unnatural glow/reflections, pixel grid artifacts |
+| **Printout** | Paper texture visible, printer dot patterns, flat lighting without natural document sheen, color inconsistency |
+| **Photo-of-photo** | Visible photo edges within the frame, double reflection layers, perspective distortion |
+
+Recapture detection triggers a **hard failure** — the verification status is set to `failed`, not `needs_review`.
+
+---
+
+## Failure reasons
+
+Every fraud signal generates a specific, human-readable failure reason:
+
+```json
+{
+  "failure_reasons": [
+    "DOB mismatch: MRZ shows 1990-06-15 but document text shows 1995-06-15 — possible tampering",
+    "Document recapture detected (screen): image appears to be a photo of a screen",
+    "Geographic inconsistency: document from BRA but request originated from VNM"
+  ]
+}
+```
+
+These reasons are designed to be:
+- **Actionable** — your moderation team can understand exactly what went wrong
+- **Specific** — each reason identifies the exact data points that disagree
+- **Auditable** — included in the API response for compliance logging
+
+## Hard vs. soft failures
+
+| Signal | Severity | Result |
+|--------|----------|--------|
+| Liveness failed | Hard | `failed` |
+| Face mismatch | Hard | `failed` |
+| Recapture detected | Hard | `failed` |
+| Document authenticity failed (high confidence) | Hard | `failed` |
+| MRZ check digit invalid | Soft | `needs_review` |
+| Name/DOB cross-reference mismatch | Soft | `needs_review` |
+| Document expired | Soft | `needs_review` |
+| Low OCR confidence | Soft | `needs_review` |
+| Geographic inconsistency | Soft | `needs_review` |
+| Age inconsistency (document vs. selfie) | Soft | `needs_review` |
+
+<Tip>
+  Use the `failure_reasons` array to build custom review workflows. For example, you might auto-reject `failed` results but route `needs_review` results to a human moderator queue with the specific reasons displayed.
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Document Checks" icon="file-shield" href="/verification/document-checks">
+    45-country document validation and MRZ parsing.
+  </Card>
+  <Card title="Liveness Detection" icon="video" href="/verification/liveness-detection">
+    How visual liveness prevents spoofing attacks.
+  </Card>
+</CardGroup>

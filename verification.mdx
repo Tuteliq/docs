@@ -1,36 +1,43 @@
 ---
 title: Age & Identity Verification
-sidebarTitle: Verification
+sidebarTitle: Overview
 icon: id-card
-description: Verify user age and identity to protect minors and ensure platform compliance
-keywords: [age verification, identity verification, KYC, age assurance, liveness detection, document verification, KOSA, COPPA]
+description: Production-grade age and identity verification with document intelligence, biometric matching, liveness detection, and multi-layer fraud prevention — covering 45 countries
+keywords: [age verification, identity verification, KYC, age assurance, liveness detection, document verification, KOSA, COPPA, MRZ, PDF417, biometric, face matching]
 ---
 
-<Info>
-  Age Verification and Identity Verification are currently in **Beta**. Endpoints and response schemas may evolve based on feedback.
-</Info>
+Tuteliq Verification is a production-grade identity and age verification pipeline that combines document intelligence, biometric matching, liveness detection, and multi-layer fraud prevention in a single API call.
 
-Tuteliq Verification helps platforms confirm who their users are and how old they are — a critical layer for child safety compliance. Age Verification uses document analysis and biometric estimation to confirm a user's age. Identity Verification goes further with document authentication, face matching, and liveness detection to prevent impersonation.
+Most verification providers give you OCR and a face match. Tuteliq cross-references **every data source on the document against every other** — MRZ check digits, barcode data, OCR text, front vs. back, document vs. selfie — and flags any inconsistency as potential tampering. This catches forgeries that pass single-layer checks.
 
 <CardGroup cols={2}>
   <Card title="Age Verification" icon="id-card" href="#age-verification">
-    Confirm user age via document analysis or biometric estimation. Available on Pro tier and above.
+    Confirm user age via document analysis, biometric estimation, or both.
   </Card>
   <Card title="Identity Verification" icon="fingerprint" href="#identity-verification">
-    Full identity confirmation with document auth, face matching, and liveness detection. Available on Business tier and above.
+    Full identity confirmation with document authentication, face matching, liveness detection, and fraud prevention.
+  </Card>
+  <Card title="Document Checks" icon="file-shield" href="/verification/document-checks">
+    45 countries with algorithmic validation. ICAO 9303 MRZ. PDF417 barcode decoding.
+  </Card>
+  <Card title="Fraud Prevention" icon="shield-halved" href="/verification/fraud-prevention">
+    7 cross-referencing layers, recapture detection, LLM-powered authenticity analysis, and IP geolocation checks.
   </Card>
 </CardGroup>
 
-## Why verification matters
+## What makes Tuteliq different
 
-Content detection alone isn't enough. Platforms need to know _who_ their users are:
-
-- **KOSA compliance** requires age-appropriate protections — you can't calibrate if you don't know the user's age
-- **Predators impersonate minors** to gain access to child-focused spaces
-- **Underage users lie about their age** to access age-restricted features
-- **Parental consent flows** (COPPA) require verifying that the consenting adult is actually an adult
-
-Tuteliq Verification integrates directly with the safety API — verify once, then use the confirmed age group across all detection endpoints for properly calibrated risk scoring.
+<CardGroup cols={3}>
+  <Card title="45-Country Document Validation" icon="globe">
+    Algorithmic check digit validation for CPF, personnummer, Aadhaar, Codice Fiscale, CURP, SSN, and 39 more. Not just format checks — full mathematical verification.
+  </Card>
+  <Card title="7-Layer Cross-Referencing" icon="layer-group">
+    MRZ vs. OCR. Barcode vs. OCR. Front vs. back. Document vs. selfie. Declared type vs. detected type. IP vs. document country. OCR confidence gating. Every inconsistency is flagged.
+  </Card>
+  <Card title="AI-Powered Authenticity" icon="brain">
+    Vision model analyzes document layout, security features, fonts, and color consistency against known templates. Detects screen photos, printout recaptures, and digital manipulation.
+  </Card>
+</CardGroup>
 
 ## Tier availability
 
@@ -45,15 +52,15 @@ Tuteliq Verification integrates directly with the safety API — verify once, th
 
 `POST /v1/verification/age`
 
-Verify a user's age through document analysis, biometric age estimation, or both. Returns a verified age range and confidence score.
+Verify a user's age through document analysis, biometric age estimation, or both. Returns a verified age range, confidence score, and detailed document intelligence.
 
 ### Verification methods
 
 | Method | How it works | Best for |
 |--------|-------------|----------|
-| **Document** | Extracts date of birth from a government-issued ID (passport, driving licence, national ID) | High-assurance age gates, parental consent |
-| **Biometric** | Estimates age from a selfie using facial analysis | Frictionless age checks, onboarding flows |
-| **Combined** | Document + biometric cross-reference | Maximum assurance — verifies the document belongs to the person |
+| **Document** | Extracts DOB from government ID via OCR, MRZ parsing, and barcode decoding | High-assurance age gates, parental consent |
+| **Biometric** | Estimates age from a selfie using vision AI (child/teen/adult classification) | Frictionless age checks, onboarding flows |
+| **Combined** | Document + biometric with cross-reference — flags age inconsistencies > 10 years | Maximum assurance — verifies the document belongs to the person |
 
 ### Request
 
@@ -61,6 +68,7 @@ Verify a user's age through document analysis, biometric age estimation, or both
 ```typescript Node.js
 const result = await tuteliq.verifyAge({
   document: fs.createReadStream('id-front.jpg'),     // Government-issued ID
+  documentBack: fs.createReadStream('id-back.jpg'),  // Optional — enables barcode reading + back cross-ref
   selfie: fs.createReadStream('selfie.jpg'),          // Optional — for biometric estimation
   method: 'combined',                                  // 'document' | 'biometric' | 'combined'
 });
@@ -75,23 +83,23 @@ console.log(result.document_type);   // "passport"
 
 ```python Python
 result = client.verify_age(
-    document=open("id-front.jpg", "rb"),    # Government-issued ID
-    selfie=open("selfie.jpg", "rb"),         # Optional — for biometric estimation
-    method="combined",                        # "document" | "biometric" | "combined"
+    document=open("id-front.jpg", "rb"),
+    document_back=open("id-back.jpg", "rb"),  # Optional
+    selfie=open("selfie.jpg", "rb"),
+    method="combined",
 )
 
 print(result.verified)        # True
 print(result.estimated_age)   # 15
 print(result.age_range)       # "13-15"
 print(result.is_minor)        # True
-print(result.confidence)      # 0.97
-print(result.document_type)   # "passport"
 ```
 
 ```bash cURL
 curl -X POST https://api.tuteliq.ai/v1/verification/age \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -F "document=@id-front.jpg" \
+  -F "document_back=@id-back.jpg" \
   -F "selfie=@selfie.jpg" \
   -F "method=combined"
 ```
@@ -111,6 +119,12 @@ curl -X POST https://api.tuteliq.ai/v1/verification/age \
   "document_country": "GB",
   "biometric_age": 15,
   "document_age": 15,
+  "document": {
+    "ocr_confidence": 94,
+    "mrz_valid": true,
+    "document_number_valid": true,
+    "expired": false
+  },
   "credits_used": 5
 }
 ```
@@ -123,22 +137,39 @@ curl -X POST https://api.tuteliq.ai/v1/verification/age \
 | `estimated_age` | integer | Best estimate of user's age |
 | `age_range` | string | Tuteliq age bracket: `under-10`, `10-12`, `13-15`, or `14-17` |
 | `is_minor` | boolean | Whether the user is under 18 |
-| `confidence` | float | Confidence score (0.0–1.0) |
+| `confidence` | float | Confidence score (0.0-1.0) |
 | `method` | string | Method used: `document`, `biometric`, or `combined` |
-| `document_type` | string | Type of document analyzed (if applicable) |
-| `document_country` | string | ISO 3166-1 alpha-2 country code of the document |
-| `biometric_age` | integer | Age estimated from selfie (if selfie provided) |
-| `document_age` | integer | Age calculated from document DOB (if document provided) |
+| `document_type` | string | Detected document type |
+| `document_country` | string | ISO 3166-1 alpha-2 country code |
+| `biometric_age` | integer | Age estimated from selfie (if provided) |
+| `document_age` | integer | Age from document DOB (if provided) |
+| `document.ocr_confidence` | integer | OCR confidence percentage (0-100) |
+| `document.mrz_valid` | boolean | Whether MRZ check digits passed (if MRZ present) |
+| `document.document_number_valid` | boolean | Whether document number passed algorithmic validation |
+| `document.expired` | boolean | Whether the document has expired |
 | `credits_used` | integer | Credits consumed |
+
+### Age extraction sources
+
+DOB is extracted from multiple sources and cross-referenced. Priority order:
+
+1. **MRZ** (Machine Readable Zone) — Most reliable. ICAO 9303 check digit validated.
+2. **PDF417 barcode** — US/Canadian driver's licenses. AAMVA-encoded structured data.
+3. **OCR labels** — Text patterns like "Date of Birth:", "DOB:", date formats.
+4. **Selfie estimation** — Vision AI age bracket classification (fallback).
+
+When multiple sources disagree, the verification flags the inconsistency.
 
 ### Supported documents
 
-- Passport
-- Driving licence
-- National identity card
-- Residence permit
+| Document Type | Coverage |
+|--------------|----------|
+| Passport | All ICAO-compliant passports worldwide (MRZ validated) |
+| National ID card | All countries with MRZ-equipped cards + 45 countries with document number validation |
+| Driver's license | All countries via OCR + US/Canada via PDF417 barcode |
+| Residence permit | Via OCR text extraction |
 
-Documents must be a clear, well-lit photo or scan in JPEG or PNG format. Maximum file size: 10MB.
+Documents must be a clear, well-lit photo in JPEG or PNG format. Maximum file size: 10MB.
 
 ---
 
@@ -146,15 +177,28 @@ Documents must be a clear, well-lit photo or scan in JPEG or PNG format. Maximum
 
 `POST /v1/verification/identity`
 
-Confirm a user's identity with document authentication, face matching between document and selfie, and liveness detection to prevent spoofing.
+Full identity verification combining document authentication, face matching, liveness detection, and multi-layer fraud prevention.
 
 ### What it checks
 
-| Check | Description |
+Every identity verification runs **all** of these checks automatically:
+
+| Check | What it does |
 |-------|-------------|
-| **Document authentication** | MRZ validation, hologram detection, tamper analysis, format verification |
-| **Face matching** | Compares the photo on the document to the selfie — confirms the document belongs to the person |
-| **Liveness detection** | Detects spoofing attempts: photo-of-photo, screen replay, printed masks, deepfakes |
+| **Document number validation** | Algorithmic check digit verification for 45 countries (CPF, personnummer, Aadhaar, CURP, SSN, etc.) |
+| **MRZ validation** | ICAO 9303 check digits on document number, DOB, expiry, and composite — catches any MRZ tampering |
+| **Document authenticity** | AI vision analysis of layout, security features, fonts, colors, and photo integration |
+| **Recapture detection** | Detects photos of screens (moire patterns), printouts, and photo-of-photo attacks |
+| **Face matching** | 128-dimensional descriptor comparison between document photo and live selfie |
+| **Liveness detection** | Visual analysis: landmark motion, texture analysis, depth cues, cross-frame consistency |
+| **MRZ/OCR cross-referencing** | Compares name, DOB, and document number between MRZ and printed text — flags mismatches as tampering |
+| **Front/back cross-referencing** | Compares extracted data between document front and back sides |
+| **Barcode cross-referencing** | Compares PDF417 barcode data against OCR and MRZ (US/CA licenses) |
+| **Document type consistency** | Validates declared type matches MRZ-detected type (passport vs. ID card) |
+| **IP geolocation check** | Flags geographic inconsistency between document country and request origin |
+| **OCR confidence gating** | Flags low-confidence extractions as unreliable |
+| **Document expiry** | Checks expiry from labels, MRZ, and barcodes |
+| **Age consistency** | Cross-checks document age against selfie age estimate (flags > 10 year discrepancy) |
 
 ### Request
 
@@ -162,34 +206,40 @@ Confirm a user's identity with document authentication, face matching between do
 ```typescript Node.js
 const result = await tuteliq.verifyIdentity({
   document: fs.createReadStream('id-front.jpg'),
+  documentBack: fs.createReadStream('id-back.jpg'),  // Optional — enables barcode + back cross-ref
   selfie: fs.createReadStream('selfie.jpg'),
+  documentType: 'passport',                           // Optional — enables type consistency check
 });
 
 console.log(result.verified);                // true
 console.log(result.match_score);             // 0.98
 console.log(result.liveness_passed);         // true
 console.log(result.document_authenticated);  // true
-console.log(result.is_minor);               // false
+console.log(result.checks.mrz_valid);        // true
+console.log(result.checks.recapture);        // "none"
 ```
 
 ```python Python
 result = client.verify_identity(
     document=open("id-front.jpg", "rb"),
+    document_back=open("id-back.jpg", "rb"),
     selfie=open("selfie.jpg", "rb"),
+    document_type="passport",
 )
 
 print(result.verified)                # True
 print(result.match_score)             # 0.98
-print(result.liveness_passed)         # True
-print(result.document_authenticated)  # True
-print(result.is_minor)               # False
+print(result.checks.mrz_valid)        # True
+print(result.checks.recapture)        # "none"
 ```
 
 ```bash cURL
 curl -X POST https://api.tuteliq.ai/v1/verification/identity \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -F "document=@id-front.jpg" \
-  -F "selfie=@selfie.jpg"
+  -F "document_back=@id-back.jpg" \
+  -F "selfie=@selfie.jpg" \
+  -F "document_type=passport"
 ```
 </CodeGroup>
 
@@ -202,19 +252,43 @@ curl -X POST https://api.tuteliq.ai/v1/verification/identity \
   "liveness_passed": true,
   "document_authenticated": true,
   "estimated_age": 34,
-  "age_range": "adult",
   "is_minor": false,
   "confidence": 0.99,
-  "document_type": "driving_licence",
-  "document_country": "US",
+  "document_type": "passport",
+  "document_country": "GB",
   "flags": [],
   "checks": {
     "mrz_valid": true,
-    "tamper_detected": false,
+    "mrz_fields": {
+      "document_number": "L898902C3",
+      "nationality": "GBR",
+      "date_of_birth": "1990-06-15",
+      "expiry_date": "2030-01-01",
+      "surname": "SMITH",
+      "given_names": "JOHN WILLIAM"
+    },
+    "document_number_valid": true,
+    "document_expired": false,
     "face_match": true,
     "liveness": true,
-    "document_expired": false
+    "recapture": "none",
+    "authenticity": {
+      "is_authentic": true,
+      "confidence": 0.94,
+      "security_features": ["hologram", "microprint", "guilloche_pattern"],
+      "anomalies": []
+    },
+    "barcode": {
+      "format": "PDF417",
+      "has_aamva": true,
+      "first_name": "JOHN",
+      "last_name": "SMITH",
+      "date_of_birth": "1990-06-15",
+      "state": "CA"
+    },
+    "cross_references_passed": true
   },
+  "failure_reasons": [],
   "credits_used": 10
 }
 ```
@@ -223,38 +297,48 @@ curl -X POST https://api.tuteliq.ai/v1/verification/identity \
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `verified` | boolean | Whether identity verification succeeded (all checks passed) |
-| `match_score` | float | Face match score between document photo and selfie (0.0–1.0) |
-| `liveness_passed` | boolean | Whether the liveness check passed |
-| `document_authenticated` | boolean | Whether the document passed authenticity checks |
-| `estimated_age` | integer | Age calculated from document DOB |
-| `age_range` | string | Tuteliq age bracket or `adult` |
-| `is_minor` | boolean | Whether the user is under 18 |
-| `confidence` | float | Overall verification confidence (0.0–1.0) |
-| `document_type` | string | Type of document |
+| `verified` | boolean | All checks passed |
+| `match_score` | float | Face match score (0.0-1.0) |
+| `liveness_passed` | boolean | Liveness check passed |
+| `document_authenticated` | boolean | Document passed authenticity checks |
+| `estimated_age` | integer | Age from document DOB |
+| `is_minor` | boolean | Under 18 |
+| `confidence` | float | Overall confidence (0.0-1.0) |
+| `document_type` | string | Detected document type |
 | `document_country` | string | ISO 3166-1 alpha-2 country code |
-| `flags` | array | Any warning flags (e.g., `document_expiring_soon`, `low_image_quality`) |
-| `checks` | object | Individual check results |
+| `flags` | array | Warning flags (e.g., `low_ocr_confidence`, `geographic_inconsistency`) |
+| `checks` | object | Individual check results — see below |
+| `failure_reasons` | array | Human-readable reasons for failure (empty if verified) |
 | `credits_used` | integer | Credits consumed |
 
-### Spoofing prevention
+### Checks object
 
-Liveness detection catches the following attack vectors:
+| Field | Type | Description |
+|-------|------|-------------|
+| `mrz_valid` | boolean \| null | MRZ check digits valid (null if no MRZ) |
+| `mrz_fields` | object \| null | Parsed MRZ fields with check-digit-validated data |
+| `document_number_valid` | boolean \| null | Document number passed algorithmic validation |
+| `document_expired` | boolean | Document expiry check |
+| `face_match` | boolean | Face on document matches selfie |
+| `liveness` | boolean | Liveness detection passed |
+| `recapture` | string | `"none"`, `"screen"`, `"printout"`, or `"photo_of_photo"` |
+| `authenticity` | object | AI-powered document authenticity analysis |
+| `barcode` | object \| null | PDF417/barcode data (US/CA licenses) |
+| `cross_references_passed` | boolean | All cross-referencing checks passed |
 
-| Attack | Detection method |
-|--------|-----------------|
-| Photo-of-photo | Texture analysis, reflection detection, depth estimation |
-| Screen replay | Moire pattern detection, screen edge detection |
-| Printed mask | 3D depth analysis, material texture classification |
-| Deepfake video | Temporal consistency analysis, artifact detection |
+### Verification outcomes
+
+| Status | Meaning | Examples |
+|--------|---------|---------|
+| `verified` | All checks passed | Valid document, face match, liveness passed |
+| `failed` | Hard failure — definitive fraud signal | Liveness failed, face mismatch, recapture detected |
+| `needs_review` | Soft failure — human review recommended | Low OCR confidence, document expired, name mismatch between MRZ and printed text |
 
 ---
 
 ## Integration patterns
 
 ### Age gate on sign-up
-
-Verify age during onboarding and store the confirmed age group for all subsequent API calls:
 
 ```typescript
 // 1. Verify age during sign-up
@@ -275,8 +359,6 @@ const safety = await tuteliq.detectUnsafe({
 
 ### Parental consent flow (COPPA)
 
-For users verified as under 13, trigger a parental consent flow by verifying the parent's identity:
-
 ```typescript
 // 1. Verify child's age
 const childAge = await tuteliq.verifyAge({
@@ -286,21 +368,18 @@ const childAge = await tuteliq.verifyAge({
 
 if (childAge.estimated_age < 13) {
   // 2. Verify parent's identity
-  const parentIdentity = await tuteliq.verifyIdentity({
+  const parent = await tuteliq.verifyIdentity({
     document: parentIdStream,
     selfie: parentSelfieStream,
   });
 
-  if (parentIdentity.verified && !parentIdentity.is_minor) {
-    // 3. Parent is verified — proceed with consent
-    await grantParentalConsent(childUserId, parentIdentity);
+  if (parent.verified && !parent.is_minor) {
+    await grantParentalConsent(childUserId, parent);
   }
 }
 ```
 
 ### Moderator/admin verification
-
-Verify the identity of users requesting elevated privileges:
 
 ```typescript
 const identity = await tuteliq.verifyIdentity({
@@ -315,7 +394,7 @@ if (identity.verified && !identity.is_minor) {
 
 ## Error handling
 
-Verification-specific errors use the `VRF_9xxx` code range:
+Verification errors use the `VRF_9xxx` code range:
 
 | Code | HTTP | Description |
 |------|------|-------------|
@@ -324,7 +403,7 @@ Verification-specific errors use the `VRF_9xxx` code range:
 | `VRF_9003` | 400 | Unsupported document type |
 | `VRF_9004` | 400 | Selfie image is required for liveness check |
 | `VRF_9005` | 400 | Face not detected in selfie |
-| `VRF_9006` | 400 | Liveness check failed — possible spoofing detected |
+| `VRF_9006` | 400 | Liveness check failed |
 | `VRF_9007` | 500 | Verification service error (safe to retry) |
 | `VRF_9008` | 403 | Age verification not available on your plan (requires Pro) |
 | `VRF_9009` | 403 | Identity verification not available on your plan (requires Business) |
@@ -332,9 +411,9 @@ Verification-specific errors use the `VRF_9xxx` code range:
 <CodeGroup>
 ```typescript Node.js
 try {
-  const result = await tuteliq.verifyAge({
+  const result = await tuteliq.verifyIdentity({
     document: documentStream,
-    method: 'document',
+    selfie: selfieStream,
   });
 } catch (error) {
   if (error instanceof TuteliqError) {
@@ -342,11 +421,8 @@ try {
       case 'VRF_9002':
         // Ask user to retake photo with better lighting
         break;
-      case 'VRF_9003':
-        // Unsupported document — ask for passport, licence, or national ID
-        break;
-      case 'VRF_9008':
-        // Plan doesn't include age verification
+      case 'VRF_9006':
+        // Liveness failed — possible spoofing attempt
         break;
     }
   }
@@ -357,17 +433,15 @@ try {
 from tuteliq import TuteliqError
 
 try:
-    result = client.verify_age(
+    result = client.verify_identity(
         document=open("id.jpg", "rb"),
-        method="document",
+        selfie=open("selfie.jpg", "rb"),
     )
 except TuteliqError as e:
     if e.code == "VRF_9002":
-        # Ask user to retake photo
-        pass
-    elif e.code == "VRF_9008":
-        # Plan doesn't include age verification
-        pass
+        pass  # Ask user to retake photo
+    elif e.code == "VRF_9006":
+        pass  # Liveness failed
 ```
 </CodeGroup>
 
@@ -379,11 +453,14 @@ except TuteliqError as e:
 
 ## Next steps
 
-<CardGroup cols={2}>
-  <Card title="KOSA Compliance" icon="gavel" href="/kosa-compliance">
-    See how verification fits into your KOSA compliance strategy.
+<CardGroup cols={3}>
+  <Card title="Document Checks" icon="file-shield" href="/verification/document-checks">
+    Deep dive into 45-country document validation, MRZ parsing, and barcode reading.
   </Card>
-  <Card title="Credits" icon="coins" href="/credits">
-    Understand verification credit costs and usage tracking.
+  <Card title="Liveness Detection" icon="video" href="/verification/liveness-detection">
+    How visual liveness analysis prevents spoofing attacks.
+  </Card>
+  <Card title="Fraud Prevention" icon="shield-halved" href="/verification/fraud-prevention">
+    Multi-layer cross-referencing, recapture detection, and authenticity analysis.
   </Card>
 </CardGroup>
