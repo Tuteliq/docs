@@ -82,6 +82,16 @@
             ]
           },
           {
+            "group": "Verification",
+            "icon": "id-card",
+            "pages": [
+              "verification",
+              "verification/document-checks",
+              "verification/liveness-detection",
+              "verification/fraud-prevention"
+            ]
+          },
+          {
             "group": "Advanced",
             "icon": "bolt",
             "pages": [
@@ -90,7 +100,6 @@
               "voice-streaming",
               "video-analysis",
               "document-analysis",
-              "verification",
               "webhooks",
               "error-handling"
             ]

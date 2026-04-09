@@ -1,0 +1,180 @@
+---
+title: Document Checks
+sidebarTitle: Document Checks
+icon: file-shield
+description: 45-country document number validation, ICAO 9303 MRZ parsing, and PDF417 barcode decoding
+keywords: [document validation, MRZ, ICAO 9303, PDF417, AAMVA, check digit, CPF, personnummer, Aadhaar]
+---
+
+Tuteliq validates documents at three levels: **document number algorithms**, **MRZ check digits**, and **barcode data extraction**. Each layer independently verifies the document's integrity, and all layers are cross-referenced against each other.
+
+## Document number validation
+
+Tuteliq validates document numbers using the **actual government-defined algorithm** for each country — not just format checks. This means a forged document with a made-up number that looks correct will still fail validation.
+
+### Supported countries (45)
+
+<CardGroup cols={2}>
+  <Card title="Americas (8)" icon="earth-americas">
+    Brazil (CPF), Argentina (DNI), Mexico (CURP), Chile (RUT), Colombia (CC), Peru (DNI), Ecuador (CI), Uruguay (CI), Canada (SIN), United States (SSN)
+  </Card>
+  <Card title="Europe (22)" icon="earth-europe">
+    Sweden (personnummer), Spain (DNI/NIE), Netherlands (BSN), Portugal (NIF), Germany (Steuer-ID), France (NIR), Italy (Codice Fiscale), Belgium (NRN), Finland (PIC), Norway (fnr), Poland (PESEL), UK (NI Number), Ireland (PPS), Switzerland (AHV), Austria (SVNr), Czech Republic (RC), Romania (CNP), Croatia (OIB), Bulgaria (EGN), Greece (AFM), Hungary (Tax ID), Estonia, Lithuania, Latvia
+  </Card>
+  <Card title="Asia-Pacific (9)" icon="earth-asia">
+    Thailand (ID), Turkey (TC Kimlik), South Korea (RRN), India (Aadhaar), China (ID), Taiwan (ID), Japan (My Number), Australia (TFN), New Zealand (IRD)
+  </Card>
+  <Card title="Middle East & Africa (2)" icon="earth-africa">
+    Israel (ID), South Africa (ID)
+  </Card>
+</CardGroup>
+
+### Validation algorithms
+
+Each country uses a specific check digit algorithm. Some examples:
+
+| Country | Document | Algorithm |
+|---------|----------|-----------|
+| Brazil | CPF | Weighted mod 11, two check digits |
+| Sweden | Personnummer | Luhn algorithm on 10-digit form + date validation |
+| India | Aadhaar | Verhoeff algorithm (dihedral group D5) |
+| Spain | DNI/NIE | Mod 23 letter check |
+| Germany | Steuer-ID | ISO 7064 Mod 11,10 |
+| France | NIR | Mod 97 (BigInt arithmetic for 15-digit numbers) |
+| Italy | Codice Fiscale | Odd/even position lookup with omocodia handling |
+| Belgium | NRN | Mod 97 with century detection |
+| Croatia | OIB | ISO 7064 Mod 11,10 |
+| Switzerland | AHV | EAN-13 barcode check digit |
+| US | SSN | Area/group/serial validation + known invalid rejection |
+
+<Info>
+  Document number validation is **automatic** — when a document number and country code are detected, the appropriate algorithm runs without any configuration.
+</Info>
+
+---
+
+## MRZ validation (ICAO 9303)
+
+The Machine Readable Zone (MRZ) is present on passports and many national ID cards worldwide. Tuteliq implements full ICAO 9303 MRZ parsing with check digit validation.
+
+### Supported formats
+
+| Format | Lines | Characters | Used in |
+|--------|-------|-----------|---------|
+| **TD3** | 2 lines | 44 chars each | Passports |
+| **TD2** | 2 lines | 36 chars each | ID cards (some countries) |
+| **TD1** | 3 lines | 30 chars each | ID cards (most countries) |
+
+### What gets validated
+
+Each MRZ contains multiple fields, each protected by its own check digit using the ICAO weighted mod-7 algorithm (weights cycle `[7, 3, 1]`):
+
+| Field | Check digit | What it catches |
+|-------|------------|----------------|
+| Document number | Per-field | Altered document number |
+| Date of birth | Per-field | Altered birth date |
+| Expiry date | Per-field | Altered expiry date |
+| Personal number | Per-field | Altered personal data |
+| **Composite** | Across all fields | **Any** tampering across the entire MRZ |
+
+The composite check digit is critical — even if someone correctly recalculates individual field check digits after altering a value, the composite check will fail unless they also recalculate it.
+
+### Extracted fields
+
+When a valid MRZ is detected, Tuteliq extracts and returns:
+
+- Document number (with validation status)
+- Nationality / issuing state
+- Date of birth (with century detection)
+- Expiry date
+- Sex
+- Surname and given names
+- Personal number / optional data
+
+All extracted fields are cross-referenced against OCR text from the visible part of the document.
+
+---
+
+## PDF417 barcode reading
+
+US and Canadian driver's licenses encode all personal data in a PDF417 barcode on the back of the card following the AAMVA (American Association of Motor Vehicle Administrators) standard.
+
+### Why barcodes matter
+
+The barcode data is **independent** of the printed text on the front. A forger who edits the front of a driver's license (changing the name, DOB, or photo) must also modify the barcode — which requires specialized knowledge. Most forgeries only edit the visual side.
+
+When both sides are provided, Tuteliq:
+
+1. **Decodes** the PDF417 barcode from the back image
+2. **Parses** AAMVA fields (name, DOB, expiry, license number, sex, address, state)
+3. **Cross-references** barcode data against OCR text from the front
+4. **Flags** any mismatch as potential tampering
+5. **Falls back** to barcode DOB/expiry when OCR fails to extract them
+
+### Extracted AAMVA fields
+
+| Field | AAMVA Code | Description |
+|-------|-----------|-------------|
+| First name | DAC/DCT | Given name |
+| Last name | DCS/DAB | Surname |
+| Date of birth | DBB | MMDDYYYY format |
+| Expiration date | DBA | MMDDYYYY format |
+| Document number | DAQ | License/ID number |
+| Sex | DBC | 1=Male, 2=Female |
+| Address | DAG/DAI/DAJ/DAK | Street, city, state, postal code |
+| Country | DCG | Issuing country |
+
+### Supported barcodes
+
+| Format | Used in |
+|--------|---------|
+| PDF417 | US/Canadian driver's licenses (primary target) |
+| QR Code | Some international ID cards |
+| DataMatrix | Some European ID cards |
+
+<Tip>
+  For best barcode reading results, provide the **back** of the document as a separate image using the `document_back` field. This allows dedicated barcode scanning without the front-side OCR processing interfering.
+</Tip>
+
+---
+
+## How the layers work together
+
+```
+Document Image
+     |
+     v
+  +---------+     +----------+     +----------+
+  |   OCR   |     |   MRZ    |     | Barcode  |
+  | (labels)|     | (ICAO)   |     | (PDF417) |
+  +---------+     +----------+     +----------+
+     |                 |                 |
+     v                 v                 v
+  Name, DOB,      Name, DOB,       Name, DOB,
+  Doc Number,     Doc Number,      Doc Number,
+  Expiry,         Nationality,     Expiry,
+  Country         Expiry, Sex      State
+     |                 |                 |
+     +---------+-------+---------+-------+
+               |                 |
+               v                 v
+        Cross-Reference    Algorithmic
+         All Sources       Validation
+               |                 |
+               v                 v
+          Flag Any           Verify
+         Mismatches        Check Digits
+```
+
+Any inconsistency between sources generates a specific failure reason that is included in the API response.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Liveness Detection" icon="video" href="/verification/liveness-detection">
+    How visual liveness prevents spoofing attacks.
+  </Card>
+  <Card title="Fraud Prevention" icon="shield-halved" href="/verification/fraud-prevention">
+    Multi-layer cross-referencing and authenticity analysis.
+  </Card>
+</CardGroup>
