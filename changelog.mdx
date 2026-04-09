@@ -6,6 +6,48 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.6.0 — April 2026
+
+### Multi-Signal Forensic Synthetic Content Detection
+The synthetic content detection pipeline has been completely rebuilt into a **multi-signal forensic system** that runs up to 6 independent analysis engines in parallel for images and 5 for video — replacing the previous single-model approach.
+
+**Image Detection — 6-Signal Pipeline:**
+- **EXIF Metadata Extraction** — Detects AI generator signatures in EXIF tags, XMP data, and PNG tEXt chunks (Stable Diffusion parameters). Flags suspicious absence of camera metadata (no camera model + no GPS + high resolution).
+- **Pixel Statistics** — Shannon entropy, Laplacian edge density, and channel uniformity analysis. GAN images produce distinctive statistical signatures.
+- **C2PA Content Credentials** — Detects and validates C2PA manifests from DALL-E 3, Adobe Firefly, Google Imagen. When C2PA declares AI generation, the result is forced to `confirmed_synthetic` with confidence ≥ 0.95.
+- **Invisible Watermark Detection** — High-frequency energy analysis, periodic pattern detection at known watermark frequencies, LSB distribution analysis, and corner entropy checks.
+- **Perceptual Hashing (pHash)** — DCT-based 64-bit perceptual hash compared against a Redis-backed database of known synthetic content via Hamming distance. Matches force `confirmed_synthetic`.
+- **Weighted Signal Aggregation** — All signals aggregated into a weighted ensemble (vision 30%, metadata 15%, pixel stats 15%, C2PA 15%, watermarks 10%, pHash 15%) with fault isolation via `Promise.allSettled`.
+
+**Audio Detection — Spectral Forensics:**
+- **Mel Spectrogram Analysis** — FFmpeg generates a mel spectrogram image, analyzed by a dedicated vision prompt for frequency band uniformity, harmonic anomalies, missing breath noise, onset/offset patterns, and aliasing artifacts.
+- **Quantitative Audio Statistics** — RMS mean/peak, dynamic range, silence ratio, flat factor, and DC offset extracted via FFmpeg `astats` filter.
+- Spectral analysis runs in parallel with transcription. Even speech-free audio can be flagged if spectral patterns indicate synthesis.
+
+**Video Detection — Temporal + Lip-Sync:**
+- **Temporal Consistency Analysis** — face-api.js tracks face identity across frames via 128-dimensional descriptor Euclidean distance. Real faces: < 0.4, deepfakes: spikes > 0.6. Landmark stability measured via eye-to-nose ratio variance.
+- **Lip-Sync Correlation** — Mouth openness from 68-point face landmarks correlated against frame-aligned audio energy. Pearson correlation > 0.5 = authentic, < 0.3 = deepfake. Detects silent mouth movement and voice-without-movement.
+- All 5 video analysis tracks (per-frame vision, temporal consistency, lip-sync, spectral, transcription) run via fault-isolated `Promise.allSettled`.
+
+**Account-Level Profiling:**
+- **`GET /v1/safety/synthetic-content/profile/:customer_id`** — 30-day rolling window with synthetic count, account score, trend detection (`increasing`/`stable`/`decreasing`), and category distribution.
+- Automatic, zero-cost profiling when `customer_id` is provided on any detection request.
+
+**New Response Fields (additive — no breaking changes):**
+- Image: `metadata_analysis`, `provenance`, `forensic_signals`, `perceptual_hash`, `known_synthetic_match`
+- Audio: `audio_stats`, `spectral_signals`
+- Video: `temporal_consistency`, `lip_sync`, `audio_stats`, `spectral_signals`
+
+### Age & Identity Verification Improvements
+- **ICAO 9303 MRZ Validator** — Full check digit validation for TD1 (ID cards, 3×30), TD2 (ID cards, 2×36), and TD3 (passports, 2×44) Machine Readable Zones with weighted mod-7 algorithm
+- **PDF417 Barcode Reader** — Decodes AAMVA-structured data from US/Canadian driver's licenses via `zxing-wasm` — extracts name, DOB, expiry, document number, address, and more
+- **45-Country Document Number Validator** — Algorithmic check digit verification for CPF (Brazil), personnummer (Sweden), Aadhaar (India), Codice Fiscale (Italy), CURP (Mexico), SSN (US), SIN (Canada), TFN (Australia), and 37 more country-specific document formats
+- **Visual Liveness Analyzer** — Multi-signal liveness detection: landmark motion analysis, texture analysis (Laplacian variance + moire detection), depth cue analysis (face/background sharpness ratio), and cross-frame consistency checks
+- **AI-Powered Document Authenticator** — Vision model analyzes document layout, security features, fonts, color consistency, and photo integration against known templates. Detects screen photos, printout recaptures, and digital manipulation.
+- **MRZ/OCR/Barcode Cross-Referencing** — Compares name, DOB, and document number between MRZ, OCR text, barcode data, front and back sides, flagging any inconsistency as potential tampering
+
+---
+
 ## v1.5.0 — March 2026
 
 ### Document Analysis
