@@ -14,27 +14,27 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `detectBullying` | 1 | Single text analysis |
-| `detectUnsafe` | 1 | Single text analysis |
-| `detectGrooming` | 1 per 10 msgs | `ceil(messages / 10)`, minimum 1 |
+| `detectBullying` | 5 | Single text analysis |
+| `detectUnsafe` | 5 | Single text analysis |
+| `detectGrooming` | 6 per 10 msgs | `ceil(messages / 10) × 6`, minimum 6 |
 
 ### Fraud Detection
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `detectSocialEngineering` | 1 | Social engineering tactic detection |
-| `detectAppFraud` | 1 | Fraudulent app/download detection |
-| `detectRomanceScam` | 1 | Romance scam pattern detection |
-| `detectMuleRecruitment` | 1 | Money mule recruitment detection |
+| `detectSocialEngineering` | 5 | Social engineering tactic detection |
+| `detectAppFraud` | 5 | Fraudulent app/download detection |
+| `detectRomanceScam` | 5 | Romance scam pattern detection |
+| `detectMuleRecruitment` | 5 | Money mule recruitment detection |
 
 ### Safety Extended
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `detectGamblingHarm` | 1 | Gambling harm detection |
-| `detectCoerciveControl` | 1 | Coercive control detection |
-| `detectVulnerabilityExploitation` | 1 | Vulnerability exploitation + cross-endpoint modifier |
-| `detectRadicalisation` | 1 | Radicalisation indicator detection |
+| `detectGamblingHarm` | 5 | Gambling harm detection |
+| `detectCoerciveControl` | 5 | Coercive control detection |
+| `detectVulnerabilityExploitation` | 5 | Vulnerability exploitation + cross-endpoint modifier |
+| `detectRadicalisation` | 5 | Radicalisation indicator detection |
 
 ### Multi-Endpoint Analysis
 
@@ -46,37 +46,44 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyzeEmotions` | 1 per 10 msgs | `ceil(messages / 10)`, minimum 1 |
-| `getActionPlan` | 2 | Longer generation |
-| `generateReport` | 3 | Structured output |
+| `analyzeEmotions` | 6 per 10 msgs | `ceil(messages / 10) × 6`, minimum 6 |
+| `getActionPlan` | 9 | Longer generation |
+| `generateReport` | 13 | Structured output |
 
-### Verification (Beta)
+### Synthetic Content Detection
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `verifyAge` | 5 | Document analysis + biometric estimation (Pro tier and above) |
-| `verifyIdentity` | 10 | Document verification + liveness detection (Business tier and above) |
+| `detectSyntheticContent` | 5 | Multi-signal forensic analysis (text, image, audio, video) |
+
+### Verification
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| `verifyAge` (liveness only) | 10 | Liveness detection + biometric estimation |
+| `verifyAge` (full) | 20 | Document analysis + liveness + biometric estimation (Pro tier and above) |
+| `verifyIdentity` | 25 | Document verification + liveness + face matching (Business tier and above) |
 
 ### Document Analysis
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyzeDocument` | Dynamic | `max(3, pages_analyzed × endpoint_count)` — minimum 3 credits |
+| `analyzeDocument` | Dynamic | `max(10, pages_analyzed × endpoint_count)` — minimum 10 credits |
 
-Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint combination costs 1 credit (matching text detection), with a minimum of 3 credits to cover extraction overhead. See [Document Analysis](/document-analysis#credit-pricing) for detailed examples.
+Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint combination costs 1 credit, with a minimum of 10 credits to cover extraction overhead. See [Document Analysis](/document-analysis#credit-pricing) for detailed examples.
 
 ### Media Analysis
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyzeVoice` | 5 | Transcription + analysis |
-| `analyzeImage` | 3 | Vision + OCR + analysis |
-| `analyzeVideo` | 10 | Frame extraction + per-frame vision |
-| Voice stream (per flush) | 1 | Real-time transcription + analysis |
-| Video stream (per frame) | 3 | Per-frame vision analysis |
+| `analyzeVoice` | 21 | Transcription + analysis |
+| `analyzeImage` | 7 | Vision + OCR + analysis |
+| `analyzeVideo` | 95 | Frame extraction + per-frame vision |
+| Voice stream (per flush) | 5 | Real-time transcription + analysis |
+| Video stream (per frame) | 7 | Per-frame vision analysis |
 
 <Info>
-  For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) = 3` credits.
+  For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) × 6 = 18` credits.
 </Info>
 
 ### Batch processing example
@@ -84,13 +91,13 @@ Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint co
 When submitting a batch of 500 text messages through `detectUnsafe`:
 
 ```
-500 messages x 1 credit = 500 credits
+500 messages x 5 credits = 2,500 credits
 ```
 
 For a batch of 200 messages through `detectGrooming` with 15 messages per conversation:
 
 ```
-200 conversations x ceil(15 / 10) = 200 x 2 = 400 credits
+200 conversations x ceil(15 / 10) x 6 = 200 x 12 = 2,400 credits
 ```
 
 ## Purchasing credits
@@ -110,7 +117,7 @@ Every API response includes a `credits_used` field showing the credits consumed 
   "confidence": 0.91,
   "risk_score": 0.87,
   "categories": [{ "tag": "AUTH_IMPERSONATION", "label": "Authority Impersonation", "confidence": 0.92 }],
-  "credits_used": 1
+  "credits_used": 5
 }
 ```
 

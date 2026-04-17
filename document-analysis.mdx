@@ -34,7 +34,7 @@ const res = await fetch('https://api.tuteliq.ai/api/v1/safety/document', {
 const result = await res.json();
 console.log(result.overall_severity);      // "high"
 console.log(result.flagged_pages.length);  // 2
-console.log(result.credits_used);          // 15
+console.log(result.credits_used);          // 30
 ```
 
 ```python Python
@@ -208,18 +208,18 @@ Upload your PDF as a `multipart/form-data` request. The file field must be named
 Document analysis uses **dynamic pricing** based on the actual work performed:
 
 ```
-credits = max(3, pages_analyzed × endpoint_count)
+credits = max(10, pages_analyzed × endpoint_count)
 ```
 
 | Document | Endpoints | Credits |
 |----------|-----------|---------|
-| 1 page, 3 default endpoints | 3 | 3 (minimum) |
+| 1 page, 3 default endpoints | 3 | 10 (minimum) |
 | 5 pages, 3 default endpoints | 3 | 15 |
-| 10 pages, 1 endpoint | 1 | 10 |
+| 10 pages, 1 endpoint | 1 | 10 (minimum) |
 | 20 pages, 8 endpoints | 8 | 160 |
 | 100 pages, 8 endpoints | 8 | 800 |
 
-The minimum charge is **3 credits** (covers extraction overhead). Each page-endpoint combination costs 1 credit, matching the per-call cost of text detection endpoints.
+The minimum charge is **10 credits** (covers extraction overhead). Each page-endpoint combination costs 1 credit.
 
 <Info>
   Choose your endpoints carefully. Running 8 endpoints on a 100-page document costs 800 credits. For most use cases, the 3 default endpoints (`unsafe`, `coercive-control`, `radicalisation`) provide comprehensive coverage.
