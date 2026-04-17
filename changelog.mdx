@@ -6,6 +6,45 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.6.1 — April 2026
+
+### Credit Pricing Update
+All per-endpoint credit costs have been revised to reflect processing complexity more accurately. See [Pricing & Credits](/credits) for the full breakdown.
+
+**Text & Safety Detections:** 5 credits per call (was 1)
+- `detectBullying`, `detectUnsafe`, `detectSocialEngineering`, `detectAppFraud`, `detectRomanceScam`, `detectMuleRecruitment`, `detectGamblingHarm`, `detectCoerciveControl`, `detectVulnerabilityExploitation`, `detectRadicalisation`
+
+**Conversation-Based:** 6 credits per 10 messages (was 1)
+- `detectGrooming`, `analyzeEmotions`
+
+**Analysis & Guidance:**
+- `getActionPlan`: 9 credits (was 2)
+- `generateReport`: 13 credits (was 3)
+
+**Media:**
+- `analyzeImage`: 7 credits (was 3)
+- `analyzeVoice`: 21 credits (was 5)
+- `analyzeVideo`: 95 credits (was 10)
+- Voice stream (per flush): 5 credits (was 1)
+- Video stream (per frame): 7 credits (was 3)
+- `detectSyntheticContent`: 5 credits (was 2)
+
+**Verification:**
+- `verifyAge` (full): 20 credits (was 5)
+- `verifyAge` (liveness only): 10 credits (new)
+- `verifyIdentity`: 25 credits (was 10)
+
+**Document Analysis:**
+- `analyzeDocument`: minimum 10 credits (was 3)
+
+### Age & Identity Verification Improvements
+- **Liveness-only mode** now charged at 10 credits (reduced from full verification cost)
+- **Passport number validation** — passport document numbers are no longer incorrectly validated against national ID formats (e.g., Swedish personnummer)
+- **Vision AI OCR fallback** — when Tesseract OCR fails, document fields (name, DOB, document number) are extracted via vision AI and the confidence score reflects the extraction quality
+- **i18n for camera overlay** — all liveness challenge text (instructions, blink/smile prompts) now translates correctly when switching languages
+
+---
+
 ## v1.6.0 — April 2026
 
 ### Multi-Signal Forensic Synthetic Content Detection
@@ -58,9 +97,9 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 - Bounded concurrency (3 pages at a time) with text chunking for long pages
 
 ### Dynamic Credit Pricing for Documents
-- Document analysis uses **per-page, per-endpoint pricing**: `max(3, pages_analyzed × endpoint_count)`
-- Each page-endpoint combination costs 1 credit, matching text detection endpoint costs
-- Minimum charge of 3 credits covers extraction overhead
+- Document analysis uses **per-page, per-endpoint pricing**: `max(10, pages_analyzed × endpoint_count)` (minimum updated in v1.6.1)
+- Each page-endpoint combination costs 1 credit
+- Minimum charge of 10 credits covers extraction overhead
 - Examples: 5 pages × 3 endpoints = 15 credits; 20 pages × 8 endpoints = 160 credits
 
 ### Model Refinements
@@ -132,7 +171,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 - Supports government-issued ID documents (passport, driving licence, national ID)
 - Biometric age estimation from selfie photo
 - Returns `verified`, `estimated_age`, `age_range`, `confidence`, and `document_type`
-- 5 credits per verification
+- 20 credits per verification (updated in v1.6.1)
 - Available on **Pro** tier and above
 
 ### Identity Verification (Beta)
@@ -141,7 +180,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 - Liveness detection to prevent spoofing (photo-of-photo, screen replay, mask attacks)
 - Face matching between document photo and selfie
 - Returns `verified`, `match_score`, `liveness_passed`, `document_authenticated`, and `flags`
-- 10 credits per verification
+- 25 credits per verification (updated in v1.6.1)
 - Available on **Business** tier and above
 
 ### Tier Access
@@ -178,7 +217,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 
 ### Tier Access
 - New endpoints require **Indie** tier or above (Starter tier retains access to bullying, grooming, and unsafe only)
-- All new endpoints cost 1 credit per call; multi-endpoint costs the sum of individual endpoints
+- All new endpoints cost 5 credits per call (updated in v1.6.1); multi-endpoint costs the sum of individual endpoints
 
 ---
 
@@ -189,7 +228,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 - Frame extraction powered by ffmpeg with configurable `max_frames` (default 10, max 20)
 - Aggregated `overall_risk_score` and `overall_severity` across all frames
 - Automatic incident recording and webhook alerts for flagged videos
-- 10 credits per video analysis
+- 95 credits per video analysis (updated in v1.6.1)
 
 ### Video Streaming
 - WebSocket voice streaming now supports **video frames** alongside audio
@@ -197,7 +236,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 - New `frame_analysis` server event with per-frame vision results
 - New config options: `enable_video`, `frame_interval_seconds` (min 3s, default 5s)
 - `session_summary` event now includes `video_frames_analyzed` count
-- 3 credits per video frame analysis
+- 7 credits per video frame analysis (updated in v1.6.1)
 
 ### Voice Streaming Enhancements
 - Updated authentication: `?api_key=` query param or `Authorization: Bearer` header

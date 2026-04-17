@@ -99,11 +99,11 @@ Content-Type: application/json
   "processing_time_ms": 2225,
   "language": "en",
   "language_status": "stable",
-  "credits_used": 2
+  "credits_used": 5
 }
 ```
 
-**Credits:** 2
+**Credits:** 5
 
 ---
 
@@ -211,11 +211,11 @@ Content-Type: multipart/form-data
   },
   "perceptual_hash": "a3b2c1d4e5f60718",
   "processing_time_ms": 3100,
-  "credits_used": 5
+  "credits_used": 8
 }
 ```
 
-**Credits:** 5 (2 base + 3 vision)
+**Credits:** 8 (5 base + 3 vision)
 
 ### Forensic Signal Sources
 
@@ -324,11 +324,11 @@ Content-Type: multipart/form-data
   "processing_time_ms": 4200,
   "language": "en",
   "language_status": "stable",
-  "credits_used": 7
+  "credits_used": 10
 }
 ```
 
-**Credits:** 4 (2 base + 2 transcription) or 7 (+ 3 for spectrogram vision analysis)
+**Credits:** 7 (5 base + 2 transcription) or 10 (+ 3 for spectrogram vision analysis)
 
 ### New Response Fields
 
@@ -446,13 +446,13 @@ Content-Type: multipart/form-data
   },
   "processing_time_ms": 15000,
   "language": "en",
-  "credits_used": 22
+  "credits_used": 25
 }
 ```
 
-**Credits:** 2 base + 3 per frame + 2 if audio present
+**Credits:** 5 base + 3 per frame + 2 if audio present
 
-For example, 6 frames with audio = 2 + 18 + 2 = **22 credits**.
+For example, 6 frames with audio = 5 + 18 + 2 = **25 credits**.
 
 ### New Response Fields
 
