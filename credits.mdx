@@ -76,14 +76,16 @@ Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint co
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyzeVoice` | 21 | Transcription + analysis |
+| `analyzeVoice` | 21+ | Base 21 (first 60s) + 15 per extra minute |
 | `analyzeImage` | 7 | Vision + OCR + analysis |
 | `analyzeVideo` | 95 | Frame extraction + per-frame vision |
-| Voice stream (per flush) | 5 | Real-time transcription + analysis |
+| Voice stream (per flush) | 7 | Real-time transcription + analysis |
 | Video stream (per frame) | 7 | Per-frame vision analysis |
 
 <Info>
   For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) × 6 = 18` credits.
+
+  For `analyzeVoice`, credits scale with audio duration. The base cost of 21 credits covers the first 60 seconds. Each additional minute adds 15 credits. Examples: 2 min = 36 credits, 5 min = 81 credits, 10 min = 156 credits.
 </Info>
 
 ### Batch processing example
