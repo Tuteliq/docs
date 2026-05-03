@@ -6,6 +6,31 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.7.0 — May 2026
+
+### Emotional Distress Detection (Early Warning)
+- **`POST /v1/safety/emotional-distress`** — detects pre-vulnerability emotional distress signals before exploitation begins
+- Based on criminological research: emotional distress is both a consequence AND a driver of vulnerability to child sexual exploitation
+- **12 distress signal categories**: loneliness, feeling unheard, overwhelm, low self-worth, trust-seeking, withdrawal, family conflict, identity distress, academic pressure, sleep disturbance, appetite change, emotional numbing
+- **Exploitation risk assessment** — returns per-type vulnerability scores for grooming, sextortion, trafficking, radicalisation, self-harm, and substance use
+- **Vulnerability level scoring** — none, low, elevated, high, critical
+- Key risk combinations: loneliness + trust-seeking = HIGH grooming risk; family conflict + withdrawal = HIGH trafficking risk; low self-worth + overwhelm = HIGH sextortion risk
+- 5 credits per call
+
+### Tech-Facilitated Gender-Based Violence (TFGBV) Detection
+- **`POST /v1/safety/tfgbv`** — detects technology-facilitated gender-based violence, rooted in gender inequalities and power imbalances
+- **13 TFGBV categories**: image-based abuse, cyber stalking, online harassment, doxing, impersonation, outing, post-separation abuse, sextortion, digital coercion, sexualised deepfakes, gendered hate speech, reproductive surveillance, economic abuse digital
+- **TFGBV amplifier assessment** — identifies which technology amplifiers are active: scale, speed, anonymity, permanence, cross-border reach
+- **Intersectionality flags** — identifies compounding discrimination factors (LGBTQIA+, disability, racial, etc.)
+- Child-specific detection with heightened sensitivity for minors
+- 5 credits per call
+
+### Multi-Endpoint Support
+- Both new endpoints available in `/analyse/multi` — use endpoint IDs `emotional-distress` and `tfgbv`
+- MCP tools: `detect_emotional_distress` and `detect_tfgbv`
+
+---
+
 ## v1.6.1 — April 2026
 
 ### Credit Pricing Update
