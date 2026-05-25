@@ -487,55 +487,6 @@ If the video has no audio track, the `transcription`, `lip_sync`, `audio_stats`,
 
 ---
 
-## Account-Level Synthetic Profiling
-
-Track synthetic content patterns at the account level with a 30-day rolling window. When `customer_id` is provided on any detection request, Tuteliq automatically builds a synthetic profile for that account.
-
-```
-GET /api/v1/safety/synthetic-content/profile/:customer_id
-```
-
-### Response
-
-```json
-{
-  "customer_id": "user_456",
-  "total_items": 50,
-  "synthetic_count": 12,
-  "authentic_count": 35,
-  "unknown_count": 3,
-  "avg_confidence": 0.82,
-  "category_distribution": {
-    "AI_GENERATED_IMAGE": 8,
-    "AI_GENERATED_TEXT": 3,
-    "AI_MANIPULATED_MEDIA": 1
-  },
-  "account_synthetic_score": 0.34,
-  "trend": "increasing",
-  "last_updated": "2026-04-09T14:30:00.000Z",
-  "window_days": 30
-}
-```
-
-### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `total_items` | integer | Total items analyzed in the 30-day window |
-| `synthetic_count` | integer | Items classified as `confirmed_synthetic` or `suspected_synthetic` |
-| `authentic_count` | integer | Items classified as `confirmed_authentic` |
-| `unknown_count` | integer | Items classified as `unknown` |
-| `avg_confidence` | float | Average confidence across all classifications |
-| `category_distribution` | object | Count of items per synthetic category |
-| `account_synthetic_score` | float | 0.0-1.0 composite score — weighted by ratio and confidence |
-| `trend` | string | `increasing`, `stable`, `decreasing`, or `unknown` — based on first-half vs. second-half synthetic rate |
-
-<Info>
-Account profiling is automatic and zero-cost. Pass `customer_id` on any detection request to start building the profile. The profile endpoint itself does not consume credits.
-</Info>
-
----
-
 ## Credit Summary
 
 | Endpoint | Path | Credits |
@@ -544,7 +495,6 @@ Account profiling is automatic and zero-cost. Pass `customer_id` on any detectio
 | Image | `/safety/synthetic-content/image` | 5 |
 | Audio | `/safety/synthetic-content/audio` | 4-7 |
 | Video | `/safety/synthetic-content/video` | 2 + 3/frame + 2 (audio) |
-| Profile | `/safety/synthetic-content/profile/:id` | 0 |
 
 ## Multi-Endpoint Support
 

@@ -6,6 +6,32 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.8.0 — May 2026
+
+### Breaking — Endpoint renamed: `emotional-distress` → `distress-signals`
+
+**`POST /v1/safety/emotional-distress` is removed.** The endpoint is now **`POST /v1/safety/distress-signals`** — request and response shapes are unchanged. Calls to the legacy path return **HTTP 410 Gone** with a JSON body pointing to the new endpoint.
+
+**Why:** EU AI Act Article 5(1)(f) framing. The detector is and always was a content classifier — it identifies linguistic patterns in text that are historically associated with distress. The old name implied emotion recognition, which is prohibited in workplaces and educational institutions outside child-safety contexts. The rename, an updated prompt that explicitly disclaims emotion inference, and a published intended-use scope (safety component for child-safety; not for workplace or general-purpose education monitoring) keep the endpoint inside the Art 5(1)(f) safety exception.
+
+**Action required:**
+- Update integrations to call `POST /v1/safety/distress-signals`
+- In `/analyse/multi`, change endpoint ID `emotional-distress` → `distress-signals`
+- MCP tool renamed: `detect_emotional_distress` → `detect_distress_signals`
+- Settings keys (`enabled_endpoints` / `disabled_endpoints`) renamed accordingly
+
+Response shape, categories (`LONELINESS`, `FEELING_UNHEARD`, `OVERWHELM`, etc.), exploitation-risk fields, and the 5-credit cost are unchanged.
+
+### Breaking — Removed: per-customer synthetic profile endpoint
+
+**`GET /v1/safety/synthetic-content/profile/:customer_id` is removed.** The endpoint and the underlying per-customer aggregation have been deleted; stored aggregates have been purged from cache.
+
+**Why:** EU AI Act Article 5(1)(c) social-scoring concern and GDPR data minimisation. A per-natural-person aggregated synthetic-content score retained across detections resembles social scoring when used across unrelated contexts. Removing both the endpoint and the storage closes the retrieval surface and the stored artefact.
+
+**Action required:** If you were polling the profile endpoint, aggregate detection responses on your side instead. The per-call detection endpoints (`/safety/synthetic-content`, `/image`, `/audio`, `/video`) continue to return classifications unchanged.
+
+---
+
 ## v1.7.0 — May 2026
 
 ### Emotional Distress Detection (Early Warning)
