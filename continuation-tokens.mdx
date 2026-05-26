@@ -1,0 +1,193 @@
+---
+title: Continuation Tokens
+sidebarTitle: Continuation Tokens
+icon: link
+description: Privacy-first conversation memory. Get conversation-aware detection across many calls without Tuteliq ever storing your conversation.
+keywords: [continuation tokens, conversation memory, privacy, multi-turn analysis, GDPR, stateless]
+---
+
+## The idea in one sentence
+
+> **You hold the conversation. We hold the signature.**
+
+Tuteliq's safety endpoints get sharper when they can see the conversation arc — not just one message. Most platforms solve this by storing the conversation server-side. Tuteliq doesn't. We return a **signed, opaque token** containing the *derived analysis state* (turn count, accumulated categories, severity trajectory, recommended actions). You hold the token; on the next call, you pass it back. We never store a single message of yours.
+
+## Why it matters
+
+| | Server-stored sessions | **Continuation tokens** |
+|---|---|---|
+| Who holds the state | The vendor | **You** |
+| Where conversation content lives | Vendor cache (TTL'd) | **Nowhere on our side** |
+| Privacy posture | "we delete after 30 days" | **"we never store it"** |
+| GDPR DPIA narrative | "data minimisation policy" | **"no data to minimise"** |
+| EU AI Act Art 12 logging surface | Includes conversation state | **Includes derived signals only** |
+| Replay across customers | Mitigated by per-key namespacing | **Cryptographically impossible** |
+
+## How it works
+
+```mermaid
+sequenceDiagram
+    participant App as Your App
+    participant Tuteliq
+
+    App->>Tuteliq: POST /safety/grooming { messages: [...] }
+    Tuteliq-->>App: { ..., continuation_token: "eyJ..." }
+    Note over Tuteliq: Server stores nothing
+
+    App->>Tuteliq: POST /safety/grooming { messages: [...new turns], continuation_token: "eyJ..." }
+    Note over Tuteliq: Verify HMAC; decode derived state
+    Tuteliq-->>App: { ..., continuation_token: "eyJ...v2" }
+    Note over Tuteliq: Fresh token replaces the old one
+```
+
+The token is a signed JWT (HS256) with `typ: "TLQT"` (Tuteliq Continuation Token). It's opaque to you — you don't decode it, you just round-trip it.
+
+## Supported endpoints
+
+| Endpoint | Returns continuation_token |
+|---|:---:|
+| `POST /v1/safety/grooming` | ✓ |
+| `POST /v1/safety/distress-signals` | ✓ |
+| `POST /v1/safety/bullying` | ✓ |
+| `POST /v1/safety/coercive-control` | ✓ |
+| `POST /v1/safety/vulnerability-exploitation` | ✓ |
+
+Token is **single-endpoint by design** — a token issued by `/safety/grooming` cannot be used on `/safety/bullying`. Each conversation type maintains its own state.
+
+## Quick start
+
+### First call (seeds the token)
+
+```bash
+curl -X POST https://api.tuteliq.ai/api/v1/safety/distress-signals \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "I feel like nobody understands me lately",
+    "context": { "age_group": "13-15" }
+  }'
+```
+
+Response includes the token:
+
+```json
+{
+  "detected": true,
+  "severity": 0.45,
+  "level": "medium",
+  "categories": [
+    { "tag": "LONELINESS", "label": "Loneliness expressions", "confidence": 0.62 }
+  ],
+  "rationale": "...",
+  "continuation_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IlRMUVQi...",
+  "continuation_expires_at": "2026-05-27T08:39:35.496Z",
+  "state_source": "fresh"
+}
+```
+
+### Subsequent calls (pass it back)
+
+```bash
+curl -X POST https://api.tuteliq.ai/api/v1/safety/distress-signals \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "You are the only person who actually listens",
+    "continuation_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IlRMUVQi..."
+  }'
+```
+
+The response reflects the **trajectory**, not just this message:
+
+```json
+{
+  "detected": true,
+  "severity": 0.78,
+  "level": "high",
+  "categories": [
+    { "tag": "LONELINESS", "label": "Loneliness expressions", "confidence": 0.7 },
+    { "tag": "TRUST_SEEKING", "label": "Trust-seeking openers", "confidence": 0.85 }
+  ],
+  "recommended_action": "flag_for_review",
+  "rationale": "Combined loneliness + trust-seeking — HIGH grooming-exploitation risk",
+  "continuation_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IlRMUVQi...v2",
+  "continuation_expires_at": "2026-05-27T08:42:18.221Z",
+  "state_source": "token"
+}
+```
+
+## Request fields
+
+| Field | Type | Notes |
+|---|---|---|
+| `continuation_token` | string (optional) | Opaque token from a previous response. |
+| `reset_conversation` | boolean (optional) | When `true`, discard the token and start fresh. |
+| `message_id` | string (optional, ≤128 chars) | Your own identifier for this turn — used in the token's evidence pointers so you can map detections back to your messages. If omitted we use a deterministic short hash. |
+
+## Response fields
+
+| Field | Type | Notes |
+|---|---|---|
+| `continuation_token` | string | Signed token to carry forward. |
+| `continuation_expires_at` | string (ISO 8601) | When this token stops being valid (24h default). |
+| `state_source` | `token` \| `fresh` \| `reset` | How prior state was sourced for this call. |
+
+## Privacy properties
+
+These hold **by construction**, not by policy:
+
+- **No raw text in the token** — only derived signals (counts, confidences, severity trajectory)
+- **No PII in the token** — emails, phone numbers, addresses are never carried forward
+- **Per-key binding** — a token issued to your key cannot be used by another customer's key (HMAC `sub` claim binds to a hash of your API key)
+- **Per-endpoint binding** — tokens cannot cross endpoints
+- **Tamper-evident** — any modification invalidates the HMAC signature
+- **Bounded lifetime** — 24h default expiry
+- **A leaked token reveals nothing beyond what's already in the public API response** for that conversation
+
+## Errors
+
+When a token can't be used, you'll get a structured error:
+
+| HTTP | Code | Meaning |
+|---|---|---|
+| 401 | `CONTINUATION_TOKEN_EXPIRED` | Past expiry. Send a fresh conversation_history once to seed a new token. |
+| 401 | `CONTINUATION_TOKEN_KEY_MISMATCH` | Token was issued to a different API key. |
+| 401 | `CONTINUATION_TOKEN_BAD_SIGNATURE` | Tampered or corrupted in transit. |
+| 400 | `CONTINUATION_TOKEN_SCOPE_MISMATCH` | Token was issued for a different endpoint. |
+| 400 | `CONTINUATION_TOKEN_MALFORMED` | Not a parseable token. |
+| 400 | `CONTINUATION_TOKEN_VERSION_UNSUPPORTED` | Token schema version is no longer recognised. |
+| 400 | `CONTINUATION_TOKEN_UNKNOWN_KID` | Token was signed by a retired key. |
+
+In every case, the fix is the same: drop the token and start a fresh conversation.
+
+## Best practices
+
+- **Persist the token per conversation, not per user.** A user with three open chats has three tokens.
+- **Don't log it server-side** if you can avoid it — treat it like a session cookie. It's signed but it's also small and bounded; the less it sits around, the better.
+- **On any error code, gracefully fall back.** Send the recent conversation_history once to re-seed, then continue with the new token.
+- **Use `reset_conversation: true`** to explicitly close a conversation arc and start fresh (e.g., end of a support session).
+- **Use `message_id`** with your own message identifiers — the token's evidence pointers will reference them so you can map detections back to your records.
+
+## Coexistence with `conversation_history`
+
+The `conversation_history` field (today's pattern) still works. Three modes:
+
+1. **History only** (today) — full conversation each call, server is stateless, no token returned... actually the new response *does* include a token you can adopt going forward.
+2. **Token only** (new) — only the new turn, plus the token. Privacy-first.
+3. **Both** — token wins; history is ignored on this call. Use this only for one-call migration.
+
+## Grooming-endpoint legacy `session_id`
+
+`POST /v1/safety/grooming` historically supported a server-stored `session_id`. That endpoint **still works** but is scheduled for deprecation — the continuation token offers the same multi-turn awareness without server-side storage. New integrations should use `continuation_token`; existing integrations have a clean migration path (send `continuation_token` instead of `session_id`; response shapes are unchanged otherwise).
+
+## Token shape (for the curious)
+
+```
+header.payload.signature
+```
+
+- **Header** — `{ "alg": "HS256", "typ": "TLQT", "kid": "tlq-ct-YYYY-MM" }`
+- **Payload** — derived state: `{ v, ep, sub, lang, ac, tc, cat, ev, sev_hist, trj, rec, iat, exp }`
+- **Signature** — HMAC-SHA256 over `header.payload` with the secret bound to `kid`
+
+You don't need to inspect any of this — pass the token back, that's all. We document the shape only for security-team curiosity.

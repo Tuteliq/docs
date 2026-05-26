@@ -6,6 +6,28 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.9.0 — May 2026
+
+### New — Continuation tokens (privacy-first conversation memory)
+
+Five safety endpoints now return a signed, opaque `continuation_token` in every response. Pass it back on the next call to get conversation-aware analysis **without re-sending the conversation history and without Tuteliq ever storing it**. The token IS the analysis state — you hold it, we hold the signature.
+
+- **Supported:** `/safety/grooming`, `/safety/distress-signals`, `/safety/bullying`, `/safety/coercive-control`, `/safety/vulnerability-exploitation`
+- **What's in the token:** derived signals only — turn count, accumulated category confidences, severity trajectory, recommended actions
+- **What's NOT in the token:** raw text, PII, anything we couldn't already return in the public API response
+- **Properties enforced by construction:** per-key binding (cannot be replayed across customers), per-endpoint binding, tamper-evident HMAC, 24h default lifetime, bounded payload size
+- New request fields: `continuation_token`, `reset_conversation`, `message_id`
+- New response fields: `continuation_token`, `continuation_expires_at`, `state_source` (`token` / `fresh` / `reset`)
+- See the new [Continuation Tokens](/continuation-tokens) page for usage, errors, and best practices
+
+`/safety/grooming`'s legacy `session_id` continues to work but is scheduled for deprecation — the continuation token is the privacy-first replacement.
+
+### Backwards compatible
+- All existing requests work exactly as before. The new fields are optional.
+- If you send a stale or scope-mismatched token, you get a structured `CONTINUATION_TOKEN_*` error and can fall back to one call with `conversation_history` to re-seed.
+
+---
+
 ## v1.8.0 — May 2026
 
 ### Breaking — Endpoint renamed: `emotional-distress` → `distress-signals`

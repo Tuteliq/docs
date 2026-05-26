@@ -96,6 +96,7 @@
             "icon": "bolt",
             "pages": [
               "languages",
+              "continuation-tokens",
               "synthetic-content",
               "voice-streaming",
               "video-analysis",
