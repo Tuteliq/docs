@@ -1,0 +1,130 @@
+---
+title: Prescreen Lexicon
+sidebarTitle: Prescreen Lexicon
+icon: filter
+description: Tuteliq's SDK-side pattern matcher. Skip the API call for clearly-benign content; attach high-precision signals to the requests you do make. All matching happens on your device.
+keywords: [prescreen, lexicon, SDK, privacy, on-device, pattern matching]
+---
+
+## The idea in one sentence
+
+> **Some detection happens on your device. Some on ours. None of it sticks anywhere.**
+
+Tuteliq publishes a small, public **lexicon** of high-precision phrase patterns mapped to category flags. Every Tuteliq SDK fetches it on startup, caches it by version, and runs it client-side against content **before** making an API call. Two payoffs:
+
+- **Benign-only matches → no API call needed.** "Hi!" / "thank you" / "good night" never leave the device.
+- **Positive matches → structured hints on the request.** When the SDK detects a high-precision signal (e.g. `SECRECY_REQUEST`), it attaches the match to the API request so the server starts with a strong prior.
+
+Both of these strengthen the privacy story: less content in transit, less content the LLM ever sees.
+
+## Endpoint
+
+```http
+GET /api/v1/prescreen/lexicon
+```
+
+**Public.** No authentication required. The lexicon contains no secrets — just patterns mapped to category tags. It's safe to fetch, cache, and inspect.
+
+```bash
+curl -i https://api.tuteliq.ai/api/v1/prescreen/lexicon
+```
+
+Response includes an `ETag` and `Cache-Control: public, max-age=3600` so SDKs that send `If-None-Match` on subsequent fetches will get a `304 Not Modified` if the lexicon hasn't changed. Lexicon version (`LEXICON_VERSION`) bumps on any entry change.
+
+## Response shape
+
+```json
+{
+  "version": "2026.05.001",
+  "entries": [
+    {
+      "id": "groom.secrecy.our-secret-en",
+      "pattern": "our little secret",
+      "type": "phrase",
+      "flag": "SECRECY_REQUEST",
+      "weight": 0.9,
+      "languages": ["en"],
+      "endpoints": ["grooming"]
+    },
+    {
+      "id": "benign.greet.hi-en",
+      "pattern": "hi",
+      "type": "phrase",
+      "flag": "BENIGN_CONTENT",
+      "weight": -1,
+      "languages": ["en"],
+      "endpoints": ["*"]
+    }
+  ],
+  "usage": {
+    "short_circuit_when": "result.benign_only === true",
+    "attach_when": "result.matches.some(m => m.weight > 0)",
+    "request_field": "prescreen_flags"
+  }
+}
+```
+
+## Matching contract
+
+SDKs in any language re-implement the same matching contract:
+
+| Field | Behaviour |
+|---|---|
+| `type: "phrase"` | Case-insensitive substring match: `text.toLowerCase().includes(pattern.toLowerCase())` |
+| `type: "regex"` | JavaScript-style regex compiled with the `i` flag, tested against the original text |
+| `languages` | `["*"]` matches any language; otherwise an ISO 639-1 lowercase match (`en`, `es`, `pt`, …). Default if the SDK doesn't know the language: assume `en`. |
+| `endpoints` | `["*"]` applies to all; otherwise the SDK only runs entries scoped to the target endpoint (`grooming`, `distress-signals`, `bullying`, `coercive-control`, `unsafe`). |
+| `weight: -1` | Benign signal. If only benign signals match (no positive), SDK MAY skip the API call. |
+| `weight: 0..1` | Positive signal. SDK MUST attach the match to the API request as a `prescreen_flags` item. |
+
+### Result shape
+
+```typescript
+interface PrescreenResult {
+  matches: Array<{ id: string; flag: string; weight: number }>;
+  benign_only: boolean;        // only BENIGN_CONTENT matched, no positive signals
+  max_positive_weight: number; // 0 if no positive matches
+}
+```
+
+## SDK behaviour (reference)
+
+```typescript
+import { runPrescreen, fetchLexicon } from '@tuteliq/sdk';
+
+const lexicon = await fetchLexicon(); // cached locally; only re-fetches on ETag mismatch
+
+async function checkGrooming(text: string) {
+  const prescreen = runPrescreen(text, { endpoint: 'grooming', language: 'en' }, lexicon);
+
+  // Short-circuit on clearly-benign content
+  if (prescreen.benign_only) {
+    return { detected: false, source: 'sdk-prescreen' };
+  }
+
+  // Attach positive matches to the API request as structured hints
+  return tuteliq.safety.grooming.detect({
+    text,
+    prescreen_flags: prescreen.matches.filter(m => m.weight > 0),
+  });
+}
+```
+
+## Privacy properties
+
+- **The lexicon is public** — anyone can fetch and inspect it. No model weights, no proprietary scoring.
+- **The matching is local** — content matched on-device never leaves the device unless the SDK decides to make an API call.
+- **Benign short-circuits** — clearly-benign content never reaches Tuteliq at all.
+- **Server-side acceptance is opt-in** — passing `prescreen_flags` on a detection request is supported and used as a prior; it never substitutes for the full server-side analysis.
+
+## What's NOT in v1
+
+- **Multi-language entries beyond English** — coming in subsequent lexicon versions. SDKs that don't recognise the language fall back to `en` patterns; we plan to ship `es`, `pt`, `fr`, `de` next.
+- **Machine-learned patterns** — v1 is curated, hand-written phrases focused on precision-per-pattern. The bar to add an entry is intentionally high — false-positive benign matches would cause SDKs to silently drop concerning content.
+- **Per-customer custom lexicons** — every SDK runs the same public lexicon. Custom patterns are a P3 follow-up.
+
+## Versioning
+
+The `version` field (e.g. `2026.05.001`) bumps on **any** change to entries. SDKs cache by version. Old SDK versions keep working with their cached lexicon — they're just less sharp until the next SDK release pulls the new one. Two-week target cadence for additions; faster for removals.
+
+If you spot a false positive (benign content matching as a positive signal) please report it — those are the highest-priority lexicon fixes.

@@ -6,6 +6,27 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.10.0 — May 2026
+
+### New — Prescreen lexicon for SDK-side filtering
+
+Public endpoint `GET /v1/prescreen/lexicon` returns Tuteliq's curated set of high-precision phrase patterns mapped to category flags. SDKs fetch it on startup, cache by version, and run it **client-side** against content before making an API call. Two wins:
+
+- **Clearly-benign content never leaves the device** (greetings, thanks, small talk → SDK skips the API call entirely)
+- **Positive matches are attached as structured hints** on the request via the new `prescreen_flags` field, giving the server a strong prior
+
+v1 covers grooming, distress-signals, bullying, coercive-control, and self-harm crisis indicators in English. Multilingual coverage rolling out in subsequent lexicon versions. See the new [Prescreen Lexicon](/prescreen-lexicon) page for the matching contract and SDK behaviour.
+
+### Improved — Continuation tokens now feed conversation trajectory into the LLM
+
+When a `continuation_token` is supplied, the LLM now receives the derived conversation state (turn count, accumulated categories with max confidence, severity trajectory, last recommended action) as injected context for the new turn. Translation: the model considers escalation patterns across the whole conversation when scoring the new message — without us ever storing the conversation.
+
+This closes the gap between v1.9 (token carries state across calls; response shows trajectory) and the full conversation-aware analysis that was previously only available by re-sending `conversation_history` on every call.
+
+Same five endpoints: `/safety/grooming`, `/safety/distress-signals`, `/safety/bullying`, `/safety/coercive-control`, `/safety/vulnerability-exploitation`.
+
+---
+
 ## v1.9.0 — May 2026
 
 ### New — Continuation tokens (privacy-first conversation memory)
