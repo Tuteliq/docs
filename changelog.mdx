@@ -6,6 +6,16 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.11.0 — May 2026
+
+### Updated — Credit costs
+
+Per-endpoint credit costs for text-detection endpoints have been updated. See [Pricing & Credits](/credits) for the full table.
+
+**`/analyse/multi`** now uses a `1 base + 1 per endpoint` formula instead of summing per-endpoint costs (e.g. 3 endpoints = 4 credits, 7 endpoints = 8 credits). Server-side execution is parallel via `Promise.allSettled`, so the price reflects the actual wall-clock cost rather than the sum of individual calls.
+
+---
+
 ## v1.10.0 — May 2026
 
 ### New — Prescreen lexicon for SDK-side filtering

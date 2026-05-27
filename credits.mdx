@@ -14,39 +14,41 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `detectBullying` | 5 | Single text analysis |
-| `detectUnsafe` | 5 | Single text analysis |
-| `detectGrooming` | 6 per 10 msgs | `ceil(messages / 10) × 6`, minimum 6 |
+| `detectBullying` | 2 | Single text analysis |
+| `detectUnsafe` | 2 | Single text analysis |
+| `detectGrooming` | 3 per 10 msgs | `ceil(messages / 10) × 3`, minimum 3 |
 
 ### Fraud Detection
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `detectSocialEngineering` | 5 | Social engineering tactic detection |
-| `detectAppFraud` | 5 | Fraudulent app/download detection |
-| `detectRomanceScam` | 5 | Romance scam pattern detection |
-| `detectMuleRecruitment` | 5 | Money mule recruitment detection |
+| `detectSocialEngineering` | 2 | Social engineering tactic detection |
+| `detectAppFraud` | 2 | Fraudulent app/download detection |
+| `detectRomanceScam` | 2 | Romance scam pattern detection |
+| `detectMuleRecruitment` | 2 | Money mule recruitment detection |
 
 ### Safety Extended
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `detectGamblingHarm` | 5 | Gambling harm detection |
-| `detectCoerciveControl` | 5 | Coercive control detection |
-| `detectVulnerabilityExploitation` | 5 | Vulnerability exploitation + cross-endpoint modifier |
-| `detectRadicalisation` | 5 | Radicalisation indicator detection |
+| `detectGamblingHarm` | 2 | Gambling harm detection |
+| `detectCoerciveControl` | 2 | Coercive control detection |
+| `detectVulnerabilityExploitation` | 2 | Vulnerability exploitation + cross-endpoint modifier |
+| `detectRadicalisation` | 2 | Radicalisation indicator detection |
+| `detectDistressSignals` | 2 | Linguistic distress-signal patterns (loneliness, isolation, hopelessness) |
+| `detectTFGBV` | 2 | Tech-facilitated gender-based violence detection |
 
 ### Multi-Endpoint Analysis
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyseMulti` | Sum of endpoints | Fan-out to up to 10 endpoints in one call |
+| `analyseMulti` (alias `/detection/multi`) | `1 + N` | Parallel fan-out discount. `1 base + 1 per endpoint`; 3 endpoints = 4 credits, 7 endpoints = 8 credits. Cheaper than calling endpoints individually because server-side execution is parallel — wall-clock cost doesn't scale with N. |
 
 ### Analysis & Guidance
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyzeEmotions` | 6 per 10 msgs | `ceil(messages / 10) × 6`, minimum 6 |
+| `analyzeEmotions` | 3 per 10 msgs | `ceil(messages / 10) × 3`, minimum 3 |
 | `getActionPlan` | 9 | Longer generation |
 | `generateReport` | 13 | Structured output |
 
@@ -54,7 +56,7 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `detectSyntheticContent` | 5 | Multi-signal forensic analysis (text, image, audio, video) |
+| `detectSyntheticContent` | 2 | Multi-signal forensic analysis (text path) |
 
 ### Verification
 
@@ -83,7 +85,7 @@ Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint co
 | Video stream (per frame) | 7 | Per-frame vision analysis |
 
 <Info>
-  For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) × 6 = 18` credits.
+  For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) × 3 = 9` credits.
 
   For `analyzeVoice`, credits scale with audio duration. The base cost of 21 credits covers the first 60 seconds. Each additional minute adds 15 credits. Examples: 2 min = 36 credits, 5 min = 81 credits, 10 min = 156 credits.
 </Info>
@@ -93,13 +95,13 @@ Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint co
 When submitting a batch of 500 text messages through `detectUnsafe`:
 
 ```
-500 messages x 5 credits = 2,500 credits
+500 messages x 2 credits = 1,000 credits
 ```
 
 For a batch of 200 messages through `detectGrooming` with 15 messages per conversation:
 
 ```
-200 conversations x ceil(15 / 10) x 6 = 200 x 12 = 2,400 credits
+200 conversations x ceil(15 / 10) x 3 = 200 x 6 = 1,200 credits
 ```
 
 ## Purchasing credits
@@ -119,7 +121,7 @@ Every API response includes a `credits_used` field showing the credits consumed 
   "confidence": 0.91,
   "risk_score": 0.87,
   "categories": [{ "tag": "AUTH_IMPERSONATION", "label": "Authority Impersonation", "confidence": 0.92 }],
-  "credits_used": 5
+  "credits_used": 2
 }
 ```
 
