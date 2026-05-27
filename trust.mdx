@@ -36,11 +36,67 @@ The **Tuteliq Trust Center** at [trust.tuteliq.ai](https://trust.tuteliq.ai) is 
 | Area | Commitment |
 |------|-----------|
 | **Encryption** | TLS 1.3 in transit, AES-256 at rest |
-| **Data residency** | US and EU regions available |
+| **Data residency** | EU by default; US region available on request |
 | **Retention** | Analysis results: 90 days · Audio files: 24 hours · API logs: 30 days |
 | **Erasure** | Full data deletion within 1 hour of request |
 | **Access control** | Role-based access, audit logging, API key scoping |
 | **Incident response** | 24-hour notification for security incidents |
+
+## What we keep, what we don't
+
+We operate a **content-out, metadata-in** pipeline. The distinction matters because everything we say about your data flows from it.
+
+### What we never store
+
+| Data type | Lifetime in our infra |
+|---|---|
+| Messages / chat text | Discarded after analysis completes |
+| Images / video frames | Discarded after analysis completes |
+| Audio / voice samples | Discarded after transcription + analysis |
+| Documents (PDFs) | Processed in memory only |
+| Biometric inputs (selfies, document images, face landmarks) | Discarded; no hashes, no derivatives |
+| Conversation history across calls | Replaced by signed, customer-held [continuation tokens](/continuation-tokens) |
+
+### What we do store
+
+| Data | Why | Retention |
+|---|---|---|
+| Classification result (category, severity, confidence, recommended action) | Powers your moderation dashboard | 90 days |
+| LLM rationale that explains a flag | T&S analysts need context to review incidents | 90 days, encrypted at rest |
+| Aggregated trend signals (k-anonymised) | Powers `/intelligence` endpoints | 90 days |
+| API logs (no message body) | Operations, billing, abuse | 30 days |
+| Audio analysis results | Transcript-derived classification metadata | 24 hours |
+
+### Your controls
+
+- **Full deletion** within 1 hour of a `DELETE /account/data` request
+- **Encryption at rest** (AES-256) for all stored metadata
+- **End-to-end encryption (opt-in)** — register an RSA public key and Tuteliq can no longer decrypt your stored rationales (see below)
+- **EU data residency** by default; US region on request
+- **No cross-customer linking** — deployer fingerprints scoped per request
+
+The short version: **your users' content lives in your platform, not ours. Tuteliq holds the analysis outputs your team needs to review — nothing else.**
+
+### End-to-end encryption for stored rationales (opt-in)
+
+By default the metadata fields we retain — LLM rationale, visual description, source data — are encrypted at rest with a Tuteliq-held AES-256 key, then decrypted server-side when your dashboard requests them. This is fast and requires no setup on your side.
+
+For customers who want stronger separation, we support **customer-managed end-to-end encryption**: you generate an RSA keypair, register the public key with Tuteliq, and we use it to wrap every new incident's metadata. From that point on we cannot decrypt those fields — only your dashboard, holding the matching private key, can.
+
+| Property | Default (server-side) | E2E (opt-in) |
+|---|---|---|
+| Encryption scheme | AES-256-GCM | RSA-OAEP-2048/4096 + AES-256-GCM (hybrid) |
+| Decryption key holder | Tuteliq | You |
+| Tuteliq can read rationale | Yes (for dashboard rendering) | **No** |
+| Private-key recovery if lost | n/a | **Your responsibility** — lost key means lost rationale |
+| Activation | None — default behaviour | `POST /api/v1/account/encryption-key` |
+| Rollback / rotation | n/a | `POST` a new key any time; `DELETE` to revoke |
+
+The scheme identifier (`TLQ-HYBRID-RSA-OAEP-AES-256-GCM-v1`) and key fingerprint are embedded in every encrypted record so you can verify integrity client-side.
+
+This is **opt-in by design** because losing the private key permanently strands every record encrypted under it — Tuteliq cannot recover them. Teams that don't want that operational burden should stay on the default server-side AES at rest. Teams with stricter compliance requirements (or who want a verifiable cryptographic guarantee that Tuteliq cannot read their rationales) should register a key.
+
+Existing incidents written before you register a key remain readable under the server-side scheme; only new incidents use the hybrid scheme.
 
 ## Compliance documentation
 
