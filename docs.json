@@ -95,6 +95,7 @@
             "group": "Advanced",
             "icon": "bolt",
             "pages": [
+              "composability",
               "languages",
               "continuation-tokens",
               "prescreen-lexicon",

@@ -1,0 +1,150 @@
+---
+title: Composable safety primitives
+description: How Tuteliq detectors enrich each other through cross_endpoint_modifier and vulnerability_profile.
+section: Concepts
+---
+
+# Composable safety primitives
+
+Tuteliq isn't a set of independent detectors — it's a platform where detectors **enrich each other**. The `detect_vulnerability_exploitation` endpoint returns two fields, `cross_endpoint_modifier` and `vulnerability_profile`, that agents use to amplify risk verdicts from sibling detectors and route to vulnerability-appropriate intervention workflows.
+
+This page explains the primitive and shows how to compose with it.
+
+## Why this matters
+
+Most safety APIs return per-call classifications: *is this content X?* That's enough if every harm is independent. But real harm rarely is. A grooming pattern targeting an emotionally vulnerable minor is structurally different from the same pattern targeting an emotionally stable adult — and an effective safety system has to weight signals by *who the target is*, not just *what the content says*.
+
+Tuteliq exposes that weighting as a primitive your agents compose, rather than burying it inside opaque score adjustments.
+
+## The fields
+
+### `cross_endpoint_modifier`
+
+A numeric multiplier (typical range **1.0–2.0**) you apply to *another endpoint's* `risk_score` when both endpoints detect a pattern in the same content.
+
+A modifier of `1.6` means: *"the vulnerability signals here amplify any concurrent grooming, scam, or coercion signal by 60%."*
+
+### `vulnerability_profile`
+
+A four-dimensional decomposition of the target's vulnerability, each scored 0.0–1.0:
+
+| Dimension | Captures |
+|---|---|
+| `emotional_vulnerability` | Loneliness, distress, recent loss, depressive language |
+| `cognitive_vulnerability` | Confusion, impairment, age-related capacity |
+| `situational_vulnerability` | Financial stress, isolation, dependency |
+| `social_vulnerability` | Minimal support network, marginalization |
+
+Agents route differently based on which dimension is highest — a high `emotional_vulnerability` plus a romance_scam signal calls for a slower, gentler intervention; a high `situational_vulnerability` plus a financial_grooming signal might trigger an immediate transaction hold.
+
+## Example response
+
+```json
+{
+  "endpoint": "vulnerability-exploitation",
+  "detected": true,
+  "level": "high",
+  "risk_score": 0.85,
+  "recommended_action": "flag_for_review",
+  "categories": [
+    { "tag": "AGE_TARGETING", "confidence": 0.8 },
+    { "tag": "EMOTIONAL_EXPLOIT", "confidence": 0.9 },
+    { "tag": "FINANCIAL_EXPLOIT", "confidence": 0.9 }
+  ],
+  "cross_endpoint_modifier": 1.6,
+  "vulnerability_profile": {
+    "emotional_vulnerability": 0.8,
+    "cognitive_vulnerability": 0.0,
+    "situational_vulnerability": 0.0,
+    "social_vulnerability": 0.0
+  }
+}
+```
+
+## Composing with another detector
+
+The intended pattern is: run `detect_vulnerability_exploitation` in parallel with the harm-specific detector for the same content, then combine.
+
+```ts
+import Tuteliq from "@tuteliq/sdk";
+
+const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_KEY });
+
+// Run both endpoints in parallel (they fan out server-side too)
+const [scam, vuln] = await Promise.all([
+  tuteliq.fraud.romanceScam({ content }),
+  tuteliq.safety.vulnerabilityExploitation({ content }),
+]);
+
+// Compound risk — amplify the romance-scam verdict by the vulnerability modifier
+const compoundRisk = Math.min(
+  scam.risk_score * vuln.cross_endpoint_modifier,
+  1.0
+);
+
+// Route by the dominant vulnerability dimension
+const dims = vuln.vulnerability_profile;
+const route =
+  dims.emotional_vulnerability  > 0.7 ? "gentle_human_review"   :
+  dims.situational_vulnerability > 0.7 ? "transaction_hold"      :
+  dims.cognitive_vulnerability   > 0.7 ? "guardian_notify"       :
+  dims.social_vulnerability      > 0.7 ? "support_network_outreach" :
+                                         "standard_moderation";
+
+if (compoundRisk >= 0.85) {
+  await escalate({ route, evidence: scam.evidence, profile: dims });
+}
+```
+
+In Python:
+
+```python
+import asyncio
+from tuteliq import Tuteliq
+
+tuteliq = Tuteliq(api_key=os.environ["TUTELIQ_KEY"])
+
+async def assess(content: str) -> dict:
+    scam, vuln = await asyncio.gather(
+        tuteliq.fraud.romance_scam(content=content),
+        tuteliq.safety.vulnerability_exploitation(content=content),
+    )
+
+    compound = min(scam.risk_score * vuln.cross_endpoint_modifier, 1.0)
+    dims = vuln.vulnerability_profile
+
+    route = (
+        "gentle_human_review"      if dims["emotional_vulnerability"]   > 0.7
+        else "transaction_hold"     if dims["situational_vulnerability"] > 0.7
+        else "guardian_notify"      if dims["cognitive_vulnerability"]   > 0.7
+        else "support_network_outreach" if dims["social_vulnerability"]  > 0.7
+        else "standard_moderation"
+    )
+
+    return {"compound_risk": compound, "route": route, "evidence": scam.evidence}
+```
+
+## When to use this primitive
+
+- You're building an **agent that takes graduated actions** based on combined risk, not single-detector verdicts.
+- You're moderating **populations where target vulnerability is highly variable** — mixed-age platforms, fintech, dating apps, AI companion products.
+- You want **intervention workflows that adapt to the user**, not just the content.
+
+## When not to use it
+
+- You're running a fixed-threshold per-message classifier and only need a single binary verdict — `recommended_action` from each endpoint is enough.
+- You're moderating content at the corpus level (e.g. AI training data) rather than per-user signals — vulnerability doesn't apply.
+
+## Notes on safe composition
+
+- **Cap the compound risk at 1.0** (`Math.min(scam.risk_score * modifier, 1.0)`) so amplification never produces an out-of-band value downstream consumers don't expect.
+- **The modifier is only meaningful when both endpoints actually `detect`** — if `vuln.detected === false`, treat the modifier as `1.0`.
+- **Cache the profile per-conversation, not per-message** — vulnerability is a property of the user, not the message. Refresh periodically or on user-context changes (e.g. a major life event surfaced in subsequent messages).
+- **Don't expose the raw modifier to end users.** It's an integrator-level signal designed for routing logic, not for display. Surface the resulting route and the human-readable rationale instead.
+
+## Related
+
+- [`detect_vulnerability_exploitation`](/api-reference/safety/vulnerability-exploitation) — full endpoint reference
+- [`analyse_multi`](/api-reference/safety/analyse-multi) — batch multi-endpoint analysis (applies modifier internally when both fire)
+- [Sentinel reference agent](/guides/sentinel-reference) — end-to-end example of an ADK agent composing primitives
+- [Building intervention workflows](/guides/intervention-workflows) — UX patterns for vulnerability-aware moderation
