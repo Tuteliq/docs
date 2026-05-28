@@ -1,0 +1,116 @@
+---
+title: Caching & content storage
+description: What Tuteliq caches, what it never stores, and how to opt out for fresh evaluations.
+---
+
+## TL;DR
+
+- Tuteliq caches **verdicts only**, never the input content itself.
+- Cache keys are **SHA-256 of the input bytes** — a cryptographic one-way hash. The input cannot be recovered from the key, and similar inputs do not share keys.
+- Cached verdicts **expire after 1 hour**.
+- Cache hits return the original verdict with `cached: true`, `cached_at: <ISO timestamp>`, and `credits_used: 0`.
+- You can disable the cache per request with `bypass_cache: true`.
+
+If you need to defend a privacy claim to a DPO or buyer, the precise wording is: *Tuteliq stores a SHA-256 of the input plus the verdict for up to one hour, and never persists the raw content, a perceptual hash, an embedding, or any other derived representation that could be used to recover or identify the input.*
+
+## What is cached
+
+| Field | Stored? | Notes |
+|---|---|---|
+| Input text / image / audio / video bytes | **No** | Never written to any storage tier. Held in process memory only for the duration of the request. |
+| SHA-256 of input bytes | **Yes** | Used as the cache key. One-way; not similarity-preserving. |
+| Verdict object (classification, signals, recommendation, rationale) | **Yes** | The response payload, exactly as returned. |
+| Perceptual hash (`perceptual_hash` field) | **Returned in response, not used as cache key** | Computed by the forensic pipeline to compare against pre-loaded known-bad-content databases (PhotoDNA-style). The cache itself is keyed on SHA-256. |
+
+The cache key derivation:
+
+```
+cache_key = "synthetic:{type}:" + sha256(input_bytes).hexdigest()
+```
+
+`type` is one of `text`, `image`, `audio`, `video`. The SHA-256 makes it impossible to:
+
+- Recover the input from the key
+- Find a near-duplicate input from the key (unlike a perceptual hash)
+- Group two visually similar but byte-different images under one entry
+
+## What is NOT cached
+
+- **No raw content.** Input text strings, image buffers, audio buffers, and video frames are never written to Redis, Firestore, GCS, or any other persistent store.
+- **No perceptual / locality-sensitive hashes** of customer uploads. We compute pHash on the request path for the forensic pipeline, but we never write customer-derived pHashes into our pre-loaded known-bad database. The lookup is one-way: incoming uploads are compared against external sources only.
+- **No embeddings, summaries, fingerprints, or trajectories** derived from input content. The `continuation_token` returned by multi-turn endpoints is signed-and-stateless: the trajectory state is encoded in the token issued to the customer, not stored server-side.
+- **No biometrics.** Face crops, voice prints, and identity vectors are never persisted. See [Privacy → biometrics](/gdpr) for the full posture.
+
+## TTL and eviction
+
+- Cached verdicts expire **3,600 seconds (1 hour)** after they are written.
+- Cache backend is **Upstash Redis** (managed, EU-region) with an in-memory fallback when Redis is unavailable.
+- Eviction is automatic on TTL expiry. Entries are not extended on read, so the maximum lifetime of any cached verdict is one hour from the original computation.
+
+## Opting out per request: `bypass_cache: true`
+
+For forensic re-tests, regression probes, post-deploy verification, or any workflow where you need a guaranteed fresh evaluation, pass `bypass_cache: true` on the request. Bypass affects **both read and write**:
+
+- The cache lookup is skipped — your request always hits the live model.
+- The resulting verdict is **not written** to the cache, so the test result does not shadow the production cache for subsequent customers.
+
+### JSON endpoints
+
+```http
+POST /api/v1/safety/synthetic-content
+Content-Type: application/json
+
+{
+  "text": "Sample content to evaluate",
+  "bypass_cache": true
+}
+```
+
+### Multipart endpoints (image, audio, video)
+
+Send `bypass_cache` as a string form field with value `"true"`:
+
+```bash
+curl -X POST https://api.tuteliq.ai/api/v1/safety/synthetic-content/image \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -F "file=@photo.jpg" \
+  -F "bypass_cache=true"
+```
+
+### Behaviour summary
+
+| `bypass_cache` value | Cache read | Cache write | Response includes `cached: true`? | `credits_used` |
+|---|---|---|---|---|
+| Omitted / `false` (default) | Yes | Yes | Only on hit | Normal on miss, `0` on hit |
+| `true` | No | No | Never | Normal — fresh evaluation always billed |
+
+## Why we cache by default
+
+Customers hitting Tuteliq from production-grade pipelines (e.g. retry queues, idempotency keys, fan-out workflows) often produce many byte-identical requests in a short window. Cache hits:
+
+- Return in single-digit milliseconds rather than the typical p95 of ~1.4s on LLM-backed endpoints
+- Cost zero credits, which we surface explicitly with `credits_used: 0`
+
+Disabling the cache by default would impose latency and cost on every legitimate caller to address a use case (forensic re-testing) that is much narrower than the default workload. The `bypass_cache` opt-out makes the trade-off explicit and per-request.
+
+## What buyers / DPOs typically ask
+
+> *"What if I submit confidential customer text — could a future Tuteliq employee or attacker recover it from the cache?"*
+
+No. The cache key is a SHA-256 of the input. Even with full read access to the Redis store, no party can recover the input from a key. The cached *value* is the verdict response, not the input. After one hour the entry is evicted by TTL.
+
+> *"Do you train models on my submitted content?"*
+
+No. Tuteliq's models are trained on third-party datasets and synthetic data only. Customer submissions are never written to training pipelines, evaluation sets, or any storage tier outside the verdict cache described above.
+
+> *"Can I force-flush my cached results?"*
+
+The 1-hour TTL is the supported flush mechanism. For workflows where stale results would be hazardous (e.g. you've updated your moderation rules and want to re-evaluate prior content), use `bypass_cache: true` on the re-evaluation request — the live verdict overwrites any prior cache entry only if `bypass_cache` is omitted on the next normal request.
+
+If your compliance posture requires an explicit cache-flush operation, contact us at [support@tuteliq.ai](mailto:support@tuteliq.ai) — we can scope a tenant-level cache-clear endpoint as an enterprise add-on.
+
+## Related
+
+- [Privacy / GDPR](/gdpr) — full data-handling posture
+- [Continuation tokens](/continuation-tokens) — how multi-turn state is carried in signed tokens, not server-side storage
+- [Trust & security](/trust) — infrastructure, regions, encryption-at-rest

@@ -112,6 +112,7 @@
             "pages": [
               "kosa-compliance",
               "gdpr",
+              "caching",
               "trust",
               "certification",
               "sdlc"
