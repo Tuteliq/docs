@@ -6,6 +6,43 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.12.0 — May 2026
+
+### New — Read-only dashboard surface
+
+Four new endpoints under `/api/v1/incidents` give programmatic access to the same data a moderator sees in the Tuteliq dashboard, scoped per API key:
+
+- `GET /api/v1/incidents` — paginated, filterable listing (category, severity, status, source, platform, external_id, customer_id, time-window). Cursor-based pagination. Optional `include_summary=true` decrypts the summary text per row (extra credit per row).
+- `GET /api/v1/incidents/:id` — full incident detail. Server-encrypted fields decrypted server-side; BYOK fields returned as hybrid envelopes for client-side decryption with the customer's RSA private key.
+- `GET /api/v1/incidents/overview` — KPI snapshot over a time window (total, requires-review queue size, 24h/7d/30d totals, counts by category/severity/source/status, top 5 platforms).
+- `GET /api/v1/incidents/trends` — time-bucketed counts with per-bucket severity breakdown. Buckets: hour, day (default), week.
+
+Available via [@tuteliq/sdk 2.12+](https://www.npmjs.com/package/@tuteliq/sdk) (`listIncidents`, `getIncident`, `getIncidentsOverview`, `getIncidentTrends`) and [@tuteliq/mcp 3.15.4+](https://www.npmjs.com/package/@tuteliq/mcp) (the four matching tools render as interactive dashboard widgets in MCP hosts).
+
+### Updated — `detect_grooming` 50-turn ceiling
+
+Multi-turn `detect_grooming` calls have a documented ceiling of **~50 turns per request**. Earlier this month a regression dropped the effective ceiling below 20 turns (the output-token budget was clipping the JSON response mid-`message_analysis` array, causing a parse failure that surfaced as `analysis_status: "engine_error"`). Fixed via an adaptive output budget that scales with conversation length (`base + N × per-turn`, capped at the model's safe output ceiling).
+
+The graceful `engine_error` envelope still exists — beyond the ceiling, callers receive `recommended_action: "flag_for_moderator"` rather than a silent pass. For conversations beyond ~30 turns we recommend chunked sliding windows of 10–15 turns with `continuation_token` carrying trajectory state across calls. See [Grooming detection](/grooming-detection) for the tactic taxonomy and the long-conversation pattern.
+
+### Updated — `meeting_request` as a first-class grooming tactic
+
+`detect_grooming` now returns `meeting_request` as a distinct flag (previously subsumed under `boundary_pushing`). Meeting attempts convert online risk into physical-safety risk and warrant a different operational response — most platforms route them directly to law-enforcement-aware workflows. The full six-tactic taxonomy is documented at [Grooming detection](/grooming-detection).
+
+### New — Composable safety primitives
+
+Documented `cross_endpoint_modifier` and `vulnerability_profile` on `detect_vulnerability_exploitation`. Both fields have been returning real data for months but were undocumented — they let agents amplify sibling detectors' verdicts when a target is identified as vulnerable, and route to vulnerability-dimension-specific intervention workflows. See [Composable safety primitives](/composability) for the worked TypeScript + Python examples.
+
+### Fixed — `/account/consent` and `/account/audit-logs` 500s
+
+Both endpoints returned `SVC_4001 An unexpected error occurred` when the user had multiple consent records or queried audit logs with the `action` filter. Root cause: missing Firestore composite indexes (`consent_records: consent_type + created_at`, `audit_logs: action + created_at`). Indexes are now in place — both endpoints return `200` again. These are the endpoints DPOs and SOC 2 auditors call first; restoring them was a Tier-1 unblock.
+
+### Fixed — `/usage/monthly`, `/usage/history`, `/pricing/details` field-name mismatch
+
+The three endpoints returned camelCase keys (`tierDisplayName`, `currentPeriodStart`, `totalRequests`, `priceMonthly`, …) while the SDK and the rest of the API surface use snake_case. SDK consumers reading `result.usage.percent_used` got `undefined`, and `undefined.toFixed()` crashed downstream. All three endpoints now return snake_case consistent with the broader API style.
+
+---
+
 ## v1.11.0 — May 2026
 
 ### Updated — Credit costs

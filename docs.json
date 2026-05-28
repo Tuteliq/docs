@@ -96,6 +96,7 @@
             "icon": "bolt",
             "pages": [
               "composability",
+              "grooming-detection",
               "languages",
               "continuation-tokens",
               "prescreen-lexicon",
