@@ -79,6 +79,7 @@ This is where Tuteliq diverges from keyword-based filters. The context engine ev
 - **Relationship dynamics** — A single message may appear harmless. The context engine tracks multi-turn escalation patterns — compliments, then secrecy requests, then isolation attempts, then boundary violations — that only become visible across a conversation. Every conversation-aware endpoint returns a `message_analysis` array that shows exactly how risk escalates message by message, with individual risk scores and detected tactics for each entry.
 - **Platform norms** — Teen slang, gaming culture, and social media language evolve fast. The context engine recognizes that "I'm literally dead" in a group chat has a fundamentally different risk profile than the same phrase in a private message to a younger child.
 - **Adversarial fragmentation** — Bad actors sometimes try to evade detection by spreading a phrase across many one-character or two-character messages. Conversation-aware endpoints reassemble runs of consecutive same-role short messages before analysis, so `"d","o","n","t","t","e","l","l"` is evaluated as `"donttell"`. Reassembled fragments score at a **lower severity** than the same intent written naturally (the underlying signal is weaker), but the response's `normalized.actionable` field still fires when the verdict is medium or above. **Branch alerting on `normalized.actionable` or `recommended_action`, not on `severity === 'critical'`** — that way reassembled grooming attempts still reach a moderator.
+- **Long conversation handling** — `detect_grooming` is designed for conversation windows up to about 20 turns; this is where the multi-turn risk-trajectory analysis is sharpest. For longer threads, pass the response's `continuation_token` back on the next call and analyse the next chunk — server state stays on the customer's side and the trajectory carries across windows. If a conversation is submitted that exceeds the engine's processing window, the response returns `analysis_status: "engine_error"` with `recommended_action: "flag_for_moderator"` rather than a generic failure — escalate to a human moderator regardless of the risk score in that case.
 
 ### 4. Age-calibrated scoring
 
@@ -171,7 +172,7 @@ The `/reports/incident` endpoint converts raw conversation data into structured,
 
 **No training on your data.** Content sent to Tuteliq is used solely for real-time analysis and is not retained for model training. See the [GDPR](/gdpr) section for data retention details.
 
-**Parallel processing.** All harm classifiers run simultaneously, not sequentially. This is how Tuteliq maintains sub-400ms response times even when checking against all nine KOSA categories.
+**Parallel processing.** All harm classifiers in `/analyse/multi` run simultaneously, not sequentially — so checking against all nine KOSA categories costs no more wall-clock time than checking one. Typical p95 for LLM-backed detection is ~1.4s; warm single-endpoint calls land lower.
 
 **Policy-configurable.** Use the `/policy/` endpoint to adjust detection thresholds, category weights, and moderation rules for your specific use case — without changing your integration code.
 
