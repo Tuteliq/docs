@@ -33,13 +33,13 @@ The graceful `engine_error` envelope still exists — beyond the ceiling, caller
 
 Documented `cross_endpoint_modifier` and `vulnerability_profile` on `detect_vulnerability_exploitation`. Both fields have been returning real data for months but were undocumented — they let agents amplify sibling detectors' verdicts when a target is identified as vulnerable, and route to vulnerability-dimension-specific intervention workflows. See [Composable safety primitives](/composability) for the worked TypeScript + Python examples.
 
-### Fixed — `/account/consent` and `/account/audit-logs` 500s
+### Fixed — Account observability endpoints
 
-Both endpoints returned `SVC_4001 An unexpected error occurred` when the user had multiple consent records or queried audit logs with the `action` filter. Root cause: missing Firestore composite indexes (`consent_records: consent_type + created_at`, `audit_logs: action + created_at`). Indexes are now in place — both endpoints return `200` again. These are the endpoints DPOs and SOC 2 auditors call first; restoring them was a Tier-1 unblock.
+`/account/consent` and `/account/audit-logs` now respond reliably for accounts with larger or filtered datasets. Both endpoints are part of the GDPR / SOC 2 observability surface and should be considered stable for compliance workflows.
 
-### Fixed — `/usage/monthly`, `/usage/history`, `/pricing/details` field-name mismatch
+### Fixed — Response key consistency across usage and pricing endpoints
 
-The three endpoints returned camelCase keys (`tierDisplayName`, `currentPeriodStart`, `totalRequests`, `priceMonthly`, …) while the SDK and the rest of the API surface use snake_case. SDK consumers reading `result.usage.percent_used` got `undefined`, and `undefined.toFixed()` crashed downstream. All three endpoints now return snake_case consistent with the broader API style.
+`/usage/monthly`, `/usage/history`, and `/pricing/details` now return snake_case keys consistent with the rest of the API. SDK consumers no longer need to alias field names; existing snake_case-aware code works directly.
 
 ---
 
