@@ -126,3 +126,47 @@ See [Languages](/languages) for the full list. Detection is multilingual and han
 - [Prescreen lexicon](/prescreen-lexicon)
 - [Continuation tokens](/continuation-tokens)
 - [Languages](/languages)
+
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Does Tuteliq handle gaming slang and trash-talk?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. It is built to keep competitive banter intact while flagging targeted harassment, by reading reciprocity, target, intent, and persistence rather than matching keywords."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "Can it catch coded language and emoji used to evade filters?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. It is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and misspellings, and it corroborates those signals with the behavioural pattern of the conversation."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "How does Tuteliq compare to other moderation APIs on slang and coded language?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "In an internal benchmark of coded-language and filter-evasion cases, Tuteliq detected roughly 1.7x more of them than leading general-purpose moderation APIs (319-case evasion set, vendors unnamed). The advantage is a platform-wide capability that applies to every detector, not just bullying."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "How is bullying detection different from a toxicity classifier?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "A toxicity classifier scores a single message for offensive words. Tuteliq scores the interaction: who is targeting whom, whether it is reciprocal, whether it is escalating, and whether a group is coordinating, which is what actually distinguishes banter from harm."
+          }
+        }
+      ]
+    })
+  }}
+/>

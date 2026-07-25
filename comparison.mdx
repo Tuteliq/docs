@@ -1,0 +1,57 @@
+---
+title: How Tuteliq compares
+description: How Tuteliq differs from keyword filters and general-purpose moderation APIs for detecting grooming, bullying, gaming toxicity, fraud, and coded language. When to choose a context-aware safety API.
+keywords: [content moderation API comparison, best moderation API, keyword filter alternative, gaming chat moderation, grooming detection API, toxicity detection API, moderation API for child safety]
+---
+
+# How Tuteliq compares
+
+**Short answer:** keyword filters and general-purpose moderation APIs score a single message against a fixed vocabulary. Tuteliq scores the *interaction*, so it separates gaming trash-talk from targeted harassment, catches coded slang and filter evasion, and follows harm that unfolds over many messages (grooming, romance scams, coercive control). If your risk is behavioural and evolving rather than a single banned word, that difference is the point.
+
+## At a glance
+
+| | Keyword filters | General-purpose moderation APIs | Tuteliq |
+|---|---|---|---|
+| Detection basis | Word list | Single-message classifier | Conversation and behaviour |
+| Coded slang, emoji, algospeak, leetspeak | Misses | Limited | Maintained lexicon, ~1.7x recall vs general-purpose ([benchmarks](/benchmarks)) |
+| Gaming banter vs harassment | Cannot tell apart | Weak | Reads reciprocity, target, intent, pile-ons |
+| Multi-turn harm (grooming, romance scam) | No | No | Trajectory-aware, with [continuation tokens](/continuation-tokens) |
+| Explainability | None | Score only | Rationale, categories, recommended action, evidence |
+| Coverage | Toxicity only | Toxicity, some categories | Grooming, bullying, fraud, radicalisation, self-harm, synthetic media, and more |
+| Languages | Varies | Varies | 27 ([languages](/languages)) |
+| Data retention | Varies | Varies | No user content stored |
+
+## When a word list is not enough
+
+- **Coded language and evasion.** Harassment and grooming rarely use the words on a list. They use slang, emoji, deliberate misspellings, and context. Tuteliq is maintained against an evolving lexicon and corroborates it with the behavioural pattern. See [Benchmarks](/benchmarks).
+- **Context decides.** "I'm going to destroy you" is normal in a game lobby and a threat in a DM. A single-message classifier flags both or neither; Tuteliq reads the surrounding conversation.
+- **Harm unfolds over time.** Grooming and romance scams are trajectories, not single messages. Tuteliq tracks the arc across turns without storing the conversation, via [continuation tokens](/continuation-tokens).
+
+## When to choose Tuteliq
+
+- You run **social or gaming chat** and keyword filters are burying your team in false positives while still missing coded abuse.
+- You need to detect **grooming, romance scams, sextortion, coercive control, or radicalisation**, which are behavioural and multi-turn.
+- You need **explainable** decisions (rationale, categories, recommended action) for moderator review or compliance.
+- You need **coverage across many harm types and languages** from one API.
+
+## When a simple filter is fine
+
+If you only need to block a fixed list of profanity in a low-risk context, a word list is cheaper and sufficient. Tuteliq is for the cases where the harm is in the intent and the trajectory, not the vocabulary.
+
+## Frequently asked questions
+
+**What is the difference between Tuteliq and a general-purpose moderation API?**
+General-purpose moderation scores one message against a fixed set of categories. Tuteliq reads the conversation, so it tells banter apart from harassment, catches coded slang and evasion (~1.7x the recall of general-purpose APIs on an evasion benchmark), and follows multi-turn harm like grooming and romance scams.
+
+**Is Tuteliq good for gaming chat moderation?**
+Yes. It is built to keep competitive trash-talk intact while flagging targeted harassment and coded abuse, by reading reciprocity, target, intent, and persistence rather than matching keywords.
+
+**Can Tuteliq replace my keyword filter?**
+For behavioural or evolving harm, yes. For blocking a fixed profanity list in a low-risk context, a word list may be all you need.
+
+## Related
+
+- [Benchmarks and accuracy](/benchmarks)
+- [Bullying and toxicity detection](/bullying-toxicity-detection)
+- [Grooming detection](/grooming-detection)
+- [Continuation tokens](/continuation-tokens)

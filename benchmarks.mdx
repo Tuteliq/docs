@@ -1,0 +1,107 @@
+---
+title: Benchmarks and accuracy
+description: How Tuteliq performs on coded language and filter evasion, how it is measured, and how it compares to general-purpose moderation APIs. Detection accuracy, multilingual coverage, and methodology.
+keywords: [content moderation benchmark, coded language detection, filter evasion, moderation API accuracy, gaming slang detection, toxicity detection accuracy, grooming detection benchmark]
+---
+
+# Benchmarks and accuracy
+
+Tuteliq is built to catch the harm that general-purpose moderation misses: coded slang, emoji, algospeak, and deliberate filter evasion, read in the context of the conversation rather than matched against a word list. This page summarises how it performs, how that is measured, and how it compares.
+
+## Headline result
+
+In an internal benchmark of coded-language and filter-evasion cases, **Tuteliq detected roughly 1.7x more of them than leading general-purpose moderation APIs**, on a 319-case evasion set. The gap is largest exactly where keyword filters and general-purpose classifiers are weakest: novel algospeak, emoji payloads, and context-dependent slang that only reads as harmful given the messages around it.
+
+| Capability | Tuteliq | General-purpose moderation APIs (avg) |
+|---|---|---|
+| Coded-language and filter-evasion recall (319-case set) | ~1.7x higher | baseline |
+| Reads conversation context, not just single messages | Yes | Partial or none |
+| Coded slang, emoji, leetspeak, algospeak coverage | Maintained lexicon, updated | Limited |
+| Languages | 27 (English stable, 26 beta) | Varies |
+
+## What is measured
+
+The evasion benchmark is a set of messages that carry a harmful payload through obfuscation rather than plain words: coded acronyms, emoji substitution, leetspeak, homoglyphs, deliberate misspellings, and algospeak (for example "unalive", "seggs", "camping"). It also includes benign look-alikes that use the same surface vocabulary, so a detector cannot score well simply by flagging everything.
+
+- **Positive cases:** messages where an obfuscated harmful meaning is present.
+- **Negative controls:** benign messages that share vocabulary or symbols with the positives.
+- **Metric:** recall on the positive cases (what fraction of real evasion is caught), reported alongside behaviour on the negative controls.
+
+## Methodology
+
+- Comparison is against three leading general-purpose moderation APIs, averaged. Vendors are not named.
+- Figures reflect this internal benchmark and are not a guarantee of performance on any specific dataset or deployment.
+- The advantage is a platform-wide property of how Tuteliq reads content, so it applies across every detector (grooming, romance and fraud, radicalisation, self-harm, bullying), not only to toxicity.
+
+## Why the gap exists
+
+General-purpose moderation scores a single message against a fixed vocabulary. Tuteliq scores the interaction: who is targeting whom, whether it is reciprocal, whether it is escalating, and whether the wording performs a harmful function even when no banned word appears. That is why it separates gaming trash-talk from targeted harassment, and why obfuscation that walks straight past a word list still gets scored. See [Bullying and toxicity detection](/bullying-toxicity-detection) and the [Prescreen lexicon](/prescreen-lexicon) for how the coded-term layer corroborates the behavioural signal.
+
+## Multilingual coverage
+
+Detection runs in **27 languages** (English stable, all 24 EU official languages plus Ukrainian, Norwegian, and Turkish in beta), with code-switching support and language-specific coverage of slang and evasion. See [Languages](/languages) for the full list.
+
+## Frequently asked questions
+
+**How accurate is Tuteliq at detecting coded slang and filter evasion?**
+On a 319-case evasion benchmark, Tuteliq detected roughly 1.7x more coded-language and filter-evasion cases than leading general-purpose moderation APIs, while still separating benign look-alikes that share the same vocabulary.
+
+**How is the benchmark measured?**
+It uses obfuscated harmful messages (coded acronyms, emoji, leetspeak, algospeak, misspellings) plus benign look-alike controls, and reports recall on the positives alongside behaviour on the controls. Comparison is against three leading general-purpose moderation APIs, averaged and unnamed.
+
+**Does the coded-language advantage apply to more than bullying?**
+Yes. It is a platform-wide capability that applies to every detector, because the same obfuscation tactics appear across every kind of harm.
+
+**How many languages does Tuteliq support?**
+27: English is stable and 26 more are in beta, including all 24 EU official languages plus Ukrainian, Norwegian, and Turkish.
+
+## Related
+
+- [Bullying and toxicity detection](/bullying-toxicity-detection)
+- [Grooming detection](/grooming-detection)
+- [Prescreen lexicon](/prescreen-lexicon)
+- [Languages](/languages)
+
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "How accurate is Tuteliq at detecting coded slang and filter evasion?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "On a 319-case evasion benchmark, Tuteliq detected roughly 1.7x more coded-language and filter-evasion cases than leading general-purpose moderation APIs, while still separating benign look-alikes that share the same vocabulary."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "How is the benchmark measured?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "It uses obfuscated harmful messages (coded acronyms, emoji, leetspeak, algospeak, misspellings) plus benign look-alike controls, and reports recall on the positives alongside behaviour on the controls. Comparison is against three leading general-purpose moderation APIs, averaged and unnamed."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "Does the coded-language advantage apply to more than bullying?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. It is a platform-wide capability that applies to every detector, because the same obfuscation tactics appear across every kind of harm."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "How many languages does Tuteliq support?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "27: English is stable and 26 more are in beta, including all 24 EU official languages plus Ukrainian, Norwegian, and Turkish."
+          }
+        }
+      ]
+    })
+  }}
+/>

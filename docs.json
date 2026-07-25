@@ -3,6 +3,16 @@
   "theme": "mint",
   "name": "Tuteliq",
   "description": "Documentation for the Tuteliq API — AI-powered child safety detection and synthetic content analysis for text, voice, images, and video.",
+  "seo": {
+    "indexing": "all",
+    "metatags": {
+      "og:type": "website",
+      "og:site_name": "Tuteliq Docs",
+      "og:title": "Tuteliq API — context-aware safety and moderation detection",
+      "og:description": "Detect grooming, bullying, gaming toxicity, romance and fraud, coded slang, and synthetic media with a context-aware API. Catches ~1.7x more coded-language evasion than general-purpose moderation APIs.",
+      "twitter:card": "summary_large_image"
+    }
+  },
   "colors": {
     "primary": "#2DD4BF",
     "light": "#5EEAD4",
@@ -50,6 +60,8 @@
               "quickstart",
               "authentication",
               "how-it-works",
+              "comparison",
+              "benchmarks",
               "ai-agents",
               "credits",
               "changelog"
