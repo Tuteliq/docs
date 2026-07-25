@@ -6,6 +6,36 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.13.0 (July 2026)
+
+### New: Fast mode (verdict-only)
+
+Every detection endpoint now accepts `options.verdict_only: true`. In fast mode the response returns only the conversation-level verdict (risk level, categories, recommended action) and omits the per-message `message_analysis` breakdown. Because the engine no longer generates that breakdown, fast mode is meaningfully lower latency, which makes it the right choice for screening live chat in real time. Screen everything in fast mode, then re-run only the messages that flag through standard mode for the full per-message detail. See [Fast mode](/fast-mode).
+
+Available in [@tuteliq/sdk 2.16+](https://www.npmjs.com/package/@tuteliq/sdk) (`verdictOnly: true`) and [@tuteliq/mcp 3.18+](https://www.npmjs.com/package/@tuteliq/mcp) (`verdict_only` on `detect_grooming` and `detect_bullying`).
+
+### Improved: `include_evidence` now controls generation, not just output
+
+Setting `include_evidence: false` (at the top level or inside `options`) now tells the engine to skip generating the per-quote evidence array altogether, instead of stripping it after the fact. The result is a smaller response and roughly a third lower latency, with the verdict, severity, categories and rationale unchanged. Use it when you need the decision but not the supporting quotes. The default remains `true`.
+
+### Fixed: `include_evidence` was previously accepted without effect
+
+On the fraud and safety-extended endpoints, `include_evidence: false` was validated but never applied, so evidence came back regardless. The flag is now honored on every detection endpoint, and is accepted both at the top level and inside `options`.
+
+### Improved: Age- and role-aware grooming precision
+
+`detect_grooming` now reasons about the actual age gap and role of each participant. Openly-arranged meet-ups and task-specific photo requests between similar-age peers are no longer flagged as grooming, while adult-to-minor and coercive same-age patterns (including peer sextortion) continue to fire at full severity. Pass `sender_age` per message, and `context.child_age` / `context.participant_age` when known, for the sharpest results.
+
+### New: Bullying, gaming toxicity, and coded-language detection
+
+A new [Bullying and toxicity detection](/bullying-toxicity-detection) page documents how Tuteliq reads context rather than keywords: gaming trash-talk versus targeted harassment, coded slang, emoji, algospeak, and deliberate filter evasion. This coded-language and evasion resilience is a platform-wide capability that applies to every detector, not just bullying.
+
+### SDK releases
+- `@tuteliq/sdk` 2.16.0: adds `verdictOnly` fast mode across detection methods
+- `@tuteliq/mcp` 3.18.0: adds `verdict_only` to `detect_grooming` and `detect_bullying`
+
+---
+
 ## v1.12.0 — May 2026
 
 ### New — Read-only dashboard surface
