@@ -1,0 +1,98 @@
+---
+title: Fast mode (verdict-only)
+description: Real-time content moderation with Tuteliq's verdict-only fast mode. Screen live chat with low latency by returning the conversation verdict without the per-message breakdown.
+section: Concepts
+---
+
+# Fast mode (verdict-only)
+
+Fast mode returns the conversation-level verdict without the per-message `message_analysis` breakdown. Because the per-message array is the largest part of the response, omitting it cuts output length and latency substantially, which makes fast mode the right choice for screening live chat in real time.
+
+Fast mode changes only how much detail comes back. The verdict itself, the risk level, the categories, and the recommended action are unchanged.
+
+## When to use it
+
+- **Live chat screening.** Score every message as it is sent, with minimal latency, and act on the verdict.
+- **High-volume pipelines.** Reduce response size and processing time across large streams of messages.
+- **First pass of a two-pass flow.** Screen everything in fast mode, then re-run only the messages that flag through the standard endpoint to get the full per-message analysis for your moderators.
+
+Use standard mode when a human is going to review the case and needs the per-message trajectory and evidence.
+
+## How to enable it
+
+Set `options.verdict_only` to `true` on any detection endpoint.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.tuteliq.ai/api/v1/safety/grooming \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      { "sender_role": "adult", "text": "you seem really mature for your age" },
+      { "sender_role": "child", "text": "haha thanks" }
+    ],
+    "options": { "verdict_only": true }
+  }'
+```
+
+```python Python
+import requests
+
+resp = requests.post(
+    "https://api.tuteliq.ai/api/v1/safety/grooming",
+    headers={"Authorization": f"Bearer {api_key}"},
+    json={
+        "messages": [
+            {"sender_role": "adult", "text": "you seem really mature for your age"},
+            {"sender_role": "child", "text": "haha thanks"},
+        ],
+        "options": {"verdict_only": True},
+    },
+)
+print(resp.json())
+```
+</CodeGroup>
+
+## What you get back
+
+Fast mode returns the same verdict fields as standard mode:
+
+- `grooming_risk` (or the equivalent risk level for the endpoint)
+- `risk_score` and `confidence`
+- `flags` (the categories present)
+- `recommended_action`
+- `rationale`
+- `normalized`, including the `actionable` flag your alerting should branch on
+
+The only field omitted is `message_analysis`, the per-message risk-and-flag array. Everything you need to make a decision is still present.
+
+## Recommended pattern: screen fast, review full
+
+A common production setup is two passes:
+
+1. **Screen** every message in fast mode. Route on `recommended_action` or `normalized.actionable`.
+2. **Review** the small subset that flags by re-running it through the standard endpoint, so a moderator sees the full per-message trajectory and evidence.
+
+This gives you real-time coverage on the whole stream while keeping rich detail exactly where a human needs it.
+
+## Frequently asked questions
+
+**Does fast mode change the verdict?**
+No. It only omits the per-message breakdown. The risk level, categories, and recommended action are the same as standard mode.
+
+**Which endpoints support fast mode?**
+The detection endpoints accept `options.verdict_only`. Use it wherever you are screening rather than reviewing.
+
+**Is it suitable for live game and social chat?**
+Yes. Low latency and a compact response make it the right mode for real-time moderation of high-volume chat.
+
+**Do I still get the categories and recommended action?**
+Yes. Only the per-message array is omitted; the verdict, flags, and recommended action remain.
+
+## Related
+
+- [Bullying and toxicity detection](/bullying-toxicity-detection)
+- [Grooming detection](/grooming-detection)
+- [Continuation tokens](/continuation-tokens)
+- [Credits](/credits)

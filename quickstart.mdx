@@ -117,7 +117,7 @@ keywords: [getting started, setup, first call, SDK]
     print(result.recommended_action)  # "Block and report to platform administrators"
     ```
     ```bash cURL
-    curl -X POST https://api.tuteliq.ai/v1/fraud/social-engineering \
+    curl -X POST https://api.tuteliq.ai/api/v1/fraud/social-engineering \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -144,7 +144,7 @@ keywords: [getting started, setup, first call, SDK]
     console.log(result.results.length);              // 3
     ```
     ```bash cURL
-    curl -X POST https://api.tuteliq.ai/v1/analyse/multi \
+    curl -X POST https://api.tuteliq.ai/api/v1/analyse/multi \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{

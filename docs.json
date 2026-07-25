@@ -86,6 +86,7 @@
             "icon": "id-card",
             "pages": [
               "verification",
+              "verification/cross-device-flow",
               "verification/document-checks",
               "verification/liveness-detection",
               "verification/fraud-prevention"
@@ -97,6 +98,8 @@
             "pages": [
               "composability",
               "grooming-detection",
+              "bullying-toxicity-detection",
+              "fast-mode",
               "languages",
               "continuation-tokens",
               "prescreen-lexicon",

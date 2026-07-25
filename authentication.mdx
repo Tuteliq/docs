@@ -17,7 +17,7 @@ Tuteliq supports two ways to pass your API key. Both are equivalent; use whichev
 Pass the key in the `Authorization` header:
 
 ```bash
-curl https://api.tuteliq.ai/v1/safety/detect-unsafe \
+curl https://api.tuteliq.ai/api/v1/safety/unsafe \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -26,7 +26,7 @@ curl https://api.tuteliq.ai/v1/safety/detect-unsafe \
 Pass the key in a dedicated header:
 
 ```bash
-curl https://api.tuteliq.ai/v1/safety/detect-unsafe \
+curl https://api.tuteliq.ai/api/v1/safety/unsafe \
   -H "x-api-key: YOUR_API_KEY"
 ```
 

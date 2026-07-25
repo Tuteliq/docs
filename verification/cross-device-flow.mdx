@@ -1,0 +1,772 @@
+---
+title: Cross-device verification flow
+sidebarTitle: Cross-device flow
+icon: arrows-rotate
+description: End-to-end integration guide for embedding Tuteliq verification in your app via a webview, mobile redirect, or QR-code handoff. Covers session creation, live status updates, webview hosting, and result retrieval.
+keywords: [verification flow, age verification, identity verification, webview, session, SSE, mobile integration, iOS, Android, React Native, Flutter, web]
+---
+
+The session-based flow is the recommended integration path when:
+
+- Your app runs on a device that may not have a camera (desktop web app, kiosk)
+- You want the verification UI to live on the user's mobile device while the rest of your app runs elsewhere
+- You want to embed Tuteliq's verified UI in a webview without rebuilding the capture flow yourself
+
+You create a session on your server, hand the user a URL or QR code that opens Tuteliq's hosted capture page (or embed that page in a webview), and your server gets the result back via Server-Sent Events or polling. No image data passes through your servers; Tuteliq processes the documents and selfie directly from the mobile device.
+
+## Age Verification Quick Start
+
+Verify a user's age in three steps with a hosted verification session. This is the exact flow you can try interactively in the API Playground in your dashboard, the document scan, selfie, and liveness checks all happen on Tuteliq's hosted page, so you never handle the user's ID or biometric data yourself.
+
+<Note>
+  Hosted age verification requires the Pro plan or above and costs 5 credits per completed verification. You'll need an API key, create one under **API Keys** in your dashboard.
+</Note>
+
+### How it works
+
+Tuteliq creates a short-lived, hosted verification session and returns a URL. You send your user to that URL, they complete the checks on Tuteliq's page, and you poll the session until it reaches a terminal status.
+
+1. Create a session with `mode: "age"`.
+2. Redirect the user to the returned verification URL.
+3. Poll the session for the result.
+
+### 1. Create a session
+
+Send a `POST` to `/api/v1/verify/session` with the mode set to `age`.
+
+```bash
+curl -X POST https://api.tuteliq.ai/api/v1/verify/session \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "mode": "age" }'
+```
+
+The response contains the session ID, the hosted verification URL, and an expiry timestamp (Unix milliseconds):
+
+```json
+{
+  "session_id": "string",
+  "mobile_url": "string (URL with single-use token)",
+  "expires_at": 0,
+  "mode": "string (\"age\" or \"identity\")"
+}
+```
+
+### 2. Send the user to verify
+
+Open the `mobile_url` in a new tab, redirect to it, or surface it as a QR code / deep link. The user scans their ID document and completes a selfie liveness check on Tuteliq's hosted page.
+
+### 3. Poll for the result
+
+Poll `GET /api/v1/verify/session/{session_id}` every few seconds until the top-level `status` reaches a terminal value: `completed`, `failed`, `expired`, or `cancelled`. The verification outcome lives at `result.status`.
+
+```bash
+curl https://api.tuteliq.ai/api/v1/verify/session/{session_id} \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+A completed, successful age-mode session has this shape:
+
+```json
+{
+  "session_id": "string",
+  "status": "string (one of: pending, in_progress, completed, failed, expired, cancelled)",
+  "result": {
+    "status": "string (one of: verified, failed, needs_review)",
+    "age": 0,
+    "date_of_birth": "string (ISO 8601 date)",
+    "is_minor": false,
+    "document": {
+      "ocr_confidence": 0,
+      "name_extracted": "string",
+      "dob_extracted": "string (ISO 8601 date)",
+      "document_number": "string",
+      "document_number_valid": true,
+      "sex": "string (M, F, X)",
+      "country_code": "string (ISO 3166-1 alpha-3)",
+      "document_type": "string (passport, id_card, drivers_license, residence_permit)",
+      "expiration_date": "string (ISO 8601 date)",
+      "expired": false,
+      "mrz_valid": null,
+      "mrz_fields": null
+    },
+    "barcode": null,
+    "document_validation": {
+      "age_document_consistent": true,
+      "age_discrepancy_years": 0,
+      "age_at_issue": 0,
+      "issue_date": "string (ISO 8601 date)",
+      "validity_period_days": 0,
+      "validity_period_normal": true,
+      "checks": [
+        { "check": "string", "passed": true, "detail": "string" }
+      ]
+    },
+    "face_match": {
+      "matched": true,
+      "distance": 0.0,
+      "confidence": 0.0
+    },
+    "liveness": {
+      "valid": true,
+      "visual_score": 0.0,
+      "visual_checks": {
+        "landmark_motion": true,
+        "texture": true,
+        "depth_cues": true,
+        "cross_frame": true,
+        "blink": true,
+        "skin": true
+      }
+    },
+    "failure_reasons": [],
+    "warnings": []
+  },
+  "created_at": 0,
+  "expires_at": 0
+}
+```
+
+The fields most integrations care about are `result.status` (`verified`, `failed`, or `needs_review`), `result.is_minor` (boolean), `result.age` (integer years), and `result.failure_reasons` (array, empty on success). The full `result.document`, `result.document_validation`, `result.face_match`, and `result.liveness` sub-objects are available when you need detailed evidence for your own audit logs or moderator UI.
+
+### Full example
+
+The complete create → redirect → poll flow in TypeScript:
+
+```typescript
+// 1. Create a hosted age verification session
+const create = await fetch("https://api.tuteliq.ai/api/v1/verify/session", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ mode: "age" }),
+});
+
+const { session_id, mobile_url } = await create.json();
+
+// 2. Send the user to the hosted verification page
+//    (open in a new tab, redirect, or render as a mobile deep link)
+window.open(mobile_url, "_blank");
+
+// 3. Poll for the result until the top-level status is terminal
+async function pollSession(id: string) {
+  const terminalStates = ["completed", "failed", "expired", "cancelled"];
+
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const res = await fetch(
+      `https://api.tuteliq.ai/api/v1/verify/session/${id}`,
+      { headers: { Authorization: `Bearer ${API_KEY}` } },
+    );
+    const data = await res.json();
+    const status = String(data.status || "").toLowerCase();
+
+    if (terminalStates.includes(status)) return data; // session is done
+    await new Promise((r) => setTimeout(r, 3000));    // wait 3s, then retry
+  }
+
+  throw new Error("Verification session timed out after 3 minutes.");
+}
+
+const session = await pollSession(session_id);
+const verification = session.result;
+if (
+  session.status === "completed" &&
+  verification?.status === "verified" &&
+  verification?.is_minor === false
+) {
+  // grant access; user is age-verified adult
+  console.log(`Verified age ${verification.age}`);
+}
+```
+
+The rest of this page covers the deeper integration patterns: live updates via Server-Sent Events instead of polling, embedding the verification UI in a mobile webview, and handling identity verification (full KYC, Business plan and above).
+
+## Flow at a glance
+
+```
+┌──────────────────┐       1. POST /api/v1/verify/session
+│  Your server     │  ──────────────────────────────────────►  ┌─────────────────┐
+│  (Node, Python,  │                                            │ Tuteliq API     │
+│   Go, anything)  │  ◄──────────────────────────────────────   │ (europe-west1)  │
+└──────────────────┘     {session_id, mobile_url, expires_at}   └─────────────────┘
+        │
+        │ 2. Hand mobile_url to user
+        │    (webview, QR, redirect)
+        ▼
+┌──────────────────┐       3. User completes capture on device
+│  User's mobile   │  ──────────────────────────────────────►  ┌─────────────────┐
+│  /age/?session=…│                                            │ Tuteliq capture │
+│  /identity/?…   │                                            │ UI (hosted by   │
+└──────────────────┘                                            │ Tuteliq)        │
+                                                                └────────┬────────┘
+                                                                         │
+        ┌────────────────────────────────────────────────────────────────┘
+        │ 4a. Live status pushed via SSE
+        │     OR
+        │ 4b. Poll GET /api/v1/verify/session/:id
+        ▼
+┌──────────────────┐
+│  Your server     │  → display result, gate access, etc.
+└──────────────────┘
+```
+
+## Step 1: Create a session (server-side)
+
+Always create the session on your server with your API key. **Never expose your API key on the client.**
+
+<CodeGroup>
+```typescript Node.js
+import { Tuteliq } from "@tuteliq/sdk";
+
+const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY });
+
+const session = await tuteliq.createVerificationSession({
+  mode: "age",                    // "age" or "identity"
+  document_type: "passport",      // optional hint
+  external_id: "user-12345",      // optional; lets you correlate to your own user
+  redirect_url: "https://yourapp.com/verify/done",  // optional; user returns here after completion
+});
+
+console.log(session.session_id);  // "sess_a1b2c3d4..."
+console.log(session.url);         // mobile-ready URL with one-time token
+console.log(session.expires_at);  // ISO 8601, typically 15 minutes from creation
+```
+
+```python Python
+from tuteliq import Tuteliq
+
+client = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
+
+session = client.create_verification_session(
+    mode="age",                       # "age" or "identity"
+    document_type="passport",         # optional
+    external_id="user-12345",         # optional
+    redirect_url="https://yourapp.com/verify/done",  # optional
+)
+
+print(session.session_id)
+print(session.mobile_url)
+print(session.expires_at)
+```
+
+```bash cURL
+curl -X POST https://api.tuteliq.ai/api/v1/verify/session \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "age",
+    "document_type": "passport",
+    "external_id": "user-12345"
+  }'
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "session_id": "string",
+  "mobile_url": "string (URL with single-use token)",
+  "expires_at": 0,
+  "mode": "string (\"age\" or \"identity\")"
+}
+```
+
+`expires_at` is a Unix millisecond timestamp; sessions are valid for 15 minutes after creation. The `mobile_url` is single-use and tied to the session. Tokens are revoked the moment the session completes, fails, or expires.
+
+### Modes and tier availability
+
+| Mode | Returns | Minimum tier |
+|---|---|---|
+| `age` | Verified age, `is_minor` boolean, document OCR fields, document validation checks, face match, liveness. Returned to your server so you can drive your age gate, then destroyed on Tuteliq's side. | Pro |
+| `identity` | Full KYC payload: name, date of birth, document type, country, document validity, face match score, liveness. | Business |
+
+Both modes return the verified data to **your** server so you can act on it. Tuteliq does not retain any of it after the response is sent. See [Zero retention](#zero-retention) below.
+
+## Step 2: Hand the URL to the user
+
+Three patterns, pick the one that fits your product:
+
+### Pattern A: Embed in a webview (same-device flow)
+
+The user's session lives inside your app. The webview loads `mobile_url`, the user completes capture without leaving your app, you get the result back via SSE.
+
+This is the most common pattern for mobile apps.
+
+<Tabs>
+  <Tab title="iOS (Swift / WKWebView)">
+    ```swift
+    import WebKit
+
+    class VerificationViewController: UIViewController, WKNavigationDelegate {
+        private var webView: WKWebView!
+        private let sessionId: String
+        private let mobileUrl: URL
+
+        init(sessionId: String, mobileUrl: URL) {
+            self.sessionId = sessionId
+            self.mobileUrl = mobileUrl
+            super.init(nibName: nil, bundle: nil)
+        }
+
+        required init?(coder: NSCoder) { fatalError("init(coder:) not implemented") }
+
+        override func viewDidLoad() {
+            super.viewDidLoad()
+
+            let config = WKWebViewConfiguration()
+            // Required so the page can use camera + microphone for liveness
+            config.allowsInlineMediaPlayback = true
+            config.mediaTypesRequiringUserActionForMediaPlayback = []
+
+            webView = WKWebView(frame: view.bounds, configuration: config)
+            webView.navigationDelegate = self
+            webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.addSubview(webView)
+
+            webView.load(URLRequest(url: mobileUrl))
+
+            // Subscribe to SSE in parallel for live status updates
+            subscribeToSession()
+        }
+
+        private func subscribeToSession() {
+            let eventsUrl = URL(string: "https://api.tuteliq.ai/api/v1/verify/session/\(sessionId)/events")!
+            // Use URLSession streaming or a third-party EventSource library
+            // When status == "completed", call your backend to fetch the verified result
+        }
+    }
+    ```
+
+    The Info.plist must include `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` for the in-page capture to work.
+  </Tab>
+
+  <Tab title="Android (Kotlin / WebView)">
+    ```kotlin
+    import android.Manifest
+    import android.webkit.PermissionRequest
+    import android.webkit.WebChromeClient
+    import android.webkit.WebSettings
+    import android.webkit.WebView
+    import androidx.activity.ComponentActivity
+
+    class VerificationActivity : ComponentActivity() {
+        private lateinit var webView: WebView
+        private lateinit var sessionId: String
+        private lateinit var mobileUrl: String
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            sessionId = intent.getStringExtra("sessionId")!!
+            mobileUrl = intent.getStringExtra("mobileUrl")!!
+
+            webView = WebView(this).apply {
+                settings.javaScriptEnabled = true
+                settings.mediaPlaybackRequiresUserGesture = false
+                settings.domStorageEnabled = true
+
+                webChromeClient = object : WebChromeClient() {
+                    override fun onPermissionRequest(request: PermissionRequest) {
+                        // Grant camera + microphone to Tuteliq's hosted page
+                        request.grant(request.resources)
+                    }
+                }
+                loadUrl(mobileUrl)
+            }
+            setContentView(webView)
+
+            subscribeToSession()
+        }
+
+        private fun subscribeToSession() {
+            // OkHttp + EventSource extension is the usual choice on Android
+            // OR poll GET /api/v1/verify/session/{id} every 2-5 seconds
+        }
+    }
+    ```
+
+    Required permissions in `AndroidManifest.xml`:
+
+    ```xml
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    ```
+  </Tab>
+
+  <Tab title="React Native">
+    ```typescript
+    import React, { useEffect } from "react";
+    import { WebView } from "react-native-webview";
+    import EventSource from "react-native-sse";
+
+    type Props = { sessionId: string; mobileUrl: string };
+
+    export function VerificationScreen({ sessionId, mobileUrl }: Props) {
+      useEffect(() => {
+        const es = new EventSource(
+          `https://api.tuteliq.ai/api/v1/verify/session/${sessionId}/events`,
+        );
+        es.addEventListener("status", (e) => {
+          const { status } = JSON.parse(e.data);
+          if (status === "completed" || status === "failed") {
+            // Ask your backend for the final result
+            es.close();
+          }
+        });
+        es.addEventListener("result", (e) => console.log("Result:", e.data));
+        es.addEventListener("expired", () => es.close());
+        return () => es.close();
+      }, [sessionId]);
+
+      return (
+        <WebView
+          source={{ uri: mobileUrl }}
+          mediaPlaybackRequiresUserAction={false}
+          allowsInlineMediaPlayback
+          javaScriptEnabled
+          domStorageEnabled
+          // iOS only; Android grants via WebChromeClient
+          mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+        />
+      );
+    }
+    ```
+
+    Add to `Info.plist`:
+
+    ```xml
+    <key>NSCameraUsageDescription</key>
+    <string>Verify your age with a document and selfie</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Required for liveness detection</string>
+    ```
+
+    And to `AndroidManifest.xml`:
+
+    ```xml
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    ```
+  </Tab>
+
+  <Tab title="Flutter">
+    ```dart
+    import 'package:flutter/material.dart';
+    import 'package:webview_flutter/webview_flutter.dart';
+    import 'package:flutter_client_sse/flutter_client_sse.dart';
+
+    class VerificationScreen extends StatefulWidget {
+      final String sessionId;
+      final String mobileUrl;
+
+      const VerificationScreen({
+        super.key,
+        required this.sessionId,
+        required this.mobileUrl,
+      });
+
+      @override
+      State<VerificationScreen> createState() => _VerificationScreenState();
+    }
+
+    class _VerificationScreenState extends State<VerificationScreen> {
+      late final WebViewController _controller;
+
+      @override
+      void initState() {
+        super.initState();
+        _controller = WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setBackgroundColor(Colors.white)
+          ..loadRequest(Uri.parse(widget.mobileUrl));
+
+        SSEClient.subscribeToSSE(
+          method: SSERequestType.GET,
+          url: 'https://api.tuteliq.ai/api/v1/verify/session/${widget.sessionId}/events',
+          header: {'Accept': 'text/event-stream'},
+        ).listen((event) {
+          if (event.event == 'status') {
+            // Parse event.data, react to status changes
+          }
+        });
+      }
+
+      @override
+      Widget build(BuildContext context) {
+        return Scaffold(body: WebViewWidget(controller: _controller));
+      }
+    }
+    ```
+
+    Add camera permission to `AndroidManifest.xml` and `Info.plist` as in the React Native example.
+  </Tab>
+
+  <Tab title="Web (iframe)">
+    ```html
+    <iframe
+      src="https://api.tuteliq.ai/age/?session=sess_abc&token=eyJ..."
+      allow="camera; microphone"
+      style="width: 100%; height: 600px; border: 0;"
+    ></iframe>
+
+    <script>
+      const sessionId = "sess_abc...";
+      const es = new EventSource(
+        `https://api.tuteliq.ai/api/v1/verify/session/${sessionId}/events`,
+      );
+      es.addEventListener("status", (e) => {
+        const { status } = JSON.parse(e.data);
+        if (status === "completed" || status === "failed") {
+          // Ask your backend for the final result, then close the iframe
+          es.close();
+        }
+      });
+    </script>
+    ```
+
+    The `allow="camera; microphone"` attribute is required so the embedded page can request capture permissions from the parent origin.
+  </Tab>
+</Tabs>
+
+### Pattern B: QR code (desktop-to-mobile handoff)
+
+The session is created on your desktop app or website; the user scans a QR code with their phone and completes verification on the phone.
+
+```typescript Node
+import QRCode from "qrcode";
+
+const session = await tuteliq.createVerificationSession({ mode: "age" });
+
+// Render the QR code in your UI
+const qrSvg = await QRCode.toString(session.url, { type: "svg" });
+res.send(`
+  <h1>Scan this code with your phone</h1>
+  ${qrSvg}
+  <p>Session expires in 15 minutes.</p>
+`);
+
+// In parallel, subscribe to SSE so the desktop UI updates the moment
+// the user completes verification on their phone
+```
+
+The user scans, completes capture on their phone, and the desktop UI auto-advances when the SSE stream emits `status: "completed"`.
+
+### Pattern C: Redirect (single-device, browser-only)
+
+Best for low-friction onboarding flows where the user is already on mobile in your web app.
+
+```typescript Node
+const session = await tuteliq.createVerificationSession({
+  mode: "age",
+  redirect_url: "https://yourapp.com/verify/complete?session_id=" + sessionId,
+});
+
+res.redirect(session.url);
+// After completion, Tuteliq redirects the user to redirect_url
+```
+
+The user is sent away to Tuteliq's capture UI; on completion, they're redirected back to your `redirect_url`. Your `redirect_url` handler then calls your backend to read the result.
+
+## Step 3: Watch status updates
+
+Two ways to know when the verification is done. **Server-Sent Events is the recommended primary channel; polling is the fallback.**
+
+### Option A: Server-Sent Events (recommended)
+
+The session emits real-time events you can listen to with no polling overhead. Works from any client (browser, mobile, server).
+
+```typescript Web / browser
+const es = new EventSource(
+  `https://api.tuteliq.ai/api/v1/verify/session/${sessionId}/events`,
+);
+
+es.addEventListener("status", (e) => {
+  const { status } = JSON.parse(e.data);
+  // status: "pending" | "in_progress" | "completed" | "failed" | "expired"
+});
+
+es.addEventListener("progress", (e) => {
+  const { step } = JSON.parse(e.data);
+  // step: "document_front" | "document_back" | "selfie" | "liveness" | "processing"
+});
+
+es.addEventListener("result", (e) => {
+  const result = JSON.parse(e.data);
+  // Final verdict + verification record
+  es.close();
+});
+
+es.addEventListener("expired", () => {
+  // Session expired before user completed it
+  es.close();
+});
+```
+
+The events endpoint does **not** require authentication. The session ID has 128 bits of entropy and is single-use; treat it as a secret-equivalent for the lifetime of the session.
+
+### Option B: Polling
+
+If your environment can't hold an open SSE connection (e.g. serverless functions with short timeouts), poll instead:
+
+<CodeGroup>
+```typescript Node.js
+async function waitForSession(sessionId: string, timeoutMs = 600_000) {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeoutMs) {
+    const session = await tuteliq.getVerificationSession(sessionId);
+    if (["completed", "failed", "expired"].includes(session.status)) {
+      return session;
+    }
+    await new Promise(r => setTimeout(r, 3000));  // poll every 3 seconds
+  }
+  throw new Error("Session timed out");
+}
+```
+
+```bash cURL
+# Poll the session
+curl https://api.tuteliq.ai/api/v1/verify/session/$SESSION_ID \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY"
+```
+</CodeGroup>
+
+## Step 4: Read the final result
+
+The result is included in the SSE `result` event AND accessible via `GET /api/v1/verify/session/:id` once the session is in a terminal state.
+
+### Age verification result
+
+See the full shape in [Step 3](#3-poll-for-the-result) above. The body is identical whether you receive it through SSE or the polled GET.
+
+### Identity verification result
+
+Identity mode (Business plan and above) returns the same outer envelope as age mode (`session_id`, `status`, `result`, `created_at`, `expires_at`), but the inner `result` object differs:
+
+```json
+{
+  "session_id": "string",
+  "status": "string (one of: pending, in_progress, completed, failed, expired, cancelled)",
+  "result": {
+    "status": "string (one of: verified, failed, needs_review)",
+    "full_name": "string",
+    "date_of_birth": "string (ISO 8601 date)",
+    "document_type": "string (passport, id_card, drivers_license, residence_permit)",
+    "country_code": "string (ISO 3166-1 alpha-3)",
+    "liveness": {
+      "valid": true,
+      "reason": "string"
+    },
+    "face_match": {
+      "matched": true,
+      "distance": 0.0,
+      "confidence": 0.0
+    },
+    "credits_used": 0
+  },
+  "created_at": 0,
+  "expires_at": 0
+}
+```
+
+Compared with age mode, identity mode returns the full `full_name` and `date_of_birth` PII required for KYC, plus a `face_match` score, but does not include the document-validation sub-checks block.
+
+## Status states
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `pending` | Session created, user has not opened the URL yet | Wait. The session is valid for 15 minutes. |
+| `in_progress` | User has opened the URL and is mid-capture | Show "verification in progress" to the user. Optionally use the `progress` SSE event to display step-by-step UI. |
+| `completed` | Verification finished, result available | Read the result and gate access accordingly. |
+| `failed` | Verification ran but the user failed (bad liveness, document mismatch, etc.) | Read `failure_reasons` array for the specific issue. Offer the user to retry with a fresh session. |
+| `expired` | 15 minutes elapsed without the user finishing | Create a new session and try again. |
+| `cancelled` | Your server called `DELETE /api/v1/verify/session/:id`, or the user closed the mobile UI | Optionally create a new session. |
+
+## Common pitfalls
+
+### Webview camera permission
+
+iOS and Android webviews **deny camera access by default**. You must explicitly grant it in both the webview configuration and the host app's permission manifest. The samples above include the right configuration for each platform.
+
+### CORS for the iframe pattern
+
+If you embed via `<iframe>`, browsers require `allow="camera; microphone"` on the iframe element, AND your parent page must be served from an HTTPS origin (browsers block camera permission on plain HTTP).
+
+### SSE behind reverse proxies
+
+If your client connects through nginx, Cloudflare, or other proxies, SSE connections need:
+- `proxy_buffering off`
+- `proxy_cache off`
+- Connection timeout > 5 minutes (Tuteliq holds the SSE open for the full session lifetime)
+
+If the SSE connection is dropped at the proxy layer, fall back to polling (see Step 3 Option B).
+
+### Server-side session ownership
+
+Only the API key that created a session can call `GET /api/v1/verify/session/:id` or `DELETE`. The mobile capture URL and the SSE events endpoint are session-token-authenticated (the URL contains the token) and do not need your API key. Keep the API key on your server, never expose it to the client.
+
+### Session expiry
+
+Sessions expire 15 minutes after creation. If the user is slow, give them a fresh session rather than extending the old one; the expiry is a security feature, not a quota.
+
+### Zero retention
+
+There are two things to keep separate:
+
+1. **What's returned to your server.** The verification result includes the fields you need to act on: verified age, full name (identity mode), date of birth, document type, country, face match, liveness, and the document-validation sub-checks. Your application is the only place this data lives going forward. You are the controller for it under GDPR; Tuteliq is the processor for the duration of the API call and nothing more.
+2. **What Tuteliq retains.** Nothing. The uploaded document images, the selfie, the captured liveness frames, and the extracted PII are all held in memory only for the duration of the request, then destroyed when the response is sent. No persistent storage, no derived hashes, no embeddings, no fingerprints, no training corpus contribution.
+
+The only artifact that outlives the request on Tuteliq's side is the signed **audit receipt** — a cryptographic attestation that a verification happened, with no PII inside it. The receipt is verifiable out-of-band against the published Tuteliq public key and exists to satisfy EU AI Act Article 12 logging requirements without re-introducing data-protection liability.
+
+If your customer is later asked to prove what happened (regulator request, civil discovery, NCMEC subpoena), the audit receipt + your application's own record of the result is the audit trail. Tuteliq has no way to reproduce the inputs even if compelled.
+
+## Reference: full Node.js end-to-end
+
+```typescript
+import { Tuteliq } from "@tuteliq/sdk";
+import express from "express";
+
+const app = express();
+const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY! });
+
+// Step 1: client asks for a session
+app.post("/verify/start", async (req, res) => {
+  const session = await tuteliq.createVerificationSession({
+    mode: "age",
+    external_id: req.body.userId,
+    redirect_url: `https://yourapp.com/verify/done?user=${req.body.userId}`,
+  });
+  res.json({
+    sessionId: session.session_id,
+    url: session.url,
+    expiresAt: session.expires_at,
+  });
+});
+
+// Step 2 + 3: client opens the URL (webview, QR, redirect)
+//             and subscribes to SSE on session.session_id
+
+// Step 4: webhook OR redirect handler reads the result
+app.get("/verify/done", async (req, res) => {
+  const sessionId = req.query.session_id as string;
+  const result = await tuteliq.getVerificationSession(sessionId);
+
+  if (result.status === "completed" && result.result?.is_minor === false) {
+    // Allow the user into the age-gated area
+    res.redirect("/welcome");
+  } else {
+    res.redirect("/verify-failed");
+  }
+});
+
+app.listen(3000);
+```
+
+## Next steps
+
+- **[Document checks](/verification/document-checks)**: what Tuteliq validates per country (45 supported)
+- **[Liveness detection](/verification/liveness-detection)**: how the anti-spoofing layer works
+- **[Fraud prevention](/verification/fraud-prevention)**: cross-referencing layers and recapture detection
+- **[Webhooks](/webhooks)**: alternative to SSE for high-volume server-side delivery

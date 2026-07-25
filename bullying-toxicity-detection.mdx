@@ -1,0 +1,128 @@
+---
+title: Bullying and toxicity detection
+description: Detect cyberbullying, harassment, and gaming toxicity in chat, including coded slang, emoji, and deliberate filter evasion, with context that tells trash-talk apart from genuine harm.
+section: Concepts
+---
+
+# Bullying and toxicity detection
+
+Tuteliq detects bullying, harassment, and toxicity in real conversations, not just banned words. The `detect_bullying` endpoint reads the intent and the context of a message, so it can tell the difference between competitive banter and genuine abuse, and it catches the coded slang, emoji, and misspellings that keyword filters miss.
+
+This page explains what Tuteliq detects, how it handles gaming language and evasion, and how to call it.
+
+## The problem with keyword filters
+
+Word lists fail at toxicity in two opposite ways at once:
+
+- **False positives on normal play.** In a game lobby, "I'm going to destroy you" or "you're dead" is ordinary competitive talk. A keyword filter flags it and buries your moderators in noise.
+- **False negatives on real harm.** Harassment rarely uses the words on the list. It uses coded slang, emoji, deliberate misspellings, and context ("everyone report this account", "you should log off forever"). A keyword filter sees nothing.
+
+Tuteliq scores the message the way a trained moderator would: by what is actually happening between the people, not by which words appear.
+
+## Gaming context: banter versus harassment
+
+Competitive communities run on trash-talk. Tuteliq is built to keep that intact while still catching the moment banter crosses into targeted abuse. It weighs signals such as:
+
+- **Reciprocity.** Two players swapping "get rekt" is banter. One account repeatedly targeting a single player who is asking them to stop is harassment.
+- **Target and intent.** "This boss is going to kill me" is about the game. "I hope you kill yourself" is a self-harm-adjacent threat and is escalated accordingly.
+- **Persistence and pile-ons.** A single insult is low severity. A coordinated group turning on one player, mass-reporting, or creating a side-channel to mock them is a different and higher-severity pattern.
+
+The result is high recall on real harassment without drowning your team in flags on healthy competitive chat.
+
+## Coded language, slang, and evasion
+
+Abusive users deliberately evade filters. Tuteliq is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and intentional misspellings, so evasion that walks straight past a static word list still gets scored. Examples of what this covers:
+
+- Emoji and symbol substitution used to carry an abusive or sexual payload.
+- Numeric and homograph obfuscation (letters swapped for numbers, look-alike characters).
+- Community-specific slang and evolving memes used to harass or demean.
+- Algospeak and deliberate misspellings (for example "unalive", "seggs", "camping") used to slip past moderation.
+- Segment-by-segment evasion, where a phrase is split across very short messages to slip past per-message filters.
+
+This coded-language and evasion resilience is not specific to bullying. It is a **platform-wide capability that applies to every Tuteliq detector** (grooming, romance and fraud, radicalisation, self-harm, and the rest), because the same obfuscation tactics show up across every kind of harm. It is built and maintained from our own research into how bad actors evade moderation.
+
+### How it compares
+
+In an internal benchmark of coded-language and filter-evasion cases, Tuteliq detected roughly **1.7x more** of them than leading general-purpose moderation APIs, on a 319-case evasion set. The gap is largest exactly where keyword filters and general-purpose classifiers are weakest: novel algospeak, emoji payloads, and context-dependent slang that only reads as harmful given the conversation around it.
+
+<Note>
+Methodology: an internal Tuteliq benchmark comparing coded-language recall against three leading general-purpose moderation APIs on a 319-case evasion set. Vendors are not named. Figures reflect this benchmark and are not a guarantee of performance on any specific dataset.
+</Note>
+
+See [Prescreen lexicon](/prescreen-lexicon) for how the coded-term layer corroborates the behavioural signal.
+
+## What Tuteliq detects
+
+`detect_bullying` and the composite `analyze` endpoint surface, among others:
+
+- Direct insults and demeaning language
+- Threats, including violent and self-harm-adjacent threats
+- Identity-based abuse and slurs
+- Sexual harassment
+- Exclusion and weaponised group dynamics
+- Coordinated harassment and pile-ons
+- Doxxing threats and intimidation
+
+Each result returns a risk level, the categories present, a rationale that describes the behaviour without quoting the participants, and a recommended action, so your team can branch on what to do rather than on a raw score.
+
+## Multi-turn awareness
+
+Bullying, like grooming, is often a pattern rather than a single message. Tuteliq analyses the conversation, so it can see escalation over time and coordinated behaviour across participants. For long conversations, pass the [continuation token](/continuation-tokens) from each call into the next to preserve trajectory awareness without resending history.
+
+## Using it
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.tuteliq.ai/api/v1/safety/bullying \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "everyone report this loser, log off and never come back",
+    "context": { "platform": "game-chat" }
+  }'
+```
+
+```python Python
+import requests
+
+resp = requests.post(
+    "https://api.tuteliq.ai/api/v1/safety/bullying",
+    headers={"Authorization": f"Bearer {api_key}"},
+    json={
+        "text": "everyone report this loser, log off and never come back",
+        "context": {"platform": "game-chat"},
+    },
+)
+print(resp.json())
+```
+</CodeGroup>
+
+For real-time chat at volume, combine this with [fast mode](/fast-mode) to screen every message with minimal latency and reserve full per-message analysis for the messages that flag.
+
+## Frequently asked questions
+
+**Does Tuteliq handle gaming slang and trash-talk?**
+Yes. It is built to keep competitive banter intact while flagging targeted harassment, by reading reciprocity, target, intent, and persistence rather than matching keywords.
+
+**Can it catch coded language and emoji used to evade filters?**
+Yes. It is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and misspellings, and it corroborates those signals with the behavioural pattern of the conversation.
+
+**How does Tuteliq compare to other moderation APIs on slang and coded language?**
+In an internal benchmark of coded-language and filter-evasion cases, Tuteliq detected roughly 1.7x more of them than leading general-purpose moderation APIs (319-case evasion set, vendors unnamed). The advantage is a platform-wide capability that applies to every detector, not just bullying, and it is largest on novel algospeak, emoji payloads, and context-dependent slang.
+
+**Does it work in real time?**
+Yes. Use [fast mode](/fast-mode) for low-latency screening of live chat, or the standard mode for full per-message analysis.
+
+**How is bullying detection different from a toxicity classifier?**
+A toxicity classifier scores a single message for offensive words. Tuteliq scores the interaction: who is targeting whom, whether it is reciprocal, whether it is escalating, and whether a group is coordinating, which is what actually distinguishes banter from harm.
+
+**What languages are supported?**
+See [Languages](/languages) for the full list. Detection is multilingual and handles code-switching.
+
+## Related
+
+- [Grooming detection](/grooming-detection)
+- [Fast mode](/fast-mode)
+- [Prescreen lexicon](/prescreen-lexicon)
+- [Continuation tokens](/continuation-tokens)
+- [Languages](/languages)

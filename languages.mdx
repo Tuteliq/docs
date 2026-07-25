@@ -86,7 +86,7 @@ Each supported language includes culture-specific guidelines that are injected i
 ### Auto-detection (Norwegian)
 
 ```bash
-curl -X POST https://api.tuteliq.ai/v1/safety/bullying \
+curl -X POST https://api.tuteliq.ai/api/v1/safety/bullying \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"text": "Ingen liker deg, bare forlat gruppen allerede."}'
@@ -107,7 +107,7 @@ curl -X POST https://api.tuteliq.ai/v1/safety/bullying \
 ### Explicit language code (French)
 
 ```bash
-curl -X POST https://api.tuteliq.ai/v1/safety/unsafe \
+curl -X POST https://api.tuteliq.ai/api/v1/safety/unsafe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
