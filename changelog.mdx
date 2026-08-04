@@ -6,6 +6,30 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.14.0 (August 2026)
+
+### Breaking: `recommended_action` is now a fixed set of values
+
+On `/safety/grooming`, `recommended_action` previously returned a full sentence, for example `"monitor the conversation for further signs of grooming, such as..."`. It now returns exactly one of five tokens, ordered weakest to strongest:
+
+`none` · `monitor` · `flag_for_review` · `block` · `immediate_intervention`
+
+This makes the field safe to switch on directly. The descriptive sentence has moved to a new optional `action_detail` field, intended for display in a moderator UI. If you were rendering `recommended_action` as text, read `action_detail` instead.
+
+Two legacy values were folded into the set at the same time: `no_action` is now `none`, and `flag_for_moderator` is now `flag_for_review`.
+
+### Breaking: the `normalized` block has been removed
+
+Responses from `/safety/bullying`, `/safety/grooming` and `/safety/unsafe` no longer include the `normalized` object. It existed so that callers could branch on `normalized.actionable` at a time when `recommended_action` returned free text and could not be relied on. Now that `recommended_action` is a stable enum, the block only repeated fields already present at the top level, adding roughly 900 bytes to every response.
+
+Migrate by branching on `recommended_action` (`flag_for_review`, `block` or `immediate_intervention` indicate a case needing attention). The per-message detail previously projected into `normalized.evidence` is available in full as `message_analysis`.
+
+### Improved: 404 responses suggest the endpoint you meant
+
+A mistyped path now returns a correction alongside the error, for example `Did you mean POST /api/v1/safety/grooming?` for `/api/v1/safety/groomin`. Calling a valid path with the wrong HTTP method is reported as such. The `available_endpoints` listing is now generated from the live route table, so it always reflects what the API actually serves.
+
+---
+
 ## v1.13.0 (July 2026)
 
 ### New: Fast mode (verdict-only)

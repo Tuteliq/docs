@@ -61,9 +61,9 @@ Fast mode returns the same verdict fields as standard mode:
 - `grooming_risk` (or the equivalent risk level for the endpoint)
 - `risk_score` and `confidence`
 - `flags` (the categories present)
-- `recommended_action`
+- `recommended_action` (the routing key your alerting should branch on)
+- `action_detail` (human-readable guidance for a moderator, when present)
 - `rationale`
-- `normalized`, including the `actionable` flag your alerting should branch on
 
 The only field omitted is `message_analysis`, the per-message risk-and-flag array. Everything you need to make a decision is still present.
 
@@ -71,7 +71,7 @@ The only field omitted is `message_analysis`, the per-message risk-and-flag arra
 
 A common production setup is two passes:
 
-1. **Screen** every message in fast mode. Route on `recommended_action` or `normalized.actionable`.
+1. **Screen** every message in fast mode. Route on `recommended_action`.
 2. **Review** the small subset that flags by re-running it through the standard endpoint, so a moderator sees the full per-message trajectory and evidence.
 
 This gives you real-time coverage on the whole stream while keeping rich detail exactly where a human needs it.
