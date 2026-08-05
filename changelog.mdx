@@ -6,6 +6,36 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.15.0 (August 2026)
+
+### Changed: new plans, and the free tier is retired
+
+Tuteliq now has three plans: **Build** ($99/mo, 25,000 detection credits),
+**Assure** ($499/mo, 150,000 credits) and **Enterprise** (custom). Every plan
+starts with a 14-day free trial. The previous Starter, Indie, Pro and Business
+plans are closed to new signups.
+
+**If you are on a legacy plan, nothing changes.** Your limits, endpoint access
+and price stay exactly as they are. The `/api/v1/pricing` endpoint now returns
+only the plans available to new customers, so a legacy plan will not appear
+there even though your account continues on it.
+
+Allowances are measured in **detection credits**, not request counts. Endpoints
+are weighted by cost: a text detection is 1 credit, an image 7, a video 95.
+
+### Improved: animated GIFs are analysed frame by frame
+
+`/safety/image` previously rejected animated GIFs with a retryable error, and
+flattening one to a still only ever exposed its first frame. GIFs are now
+decoded and up to four evenly-spaced frames are analysed, always including the
+first and last, then folded into a single worst-case verdict. Send the original
+GIF rather than a still. Cost is unchanged at image rates.
+
+Requires [@tuteliq/sdk 2.21+](https://www.npmjs.com/package/@tuteliq/sdk) if you
+upload from a `Buffer`; earlier versions sent uploads without a MIME type.
+
+---
+
 ## v1.14.0 (August 2026)
 
 ### Breaking: `recommended_action` is now a fixed set of values
