@@ -6,74 +6,90 @@ description: Install and use the Tuteliq MCP server for AI assistant integration
 keywords: [mcp, model context protocol, AI, assistant, claude, cursor]
 ---
 
-The Tuteliq MCP server (`@tuteliq/mcp` v3.7.0) exposes child safety detection as tools for AI assistants that support the [Model Context Protocol](https://modelcontextprotocol.io) — including Claude Desktop, Cursor, Windsurf, and other MCP-compatible clients.
+The Tuteliq MCP server (`@tuteliq/mcp` v3.19.0) exposes child safety detection as tools for AI assistants that support the [Model Context Protocol](https://modelcontextprotocol.io), including Claude Desktop, Claude Code, Cursor, Windsurf, and other MCP-compatible clients.
 
 ## Setup
 
-### Claude Desktop (Recommended)
+Tuteliq is a hosted MCP server at `https://api.tuteliq.ai/mcp`. There is nothing
+to install.
 
-Claude Desktop connects to Tuteliq via Streamable HTTP — no npm install required.
+Most clients should connect with OAuth, which needs no credential in your
+config at all. Two alternatives are documented below for cases OAuth cannot
+cover: a static token for headless environments, and stdio for clients that do
+not support remote servers.
+
+### Connect with OAuth (recommended)
+
+Point your client at the URL and sign in through the browser. Tuteliq
+implements OAuth 2.1 with dynamic client registration and PKCE, so your client
+discovers and registers itself. No key is pasted into a config file, the token
+is scoped to your account, and it can be revoked from the dashboard without
+editing anything on your machine.
 
 <Steps>
 
-<Step title="Generate a Secure Token">
-  Go to your [Tuteliq Dashboard](https://tuteliq.ai/dashboard), navigate to **Settings > Plugins**, and generate a **Secure Token**. This token authenticates the MCP connection.
+<Step title="Add the server">
+  **Claude Desktop:** open **Settings > Connectors**, click **Add custom
+  connector**, name it **Tuteliq**, and set the URL to
+  `https://api.tuteliq.ai/mcp`.
+
+  **Claude Code, Cursor, Windsurf and other clients that support remote
+  servers:** add the server to your `.mcp.json` with no credentials.
+
+  ```json
+  {
+    "mcpServers": {
+      "tuteliq": {
+        "type": "http",
+        "url": "https://api.tuteliq.ai/mcp"
+      }
+    }
+  }
+  ```
 </Step>
 
-<Step title="Add the connector in Claude Desktop">
-  1. Open Claude Desktop and go to **Settings > Connectors**
-  2. Click **Add custom connector**
-  3. Set the name to **Tuteliq** and the URL to:
-     ```
-     https://api.tuteliq.ai/mcp
-     ```
-</Step>
-
-<Step title="Connect and authenticate">
-  Click **Connect**. When prompted, enter the Secure Token you generated in Step 1.
-
-  That's it — Tuteliq tools will be available in your next conversation.
+<Step title="Authenticate">
+  Connect. Your browser opens a Tuteliq sign-in page; approve the connection and
+  the client stores the token for you. In Claude Code, run `/mcp` to start the
+  flow if it does not open on its own.
 </Step>
 
 </Steps>
 
-### Cursor
+Tuteliq tools are available in your next conversation. To revoke access later,
+go to **Settings > Plugins** in the [dashboard](https://tuteliq.ai/dashboard).
 
-Add to your Cursor MCP settings:
+### Static token (headless and automation)
+
+OAuth needs a browser, so it cannot be completed by a CI pipeline, a cron job,
+or a container with no interactive session. For those, send a token in the
+`Authorization` header instead. Generate one in the
+[dashboard](https://tuteliq.ai/dashboard) under **Settings > Plugins**.
 
 ```json
 {
   "mcpServers": {
     "tuteliq": {
+      "type": "http",
       "url": "https://api.tuteliq.ai/mcp",
       "headers": {
-        "Authorization": "Bearer your-api-key"
+        "Authorization": "Bearer your-secure-token"
       }
     }
   }
 }
 ```
 
-### Claude Code
+<Warning>
+  A static token in a config file is a long-lived credential. Keep it out of
+  version control, and prefer OAuth anywhere a browser is available.
+</Warning>
 
-Add to your project's `.mcp.json`:
+### stdio (clients without remote server support)
 
-```json
-{
-  "mcpServers": {
-    "tuteliq": {
-      "url": "https://api.tuteliq.ai/mcp",
-      "headers": {
-        "Authorization": "Bearer your-api-key"
-      }
-    }
-  }
-}
-```
-
-### Other MCP clients (npx / stdio)
-
-For clients that only support stdio transport:
+Some clients only speak stdio. The npm package runs a local process that calls
+the same hosted API, so the tools are identical; only the transport and the
+authentication differ.
 
 ```bash
 npm install -g @tuteliq/mcp
