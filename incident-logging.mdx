@@ -1,0 +1,93 @@
+---
+title: Incident Logging Control
+sidebarTitle: Incident Logging
+icon: database
+description: Turn off incident storage so Tuteliq keeps no record of your detections, and set how long incidents are retained
+keywords: [incident logging, data retention, zero storage, opt out, privacy, moderation records, GDPR retention]
+---
+
+Tuteliq stores an incident record whenever a detection warrants attention, so you can review a moderation queue, run trend reports and produce compliance evidence.
+
+If you already run your own moderation infrastructure, you can turn that off. Detection results still come back in full on every API response; Tuteliq simply keeps no record of them.
+
+<Note>
+  This setting controls **incident metadata** only. It does not change Tuteliq's content policy: original text, images, audio, video and documents are never stored, regardless of this setting.
+</Note>
+
+## What incident metadata is
+
+An incident record holds the abstracted result of a detection, never the content that produced it:
+
+| Stored | Not stored |
+|---|---|
+| Detection result and confidence | Original text, images, audio, video, documents |
+| Risk category and severity | Personal information from the content |
+| Detected tactics and patterns | Conversation context or surrounding messages |
+| Your own identifiers (external ID, customer ID, platform) | Anything beyond the identifiers you supply |
+
+Summaries are encrypted. If you have registered a public key for bring-your-own-key encryption, they are hybrid envelopes that Tuteliq cannot decrypt.
+
+## Turning it off
+
+The setting is `incident_moderation_enabled` on your account, and it applies to every detection call made with that account's credentials. It defaults to `true`.
+
+<Steps>
+
+<Step title="Open account settings">
+  Go to **Settings > Incident Logging** in the [dashboard](https://tuteliq.ai/dashboard).
+</Step>
+
+<Step title="Switch incident logging off">
+  The change applies to new API calls within one minute. Existing incidents are not affected and remain available until they expire under your retention period.
+</Step>
+
+</Steps>
+
+There is no per-request override. This is an account-level setting, and detection request payloads are unchanged by it.
+
+## What changes when it is off
+
+Nothing is written, rather than written and then deleted. No record is created at any point.
+
+| | Logging on | Logging off |
+|---|---|---|
+| Detection result in the API response | Yes | **Yes, identical** |
+| Incident record stored | Yes | No |
+| Grooming assessment record stored | Yes | No |
+| In-app incident notification | Yes | No |
+| Incident alert email | Yes, if enabled | No |
+| Dashboard, incident queries, exports | Yes | No new incidents |
+| Original content stored | Never | Never |
+
+Detection behaviour, accuracy and scoring are unaffected. The only difference is whether a record survives the response.
+
+<Warning>
+  With logging off, the API response is the only copy. If you need a record, capture it from the response and store it in your own systems. Tuteliq cannot recover an incident that was never written.
+</Warning>
+
+## Retention
+
+While incident logging is on, incidents are retained for **90 days** by default.
+
+You can set your own period with `incident_retention_days`, anywhere from **7 days to 2 years**. When the period expires, records are permanently deleted.
+
+```json
+{
+  "incident_moderation_enabled": true,
+  "incident_retention_days": 180
+}
+```
+
+Retention applies to incident and grooming assessment records. Records Tuteliq holds under a statutory obligation, such as audit logs, consent records and breach logs, are set by that obligation and are not configurable.
+
+## Choosing a setting
+
+**Leave it on** if you want a moderation queue, historical trend analysis, or evidence for a DSA, KOSA or COPPA review. The [audit receipt](/gdpr) for a specific request is the artefact to cite when a regulator asks for proof that a particular assessment happened.
+
+**Turn it off** if you have your own logging infrastructure and would rather no vendor hold a second copy. A shorter retention period is the middle ground: set it to 7 or 30 days and keep incidents just long enough to work a queue.
+
+## Data subject requests
+
+While incident logging is on, Tuteliq processes incident metadata as a processor on your behalf, and you remain the controller. See [GDPR compliance](/gdpr) for the export, rectification and erasure endpoints.
+
+While it is off, there is no incident data to export or erase, because none was created.

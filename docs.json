@@ -4,14 +4,7 @@
   "name": "Tuteliq",
   "description": "Documentation for the Tuteliq API — AI-powered child safety detection and synthetic content analysis for text, voice, images, and video.",
   "seo": {
-    "indexing": "all",
-    "metatags": {
-      "og:type": "website",
-      "og:site_name": "Tuteliq Docs",
-      "og:title": "Tuteliq API — context-aware safety and moderation detection",
-      "og:description": "Detect grooming, bullying, gaming toxicity, romance and fraud, coded slang, and synthetic media with a context-aware API. Catches ~1.7x more coded-language evasion than general-purpose moderation APIs.",
-      "twitter:card": "summary_large_image"
-    }
+    "indexHiddenPages": false
   },
   "colors": {
     "primary": "#2DD4BF",
@@ -43,7 +36,15 @@
       "display": "interactive"
     },
     "examples": {
-      "languages": ["bash", "javascript", "python", "kotlin", "swift", "csharp", "dart"]
+      "languages": [
+        "bash",
+        "javascript",
+        "python",
+        "kotlin",
+        "swift",
+        "csharp",
+        "dart"
+      ]
     }
   },
   "openapi": "https://api.tuteliq.ai/docs/json",
@@ -130,6 +131,7 @@
             "pages": [
               "kosa-compliance",
               "gdpr",
+              "incident-logging",
               "caching",
               "trust",
               "certification",
@@ -199,9 +201,6 @@
       "linkedin": "https://linkedin.com/company/tuteliq"
     }
   },
-  "seo": {
-    "indexHiddenPages": false
-  },
   "metadata": {
     "og:site_name": "Tuteliq Docs",
     "og:image": "https://tuteliq.ai/og-image.png",
@@ -210,7 +209,13 @@
     "author": "Tuteliq"
   },
   "redirects": [
-    { "source": "/docs", "destination": "/index" },
-    { "source": "/api", "destination": "/api-reference/introduction" }
+    {
+      "source": "/docs",
+      "destination": "/index"
+    },
+    {
+      "source": "/api",
+      "destination": "/api-reference/introduction"
+    }
   ]
 }
