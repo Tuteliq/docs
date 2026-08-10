@@ -1,0 +1,146 @@
+---
+title: MCP Tool Reference
+sidebarTitle: Tool reference
+icon: wrench
+description: Every tool exposed by the Tuteliq MCP server, grouped by purpose, plus the full list of tools that change or delete data.
+keywords: [mcp tools, tool reference, content moderation tools, grooming detection tool, fraud detection api, synthetic media detection, gdpr tools, audit receipt, destructive tools, mcp annotations]
+---
+
+Around 80 tools across nine groups. Every tool carries MCP annotations, so a host can tell read-only from destructive before invoking anything.
+
+<Note>
+  Detection quality matches the REST API exactly. Both surfaces are backed by the same tool definitions from the `@tuteliq/mcp` package.
+</Note>
+
+## Detection
+
+| Tool | Purpose |
+|---|---|
+| `detect_grooming` | Predatory patterns across an adult-to-minor conversation |
+| `detect_bullying` | Harassment, exclusion, intimidation, gaming toxicity |
+| `detect_unsafe` | Self-harm, violence, hate, threats, sexual content |
+| `analyze` | Quick combined safety check |
+| `analyse_multi` | Up to 10 detectors over one text in a single call |
+| `batch_analyze` | Up to 50 items in one request, for bulk triage |
+| `analyze_emotions` | Emotional state indicators across a conversation |
+
+Grooming is scoped to adult-to-minor dynamics. If every participant is a known adult the endpoint short-circuits and says so; use coercive control or social engineering instead.
+
+## Fraud and exploitation
+
+| Tool | Purpose |
+|---|---|
+| `detect_social_engineering` | Pretexting, urgency fabrication, authority impersonation |
+| `detect_app_fraud` | Fake investment platforms, phishing apps, subscription traps |
+| `detect_romance_scam` | Love-bombing, financial requests, identity deception |
+| `detect_mule_recruitment` | Money mule recruitment and account-sharing offers |
+| `detect_gambling_harm` | Chasing losses, concealment, underage gambling |
+| `detect_coercive_control` | Isolation, financial control, monitoring, threats |
+| `detect_vulnerability_exploitation` | Targeting of elderly, disabled or financially distressed people |
+| `detect_radicalisation` | Extremist rhetoric, us-versus-them framing, ideological grooming |
+| `detect_tfgbv` | Technology-facilitated gender-based violence |
+| `detect_distress_signals` | Acute distress indicators |
+| `detect_emotional_distress` | Sustained emotional-harm patterns |
+
+## Media
+
+| Tool | Purpose |
+|---|---|
+| `analyze_image` | Visual safety analysis plus OCR text extraction |
+| `analyze_voice` | Transcription, then safety analysis of the transcript |
+| `analyze_video` | Key-frame extraction and analysis (mp4, mov, avi, webm, mkv) |
+| `analyze_document` | Per-page multi-endpoint PDF analysis with chain-of-custody hashing |
+
+Media costs more than text: an image is 7 credits, a voice clip 21, a video 95. See [credits](/credits).
+
+## Synthetic content
+
+`detect_synthetic_text`, `detect_synthetic_image`, `detect_synthetic_audio` and `detect_synthetic_video` identify AI-generated media in each modality.
+
+## Incidents and moderation
+
+| Tool | Purpose |
+|---|---|
+| `get_incidents_overview` | Queue snapshot with breakdowns by category, severity, source, status |
+| `list_incidents` | Filterable queue, each row carrying `recommended_actions` |
+| `moderation_queue` | Prioritised working set in one call |
+| `get_incident` | Full record for one incident |
+| `get_incident_trends` | Counts bucketed by hour, day or week |
+| `review_incident` | Record a moderator decision |
+| `batch_review_incidents` | One decision across up to 100 incidents |
+
+Agents are limited to `confirm` on the review tools. See [moderation workflows](/mcp/moderation#what-an-agent-may-decide).
+
+## Guidance and reporting
+
+`get_action_plan` produces age-appropriate guidance for responding to a situation. `generate_report` produces an incident report suitable for professional review.
+
+## Governance and compliance
+
+| Tool | Purpose |
+|---|---|
+| `get_audit_receipt` | Signed EU AI Act Article 12 receipt for a specific request |
+| `get_audit_logs` | Account-level action history |
+| `register_encryption_key` | Register or rotate an RSA public key for end-to-end encryption |
+| `get_encryption_key` | Fetch the currently registered key |
+| `revoke_encryption_key` | Revoke it; new incidents fall back to server-side encryption |
+| `export_account_data` | GDPR Article 20, portability |
+| `rectify_data` | GDPR Article 16, correction |
+| `delete_account_data` | GDPR Article 17, erasure |
+| `record_consent`, `get_consent_status`, `withdraw_consent` | Consent ledger |
+| `log_breach`, `list_breaches`, `get_breach`, `update_breach_status` | Breach register for Article 33 |
+
+<Note>
+  Set expectations correctly on erasure: Tuteliq stores no user content in the first place. An erasure request removes the abstracted detection records, and cannot remove message text because none was ever kept. That is usually a stronger answer than a completed deletion, and worth stating plainly.
+</Note>
+
+## Policy and automation
+
+`get_policy` and `set_policy` manage account-wide thresholds. `list_policy_rules`, `create_policy_rule`, `get_policy_rule`, `update_policy_rule`, `delete_policy_rule` and `evaluate_policy_rules` drive rule-based automation. `get_detection_settings`, `update_detection_settings` and `reset_detection_settings` tune detector behaviour.
+
+## Threat intelligence
+
+`get_intelligence_trends`, `get_emerging_threats`, `get_risk_trends` and `get_weekly_digest` surface cross-account, k-anonymised threat signals.
+
+## Verification, usage and webhooks
+
+`create_verification_session`, `get_verification_session` and `cancel_verification_session` drive age and identity verification.
+
+`get_usage_history`, `get_usage_by_tool`, `get_usage_monthly`, `get_usage_summary`, `get_usage_quota`, `get_pricing` and `get_pricing_details` cover consumption and billing.
+
+`list_webhooks`, `create_webhook`, `update_webhook`, `delete_webhook`, `test_webhook` and `regenerate_webhook_secret` manage event delivery.
+
+## Tools that change or delete data
+
+Most tools are read-only. These are annotated `destructiveHint`, so a host can prompt before invoking them. Worth reviewing before granting an agent access to a production account.
+
+| Tool | Effect |
+|---|---|
+| `delete_account_data` | Erases account data under GDPR Article 17. Not recoverable |
+| `revoke_encryption_key` | New incidents fall back to server-side encryption; existing records stay readable only with the prior key |
+| `rectify_data` | Amends stored records |
+| `withdraw_consent` | Amends the consent ledger |
+| `set_policy` | Changes detection thresholds account-wide |
+| `update_detection_settings`, `reset_detection_settings` | Change detector behaviour account-wide |
+| `update_policy_rule`, `delete_policy_rule` | Change or remove automation rules |
+| `review_incident` | Records a moderator decision |
+| `batch_review_incidents` | Records one decision across up to 100 incidents |
+| `update_webhook`, `delete_webhook` | Change or remove event delivery |
+| `regenerate_webhook_secret` | Invalidates the existing secret; receivers must be updated |
+| `cancel_verification_session` | Ends a verification in progress |
+| `update_breach_status` | Amends the breach register |
+
+## Common parameters
+
+Detection tools share a common set:
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `content` | string | Yes | Text to analyse |
+| `context` | object | No | Ages, relationship, platform and language hints |
+| `include_evidence` | boolean | No | Return supporting excerpts with flagged phrases and weights |
+| `support_threshold` | string | No | Minimum severity to include crisis helplines. `critical` always includes them |
+| `external_id`, `customer_id` | string | No | Your identifiers, echoed in the response |
+| `verdict_only` | boolean | No | Fast mode: verdict without the per-message breakdown |
+
+`verdict_only` is the right trade when screening a live stream: screen everything fast, then re-run only what flags in standard mode for the detail.

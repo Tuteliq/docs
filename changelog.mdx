@@ -6,6 +6,67 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.16.0 (August 2026)
+
+### Added: MCP connections refresh themselves
+
+Access tokens for the [MCP server](/mcp) last 30 days, and until now there was
+no way to renew one: the token response carried neither an expiry nor a refresh
+token, so a connection stopped working a month after it was made with nothing
+to indicate why.
+
+Token responses now include `expires_in` and a `refresh_token`, and the
+`refresh_token` grant is supported. Refresh tokens rotate: each refresh
+consumes the presented token and issues a new one, as OAuth 2.1 requires for
+public clients. Presenting a refresh token twice revokes every token descended
+from that grant, on the basis that a replayed token has either leaked or the
+client has raced itself.
+
+Refresh tokens are valid for 90 days, so a client that idles for a month still
+reconnects without sending the user back through the browser. See
+[MCP authentication](/mcp/authentication).
+
+### Added: incident logging can be switched off
+
+`incident_moderation_enabled` on your account controls whether Tuteliq writes
+any detection record at all. With it off, incidents, grooming assessments,
+in-app notifications and alert emails are all suppressed, while detection
+responses stay identical. Retention is also configurable, from 7 days to 2
+years, defaulting to 90. See [incident logging control](/incident-logging).
+
+### Added: moderation through an AI agent
+
+The MCP server exposes the incident queue, so an agent can size a backlog,
+triage by severity, inspect what matters and record decisions into the same
+audit trail a human moderator's land in.
+
+Agents are limited to `confirm`. An MCP token identifies an account rather than
+an individual, so escalation, resolution and reopening stay with a human
+moderator, and a restricted action returns 403. Every state-changing call now
+requires `moderator_external_id`, and MCP-authenticated calls must use the form
+`mcp:<agent-name>`, so agent and human decisions stay distinguishable in the
+trail. See [moderation workflows](/mcp/moderation).
+
+Requires [@tuteliq/mcp 3.21.1+](https://www.npmjs.com/package/@tuteliq/mcp);
+earlier versions send the attribution field unprefixed and the call is refused.
+
+### Changed: incident lifecycle matches the moderator dashboard
+
+`escalate` previously produced a record indistinguishable from `confirm`, and
+`resolved` was unreachable through the API despite existing in the status enum.
+Both are fixed, and `resolve` and `reopen` are now available: `resolve` stamps
+`resolved_at` and marks linked notifications read, `reopen` returns an incident
+to `new` while preserving `resolved_at` as history.
+
+### Changed: retention now matches the Trust Center
+
+Analysis results and detection records are retained for 90 days and API logs
+for 30, matching what the [Trust Center](https://trust.tuteliq.ai) publishes.
+Incidents and grooming assessments were previously kept for 365 days and API
+usage for 90.
+
+---
+
 ## v1.15.0 (August 2026)
 
 ### Changed: new plans, and the free tier is retired

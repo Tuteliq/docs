@@ -1,46 +1,23 @@
 ---
 title: MCP Server for Content Moderation and Child Safety
-sidebarTitle: MCP Server
+sidebarTitle: Overview
 icon: plug
-description: Connect Claude, Cursor or any MCP client to Tuteliq over OAuth. Around 80 tools for grooming detection, content moderation, incident review, fraud detection and compliance reporting, with no API key to configure.
-keywords: [mcp server, model context protocol, remote mcp, hosted mcp server, oauth 2.1, claude desktop, claude code, cursor, windsurf, ai agent moderation, content moderation api, grooming detection, child safety api, trust and safety tooling, incident review, moderation queue, streamable http, dynamic client registration, pkce, agentic moderation]
+description: Connect Claude, Cursor or any MCP client to Tuteliq over OAuth. Around 80 tools for grooming detection, content moderation, incident review and compliance, with no API key to configure.
+keywords: [mcp server, model context protocol, remote mcp, hosted mcp server, claude desktop, claude code, cursor, windsurf, ai agent moderation, content moderation api, grooming detection, child safety api, trust and safety tooling, agentic moderation]
 ---
 
 Tuteliq runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) server at `https://api.tuteliq.ai/mcp`. Point an MCP client at that URL, sign in through the browser, and an AI assistant gains around 80 tools spanning detection, moderation, verification and compliance.
 
-There is nothing to install and no API key to paste into a config file.
-
-<CardGroup cols={2}>
-  <Card title="Connect in a minute" icon="bolt" href="#connect">
-    Add one URL, approve in the browser. OAuth 2.1 with dynamic client registration.
-  </Card>
-  <Card title="Moderate with an agent" icon="shield-halved" href="#moderation-workflows">
-    Triage a queue, inspect incidents, record decisions with a signed audit trail.
-  </Card>
-</CardGroup>
-
-## What you can build with it
-
-**An agent that works your moderation queue.** Size the backlog, triage by severity, read the detail on what matters, and record a decision that lands in the same audit trail a human moderator's would.
-
-**A safety layer inside an existing assistant.** Screen conversations for grooming, bullying, self-harm or fraud before they reach a human, using the same detectors that back the REST API.
-
-**A compliance assistant.** Pull incident volumes and dispositions for a DSA or KOSA evidence pack, fetch signed audit receipts for specific decisions, and answer GDPR subject requests.
-
-<Note>
-  Detection quality is identical to the REST API. The MCP server is a transport, not a different model: both are backed by the same tool definitions from the `@tuteliq/mcp` package.
-</Note>
+Nothing to install, and no API key to paste into a config file.
 
 ## Connect
-
-Most clients should use OAuth, which puts no credential in your configuration at all.
 
 <Steps>
 
 <Step title="Add the server">
   **Claude Desktop:** **Settings > Connectors**, **Add custom connector**, name it **Tuteliq**, URL `https://api.tuteliq.ai/mcp`.
 
-  **Claude Code, Cursor, Windsurf and other clients supporting remote servers:** add it to `.mcp.json` with no credentials.
+  **Claude Code, Cursor, Windsurf and other clients supporting remote servers:**
 
   ```json
   {
@@ -60,271 +37,58 @@ Most clients should use OAuth, which puts no credential in your configuration at
 
 </Steps>
 
-Revoke access later under **Settings > Plugins** in the [dashboard](https://tuteliq.ai/dashboard).
+Headless environment, or a client without remote server support? See [authentication](/mcp/authentication) for static tokens and stdio.
 
-### Alternatives when OAuth does not fit
+## What you can build
 
-**Static token, for headless environments.** OAuth needs a browser, so a CI pipeline, cron job or container cannot complete it. Generate a token in the dashboard and send it in the `Authorization` header.
+<CardGroup cols={3}>
+  <Card title="An agent that works your queue" icon="shield-halved" href="/mcp/moderation">
+    Size the backlog, triage by severity, read what matters, record decisions into the same audit trail a human moderator's land in.
+  </Card>
+  <Card title="A safety layer in an assistant" icon="comments" href="/mcp/tools">
+    Screen conversations for grooming, bullying, self-harm or fraud before they reach a human.
+  </Card>
+  <Card title="A compliance assistant" icon="file-shield" href="/mcp/tools#governance-and-compliance">
+    Pull incident volumes and dispositions for a DSA or KOSA pack, fetch signed audit receipts, answer GDPR requests.
+  </Card>
+</CardGroup>
 
-```json
-{
-  "mcpServers": {
-    "tuteliq": {
-      "type": "http",
-      "url": "https://api.tuteliq.ai/mcp",
-      "headers": { "Authorization": "Bearer your-secure-token" }
-    }
-  }
-}
-```
+## What it covers
 
-<Warning>
-  A static token in a config file is a long-lived credential. Keep it out of version control and prefer OAuth wherever a browser exists.
-</Warning>
-
-**stdio, for clients without remote server support.** The npm package runs a local process that calls the same hosted API, so tools are identical; only the transport and authentication differ.
-
-```bash
-npm install -g @tuteliq/mcp
-```
-
-```json
-{
-  "mcpServers": {
-    "tuteliq": {
-      "command": "tuteliq-mcp",
-      "env": { "TUTELIQ_API_KEY": "your_api_key" }
-    }
-  }
-}
-```
-
-## Authentication and token lifetime
-
-The server implements OAuth 2.1 with dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), PKCE with S256, and discovery via [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) and [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728). Clients self-register; no manual credential exchange is involved.
-
-| Endpoint | Purpose |
+| Area | Examples |
 |---|---|
-| `/.well-known/oauth-protected-resource/mcp` | Resource metadata, names the authorization server |
-| `/.well-known/oauth-authorization-server` | Authorization server metadata |
-| `/oauth/register` | Dynamic client registration |
-| `/oauth/authorize` | Authorization, PKCE S256 |
-| `/oauth/token` | Token exchange and refresh |
+| **Detection** | Grooming, bullying, unsafe content, emotions, multi-endpoint analysis |
+| **Fraud and exploitation** | Romance scams, mule recruitment, coercive control, radicalisation |
+| **Media** | Image, voice, video and PDF analysis, plus synthetic-media detection |
+| **Moderation** | Queue triage, incident detail, trends, moderator decisions |
+| **Governance** | Signed audit receipts, GDPR endpoints, consent ledger, breach register |
+| **Operations** | Policy rules, detection settings, webhooks, usage, verification sessions |
 
-### Access tokens expire, and refresh is automatic
-
-Access tokens are valid for **30 days**. Every token response carries `expires_in`, and a **refresh token** so clients can renew without sending the user back through the browser.
-
-```json
-{
-  "access_token": "tuteliq_mcp_...",
-  "token_type": "Bearer",
-  "expires_in": 2592000,
-  "refresh_token": "tuteliq_rt_..."
-}
-```
-
-Refresh tokens **rotate**: each refresh consumes the presented token and issues a new one. OAuth 2.1 requires this for public clients, which MCP clients are.
-
-<Warning>
-  A refresh token is single-use. Presenting one twice is treated as a compromise and revokes every token descended from that grant, so the user must sign in again. This is deliberate: it ends an attacker's access rather than leaving a stolen token's successor working.
-</Warning>
-
-Refresh tokens are valid for 90 days, so a client that idles for a month still reconnects without user interaction.
-
-## Moderation workflows
-
-The moderation tools are the reason to point an agent at Tuteliq rather than only calling detection endpoints. A queue is a sequence of judgements, and an agent can do most of the reading.
-
-### Working a queue
-
-<Steps>
-
-<Step title="Size it">
-  `get_incidents_overview` returns totals, `requires_review_count`, 24h/7d/30d counts, and breakdowns by category, severity, source, status and platform. Start here: it tells you whether you are dealing with ten items or ten thousand, and where they concentrate.
-</Step>
-
-<Step title="Triage">
-  `list_incidents` is the queue. Filter rather than page blindly: by `status`, `severity`, `category`, `source`, `from`/`to`, `platform`, `external_id` or `customer_id`.
-
-  Every row carries `recommended_actions`, so an agent can rank without fetching each incident. Work `immediate_intervention` first, then `block`, then `flag_for_review`.
-</Step>
-
-<Step title="Inspect">
-  `get_incident` returns the full record: category, level, confidence, `detected_patterns`, `recommended_actions`, source modality, review state and summary. `moderation_queue` returns a prioritised working set in one call.
-</Step>
-
-<Step title="Decide">
-  `review_incident` records a decision. `batch_review_incidents` applies one decision across up to 100 incidents, each still emitting its own signed receipt.
-</Step>
-
-</Steps>
-
-### What an agent may decide
-
-Agents are deliberately limited. An MCP token identifies an **account**, never an individual, so an agent cannot act with the authority of a named senior moderator.
-
-| Action | Agent | Human moderator |
-|---|---|---|
-| `confirm` | Yes | Yes |
-| `downgrade`, `reclassify`, `dismiss` | No | Yes |
-| `escalate`, `resolve`, `reopen` | No | Yes |
-
-An agent calling a restricted action receives `403` with an explanation. Escalation, resolution and reopening are performed by a human in the dashboard.
-
-Every state-changing call requires `moderator_external_id` so the audit trail can attribute the decision. Calls authenticated with an MCP token must use the form `mcp:<agent-name>`; the prefix is refused from any other credential, and its absence is refused from an MCP one. Human and agent decisions therefore stay distinguishable in the trail, in both directions.
-
-### Reading a result
-
-Branch on `recommended_action`, a stable five-value enum ordered weakest to strongest:
-
-| Value | Meaning |
-|---|---|
-| `none` | No signal |
-| `monitor` | Log it, no human needed |
-| `flag_for_review` | Route to a moderator |
-| `block` | Withhold or limit the content |
-| `immediate_intervention` | Crisis path: preserve evidence, follow your reporting procedure |
-
-`detected` fires at any severity including monitor-only cases, so using it as the trigger will bury a moderator in noise. `action_detail` carries a human-readable expansion; show it, but do not branch on it, as the wording is not stable across releases.
-
-## Tool reference
-
-Around 80 tools across nine groups. Every tool carries MCP annotations, so a host can tell read-only from destructive before invoking anything.
-
-### Detection
-
-| Tool | Purpose |
-|---|---|
-| `detect_grooming` | Predatory patterns across an adult-to-minor conversation |
-| `detect_bullying` | Harassment, exclusion, intimidation, gaming toxicity |
-| `detect_unsafe` | Self-harm, violence, hate, threats, sexual content |
-| `analyze` | Quick combined safety check |
-| `analyse_multi` | Up to 10 detectors over one text in a single call |
-| `batch_analyze` | Up to 50 items in one request, for bulk triage |
-| `analyze_emotions` | Emotional state indicators across a conversation |
-
-### Fraud and exploitation
-
-| Tool | Purpose |
-|---|---|
-| `detect_social_engineering` | Pretexting, urgency fabrication, authority impersonation |
-| `detect_app_fraud` | Fake investment platforms, phishing apps, subscription traps |
-| `detect_romance_scam` | Love-bombing, financial requests, identity deception |
-| `detect_mule_recruitment` | Money mule recruitment and account-sharing offers |
-| `detect_gambling_harm` | Chasing losses, concealment, underage gambling |
-| `detect_coercive_control` | Isolation, financial control, monitoring, threats |
-| `detect_vulnerability_exploitation` | Targeting of elderly, disabled or distressed individuals |
-| `detect_radicalisation` | Extremist rhetoric, us-versus-them framing, ideological grooming |
-| `detect_tfgbv` | Technology-facilitated gender-based violence |
-| `detect_distress_signals` | Acute distress indicators |
-| `detect_emotional_distress` | Sustained emotional-harm patterns |
-
-### Media
-
-| Tool | Purpose |
-|---|---|
-| `analyze_image` | Visual safety analysis plus OCR text extraction |
-| `analyze_voice` | Transcription then safety analysis of the transcript |
-| `analyze_video` | Key-frame extraction and analysis (mp4, mov, avi, webm, mkv) |
-| `analyze_document` | Per-page multi-endpoint analysis of PDFs with chain-of-custody hashing |
-
-### Synthetic content
-
-`detect_synthetic_text`, `detect_synthetic_image`, `detect_synthetic_audio`, `detect_synthetic_video` identify AI-generated media across each modality.
-
-### Incidents and moderation
-
-| Tool | Purpose |
-|---|---|
-| `get_incidents_overview` | Queue snapshot with breakdowns |
-| `list_incidents` | Filterable queue |
-| `moderation_queue` | Prioritised working set |
-| `get_incident` | Full record for one incident |
-| `get_incident_trends` | Counts bucketed by hour, day or week |
-| `review_incident` | Record a moderator decision |
-| `batch_review_incidents` | One decision across up to 100 incidents |
-
-### Guidance and reporting
-
-`get_action_plan` produces age-appropriate guidance for responding to a situation. `generate_report` produces an incident report suitable for professional review.
-
-### Governance and compliance
-
-| Tool | Purpose |
-|---|---|
-| `get_audit_receipt` | Signed EU AI Act Art 12 receipt for a specific request |
-| `get_audit_logs` | Account-level action history |
-| `register_encryption_key`, `get_encryption_key`, `revoke_encryption_key` | Bring-your-own-key encryption for incident records |
-| `export_account_data`, `rectify_data`, `delete_account_data` | GDPR Articles 20, 16 and 17 |
-| `record_consent`, `get_consent_status`, `withdraw_consent` | Consent ledger |
-| `log_breach`, `list_breaches`, `get_breach`, `update_breach_status` | Breach register for Article 33 |
-
-### Policy, automation and intelligence
-
-`get_policy` and `set_policy` manage account thresholds. `list_policy_rules`, `create_policy_rule`, `get_policy_rule`, `update_policy_rule`, `delete_policy_rule` and `evaluate_policy_rules` drive rule-based automation. `get_detection_settings`, `update_detection_settings` and `reset_detection_settings` tune detector behaviour. `get_intelligence_trends`, `get_emerging_threats`, `get_risk_trends` and `get_weekly_digest` surface cross-account threat intelligence.
-
-### Verification, usage and webhooks
-
-`create_verification_session`, `get_verification_session` and `cancel_verification_session` drive age and identity verification. `get_usage_history`, `get_usage_by_tool`, `get_usage_monthly`, `get_usage_summary`, `get_usage_quota`, `get_pricing` and `get_pricing_details` cover consumption and billing. `list_webhooks`, `create_webhook`, `update_webhook`, `delete_webhook`, `test_webhook` and `regenerate_webhook_secret` manage event delivery.
-
-## Tools that change or delete data
-
-Most tools are read-only. These are annotated `destructiveHint` so a host can prompt before invoking them, and they are worth knowing about before granting an agent access to a production account.
-
-| Tool | Effect |
-|---|---|
-| `delete_account_data` | Erases account data under GDPR Article 17. Not recoverable |
-| `revoke_encryption_key` | New incidents fall back to server-side encryption. Existing records stay readable only with the prior key |
-| `rectify_data`, `withdraw_consent` | Amend stored records and the consent ledger |
-| `set_policy`, `update_detection_settings`, `reset_detection_settings` | Change detection behaviour account-wide |
-| `update_policy_rule`, `delete_policy_rule` | Change or remove automation rules |
-| `review_incident`, `batch_review_incidents` | Record moderator decisions. Batch affects up to 100 incidents at once |
-| `update_webhook`, `delete_webhook`, `regenerate_webhook_secret` | Change or break event delivery |
-| `cancel_verification_session` | Ends a verification in progress |
-| `update_breach_status` | Amends the breach register |
-
-## Multi-turn conversations
-
-Grooming is a trajectory rather than a keyword, so pass conversations rather than isolated messages. For conversations beyond roughly 20 to 30 turns, chunk them and thread the `continuation_token` from each response into the next call.
-
-The token carries derived analysis state, turn counts, accumulated categories and severity trajectory, so a long thread is assessed as one arc **without any message content being stored server-side**. See [continuation tokens](/continuation-tokens) for the full model.
-
-## Privacy and data handling
+See the [full tool reference](/mcp/tools) for all ~80.
 
 <Note>
-  Tuteliq stores no user content. Messages, images, audio, video and documents are processed in memory and never persisted, raw or derived.
+  Detection quality is identical to the REST API. The MCP server is a transport, not a different model: both are backed by the same tool definitions.
 </Note>
 
-What exists is the abstracted detection record: category labels, severity, confidence, detected patterns and timestamps. Incident summaries are encrypted, and with bring-your-own-key registered they are hybrid envelopes Tuteliq cannot decrypt.
+## Two things worth knowing early
 
-Customers who run their own moderation infrastructure can switch off even that. See [incident logging control](/incident-logging) for the account setting and the configurable retention period.
+**Agents cannot resolve incidents.** An MCP token identifies an account, never an individual, so an agent is limited to `confirm` plus read-only work. Escalation, resolution and reopening stay with a human moderator. See [moderation](/mcp/moderation#what-an-agent-may-decide).
 
-## Interactive results
-
-Eleven tools return a rendered card rather than raw JSON in hosts supporting MCP Apps, including Claude desktop and web. Everywhere else the same data arrives as `structuredContent`, so nothing depends on the UI being available.
-
-Severity colour runs monotonically from safe to critical, so two chips can be compared without reading their labels. The widgets are deliberately calm: they report on grooming, self-harm and abuse, and a card that animates at the reader turns distressing material into an alarm they cannot dismiss.
-
-## Sandbox and errors
-
-Create a sandbox key in the [dashboard](https://tuteliq.ai/dashboard) under **Settings > API Keys > Environment: Sandbox** to exercise tools without consuming credits.
-
-Errors return a structured code, a human-readable message and a documentation link. See [error handling](/error-handling) for the full catalogue.
+**No user content is stored.** Messages, images, audio, video and documents are processed in memory and never persisted, raw or derived. What exists is the abstracted detection record. Customers running their own moderation stack can switch off even that, via [incident logging control](/incident-logging).
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Grooming detection" icon="shield" href="/grooming-detection">
-    The tactic taxonomy, trajectory model and escalation combinations.
+  <Card title="Authentication" icon="key" href="/mcp/authentication">
+    OAuth 2.1, token lifetime, refresh rotation, static tokens and stdio.
   </Card>
-  <Card title="Incident logging control" icon="database" href="/incident-logging">
-    Turn off incident storage, or set your own retention period.
+  <Card title="Moderation workflows" icon="list-check" href="/mcp/moderation">
+    Working a queue with an agent, and what it is allowed to decide.
+  </Card>
+  <Card title="Tool reference" icon="wrench" href="/mcp/tools">
+    All ~80 tools by category, and everything that changes or deletes data.
   </Card>
   <Card title="Credits" icon="coins" href="/credits">
     What each tool costs. Text is 1 to 3, an image 7, a voice clip 21, a video 95.
-  </Card>
-  <Card title="Node SDK" icon="node-js" href="/sdks/node">
-    The same detectors over REST, for non-agent integrations.
   </Card>
 </CardGroup>

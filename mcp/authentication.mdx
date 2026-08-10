@@ -1,0 +1,103 @@
+---
+title: MCP Authentication and Token Lifetime
+sidebarTitle: Authentication
+icon: key
+description: OAuth 2.1 with dynamic client registration and PKCE for the Tuteliq MCP server, plus token lifetime, refresh rotation, static tokens for headless use, and stdio.
+keywords: [mcp oauth, oauth 2.1, dynamic client registration, rfc 7591, rfc 8414, rfc 9728, pkce s256, refresh token rotation, mcp authentication, streamable http, bearer token]
+---
+
+The Tuteliq MCP server implements OAuth 2.1 with dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), PKCE with S256, and discovery via [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) and [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728).
+
+Clients self-register. There is no manual credential exchange, and nothing to paste into a config file.
+
+## Discovery endpoints
+
+| Endpoint | Purpose |
+|---|---|
+| `/.well-known/oauth-protected-resource/mcp` | Resource metadata, names the authorization server |
+| `/.well-known/oauth-authorization-server` | Authorization server metadata |
+| `/oauth/register` | Dynamic client registration |
+| `/oauth/authorize` | Authorization, PKCE S256 |
+| `/oauth/token` | Token exchange and refresh |
+
+An unauthenticated request to `/mcp` returns `401` with a `WWW-Authenticate` header pointing at the resource metadata, which is what starts the flow in a compliant client.
+
+## Token lifetime
+
+Access tokens are valid for **30 days**. Every token response carries `expires_in` and a **refresh token**, so a client renews without sending the user back through the browser.
+
+```json
+{
+  "access_token": "tuteliq_mcp_...",
+  "token_type": "Bearer",
+  "expires_in": 2592000,
+  "refresh_token": "tuteliq_rt_..."
+}
+```
+
+Refresh tokens are valid for **90 days**, so a client that idles for a month still reconnects without user interaction.
+
+### Refresh tokens rotate
+
+Each refresh consumes the presented token and issues a new one. OAuth 2.1 requires this for public clients, which MCP clients are: they hold no client secret, as `token_endpoint_auth_method: none` advertises.
+
+```json
+{ "grant_type": "refresh_token", "refresh_token": "tuteliq_rt_...", "client_id": "..." }
+```
+
+The response carries a fresh `access_token`, a fresh `refresh_token`, and `expires_in`. Store the new refresh token; the old one is spent.
+
+<Warning>
+  A refresh token is single-use. Presenting one twice revokes **every token descended from that grant**, and the user must sign in again.
+
+  This is deliberate. A replayed token means it either leaked or the client raced itself, and revoking only the replayed one would leave an attacker's rotated successor working. Ending the whole family costs one re-authorisation and closes the access.
+</Warning>
+
+Failures return one message for unknown, expired, consumed and replayed tokens alike, since distinguishing them would tell an attacker which guess was once valid.
+
+## Static tokens, for headless environments
+
+OAuth needs a browser, so a CI pipeline, cron job or container cannot complete it. Generate a token in the [dashboard](https://tuteliq.ai/dashboard) under **Settings > Plugins** and send it in the `Authorization` header.
+
+```json
+{
+  "mcpServers": {
+    "tuteliq": {
+      "type": "http",
+      "url": "https://api.tuteliq.ai/mcp",
+      "headers": { "Authorization": "Bearer your-secure-token" }
+    }
+  }
+}
+```
+
+<Warning>
+  A static token in a config file is a long-lived credential. Keep it out of version control, and prefer OAuth wherever a browser exists.
+</Warning>
+
+## stdio, for clients without remote server support
+
+Some clients only speak stdio. The npm package runs a local process that calls the same hosted API, so the tools are identical; only the transport and authentication differ.
+
+```bash
+npm install -g @tuteliq/mcp
+```
+
+```json
+{
+  "mcpServers": {
+    "tuteliq": {
+      "command": "tuteliq-mcp",
+      "env": { "TUTELIQ_API_KEY": "your_api_key" }
+    }
+  }
+}
+```
+
+## Revoking access
+
+Revoke a connection under **Settings > Plugins** in the [dashboard](https://tuteliq.ai/dashboard). Revocation takes effect on the next request; there is no cached grant to wait out.
+
+## Sandbox
+
+Create a sandbox key under **Settings > API Keys > Environment: Sandbox** to exercise tools without consuming credits. Sandbox responses are shaped identically to production, so integration code needs no branching.

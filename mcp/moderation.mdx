@@ -1,0 +1,124 @@
+---
+title: Moderation Workflows with an AI Agent
+sidebarTitle: Moderation
+icon: list-check
+description: Work a Tuteliq moderation queue with an AI agent over MCP. Triage by severity, inspect incidents, record decisions with a signed audit trail, and understand what an agent is allowed to decide.
+keywords: [ai moderation agent, moderation queue, incident triage, trust and safety automation, content moderation workflow, agentic moderation, moderator decision audit, dsa evidence, kosa compliance, human in the loop moderation]
+---
+
+Detection endpoints tell you what a message is. Moderation is what happens next, and it is mostly reading: sizing a backlog, ranking it, deciding what deserves a person. An agent can do most of that reading.
+
+## Working a queue
+
+<Steps>
+
+<Step title="Size it">
+  `get_incidents_overview` returns totals, `requires_review_count`, 24h/7d/30d counts, and breakdowns by category, severity, source, status and platform.
+
+  Start here. It tells you whether you are dealing with ten items or ten thousand, and where they concentrate. `get_incident_trends` buckets counts by hour, day or week when the question is "is this getting worse?" rather than "what is outstanding?".
+</Step>
+
+<Step title="Triage">
+  `list_incidents` is the queue. Filter rather than page blindly:
+
+  | Filter | Values |
+  |---|---|
+  | `status` | `new`, `reviewed`, `escalated`, `resolved`, `dismissed` |
+  | `severity` | `low`, `medium`, `high`, `critical` |
+  | `category` | `grooming`, `bullying`, `unsafe`, `romance_scam`, and the rest |
+  | `source` | `text`, `voice`, `image`, `video` |
+  | `from` / `to` | ISO 8601 bounds on `created_at` |
+  | `platform`, `external_id`, `customer_id` | Your own identifiers |
+
+  Every row carries `recommended_actions`, so an agent can rank the queue without fetching each incident. Work `immediate_intervention` first, then `block`, then `flag_for_review`. Anything at `monitor` or `none` does not need a human.
+
+  `moderation_queue` returns a prioritised working set in a single call when you would otherwise be assembling one.
+</Step>
+
+<Step title="Inspect">
+  `get_incident` returns the full record: risk category and level, confidence, `detected_patterns`, `recommended_actions`, source modality, `file_id`, review state and summary.
+
+  `include_summary: true` on `list_incidents` decrypts summary text per row at an extra credit each. Use it when you genuinely need to read the queue; leave it off when counting or sorting.
+</Step>
+
+<Step title="Decide">
+  `review_incident` records a decision against one incident. `batch_review_incidents` applies the same decision across up to 100, and each still emits its own signed receipt: the batch is a throughput shortcut, not a compliance shortcut.
+</Step>
+
+</Steps>
+
+## What an agent may decide
+
+Agents are deliberately limited. An MCP token identifies an **account**, never an individual, so an agent cannot act with the authority of a named senior moderator.
+
+| Action | Effect | Agent | Human moderator |
+|---|---|---|---|
+| `confirm` | The detection was right | Yes | Yes |
+| `downgrade` | Real, but less severe than scored | No | Yes |
+| `reclassify` | Wrong category or severity | No | Yes |
+| `dismiss` | False positive | No | Yes |
+| `escalate` | Needs a higher tier or law enforcement | No | Yes |
+| `resolve` | Closed, stamps turnaround time | No | Yes |
+| `reopen` | Returns a resolved incident to the queue | No | Yes |
+
+An agent calling a restricted action receives `403` with an explanation. Escalation, resolution and reopening are performed by a human in the dashboard.
+
+<Note>
+  This is a floor, not a ceiling on what agents are useful for. Triage, ranking, summarising and drafting are where an agent saves the most time, and none of it requires the authority to close a case.
+</Note>
+
+## Attribution
+
+Every state-changing call requires `moderator_external_id`, so the audit trail can say who decided.
+
+Calls authenticated with an MCP token must use the form `mcp:<agent-name>`. The prefix is refused from any other credential, and its absence is refused from an MCP one, so agent and human decisions stay distinguishable in both directions. An agent cannot file a decision that reads as human work, and a human credential cannot file one that reads as an agent's.
+
+Use a stable per-moderator identifier for humans, not an account-wide one. Passing the same value for everyone attributes every decision to one person, which defeats the purpose.
+
+## Reading a result
+
+Branch on `recommended_action`, a stable five-value enum ordered weakest to strongest:
+
+| Value | Meaning |
+|---|---|
+| `none` | No signal |
+| `monitor` | Log it, no human needed |
+| `flag_for_review` | Route to a moderator |
+| `block` | Withhold or limit the content |
+| `immediate_intervention` | Crisis path: preserve evidence, follow your reporting procedure |
+
+<Warning>
+  Do not branch on `detected`. It fires at any severity including monitor-only cases, so using it as the trigger buries a moderator in noise. `flag_for_review` and above is what warrants attention.
+</Warning>
+
+`action_detail` carries a human-readable expansion of the action. Show it to a moderator, but do not branch on it: the wording is not stable across releases.
+
+## Multi-turn conversations
+
+Grooming is a trajectory rather than a keyword. A single message rarely proves it; the pattern across turns does. Pass conversations rather than isolated messages wherever possible.
+
+For conversations beyond roughly 20 to 30 turns, chunk them and thread the `continuation_token` from each response into the next call. The token carries derived analysis state, turn counts, accumulated categories and severity trajectory, so a long thread is assessed as one arc **without any message content being stored server-side**.
+
+Never restart a long conversation without the token: you lose the escalation signal, which is the point of analysing an arc at all. See [continuation tokens](/continuation-tokens) for the full model.
+
+## Evidence and audit
+
+`get_audit_receipt` returns a signed EU AI Act Article 12 receipt for a specific request. That is the artefact to cite when an auditor wants proof a particular assessment happened, rather than a screenshot.
+
+For a DSA or KOSA evidence pack, `get_incidents_overview` and `get_incident_trends` give the volumes, and `list_incidents` filtered by `status` gives the disposition. Together they answer the question a reviewer actually asks: did you detect, and did you act?
+
+<Warning>
+  Never quote user content into a report or ticket. Incident summaries are encrypted, and Tuteliq's own rationales describe the kind of content rather than the content itself. Reports should match: describe tactics, severity, timing and volume, not transcript.
+</Warning>
+
+## Interactive results
+
+Eleven tools return a rendered card rather than raw JSON in hosts supporting MCP Apps, including Claude desktop and web. Everywhere else the same data arrives as `structuredContent`, so nothing depends on the UI being available.
+
+Severity colour runs monotonically from safe to critical, so two chips can be compared without reading their labels. The widgets are deliberately calm: they report on grooming, self-harm and abuse, and a card that animates at the reader turns already distressing material into an alarm they cannot dismiss.
+
+Selecting incidents in the list widget assembles an ID list for a `batch_review_incidents` call you fire yourself, so the mutating step still passes through your host's approval.
+
+## Cost
+
+Re-running detection across a backlog is expensive: text is 1 to 3 credits, an image 7, a voice clip 21, a video 95. The incidents are already recorded, so read them rather than re-detecting. See [credits](/credits).
