@@ -10,7 +10,7 @@ keywords: [changelog, updates, releases, versions]
 
 ### Added: MCP connections refresh themselves
 
-Access tokens for the [MCP server](/mcp) last 30 days, and until now there was
+Access tokens for the [MCP server](/mcp-server) last 30 days, and until now there was
 no way to renew one: the token response carried neither an expiry nor a refresh
 token, so a connection stopped working a month after it was made with nothing
 to indicate why.
@@ -24,7 +24,7 @@ client has raced itself.
 
 Refresh tokens are valid for 90 days, so a client that idles for a month still
 reconnects without sending the user back through the browser. See
-[MCP authentication](/mcp/authentication).
+[MCP authentication](/mcp-server/authentication).
 
 ### Added: incident logging can be switched off
 
@@ -45,7 +45,7 @@ an individual, so escalation, resolution and reopening stay with a human
 moderator, and a restricted action returns 403. Every state-changing call now
 requires `moderator_external_id`, and MCP-authenticated calls must use the form
 `mcp:<agent-name>`, so agent and human decisions stay distinguishable in the
-trail. See [moderation workflows](/mcp/moderation).
+trail. See [moderation workflows](/mcp-server/moderation).
 
 Requires [@tuteliq/mcp 3.21.1+](https://www.npmjs.com/package/@tuteliq/mcp);
 earlier versions send the attribution field unprefixed and the call is refused.
@@ -499,7 +499,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 ### SDK & Tool Support
 - All new endpoints available across all SDKs: [Node.js](/sdks/node), [Python](/sdks/python), [Swift](/sdks/swift), [Kotlin](/sdks/kotlin), [Flutter](/sdks/flutter), [React Native](/sdks/react-native), [.NET](/sdks/dotnet), [Unity](/sdks/unity)
 - [CLI](/sdks/cli) — new `detect social-engineering`, `detect app-fraud`, `detect romance-scam`, `detect mule-recruitment`, `detect gambling-harm`, `detect coercive-control`, `detect vulnerability-exploitation`, `detect radicalisation`, and `detect multi` commands
-- [MCP Server](/mcp) — 10 new tools for fraud, extended safety, multi-endpoint analysis, and video analysis
+- [MCP Server](/mcp-server) — 10 new tools for fraud, extended safety, multi-endpoint analysis, and video analysis
 
 ### Tier Access
 - New endpoints require **Indie** tier or above (Starter tier retains access to bullying, grooming, and unsafe only)
@@ -584,7 +584,7 @@ Initial public release of the Tuteliq API.
 - [.NET SDK](/sdks/dotnet) — `Tuteliq` on NuGet
 - [Unity SDK](/sdks/unity) — via Unity Package Manager
 - [CLI](/sdks/cli) — `@tuteliq/cli` on npm / Homebrew
-- [MCP Server](/mcp) — `@tuteliq/mcp` on npm
+- [MCP Server](/mcp-server) — `@tuteliq/mcp` on npm
 
 ### Platform
 - Credit-based billing with per-endpoint pricing

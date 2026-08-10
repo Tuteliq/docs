@@ -37,7 +37,7 @@ Nothing to install, and no API key to paste into a config file.
 
 </Steps>
 
-Headless environment, or a client without remote server support? See [authentication](/mcp/authentication) for static tokens and stdio.
+Headless environment, or a client without remote server support? See [authentication](/mcp-server/authentication) for static tokens and stdio.
 
 ## What you can build
 
@@ -64,7 +64,7 @@ Headless environment, or a client without remote server support? See [authentica
 | **Governance** | Signed audit receipts, GDPR endpoints, consent ledger, breach register |
 | **Operations** | Policy rules, detection settings, webhooks, usage, verification sessions |
 
-See the [full tool reference](/mcp/tools) for all ~80.
+See the [full tool reference](/mcp-server/tools) for all ~80.
 
 <Note>
   Detection quality is identical to the REST API. The MCP server is a transport, not a different model: both are backed by the same tool definitions.
@@ -72,7 +72,7 @@ See the [full tool reference](/mcp/tools) for all ~80.
 
 ## Two things worth knowing early
 
-**Agents cannot resolve incidents.** An MCP token identifies an account, never an individual, so an agent is limited to `confirm` plus read-only work. Escalation, resolution and reopening stay with a human moderator. See [moderation](/mcp/moderation#what-an-agent-may-decide).
+**Agents cannot resolve incidents.** An MCP token identifies an account, never an individual, so an agent is limited to `confirm` plus read-only work. Escalation, resolution and reopening stay with a human moderator. See [moderation](/mcp-server/moderation#what-an-agent-may-decide).
 
 **No user content is stored.** Messages, images, audio, video and documents are processed in memory and never persisted, raw or derived. What exists is the abstracted detection record. Customers running their own moderation stack can switch off even that, via [incident logging control](/incident-logging).
 

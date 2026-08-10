@@ -88,10 +88,10 @@
             "group": "MCP Server",
             "icon": "plug",
             "pages": [
-              "mcp",
-              "mcp/authentication",
-              "mcp/moderation",
-              "mcp/tools"
+              "mcp-server",
+              "mcp-server/authentication",
+              "mcp-server/moderation",
+              "mcp-server/tools"
             ]
           },
           {
@@ -228,7 +228,7 @@
     },
     {
       "source": "/sdks/mcp",
-      "destination": "/mcp"
+      "destination": "/mcp-server"
     }
   ]
 }
