@@ -59,6 +59,7 @@
             "pages": [
               "index",
               "quickstart",
+              "mcp",
               "authentication",
               "how-it-works",
               "comparison",
@@ -82,7 +83,7 @@
               "sdks/dotnet",
               "sdks/unity",
               "sdks/cli",
-              "sdks/mcp"
+              "mcp"
             ]
           },
           {
@@ -216,6 +217,10 @@
     {
       "source": "/api",
       "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/sdks/mcp",
+      "destination": "/mcp"
     }
   ]
 }
