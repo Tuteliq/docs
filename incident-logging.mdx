@@ -43,7 +43,28 @@ The setting is `incident_moderation_enabled` on your account, and it applies to 
 
 </Steps>
 
-There is no per-request override. This is an account-level setting, and detection request payloads are unchanged by it.
+## Per-call override
+
+Every detection endpoint accepts an optional `incident_moderation_enabled` field that overrides the account setting for that single request:
+
+- `true` forces the incident to be logged for this call, even if your account has logging off.
+- `false` suppresses logging for this call, even if your account has logging on.
+- Omit it to use your account setting (the default).
+
+```json
+{
+  "text": "…",
+  "incident_moderation_enabled": false
+}
+```
+
+Precedence is per-call, then account, then the built-in default (`true`). Use it to suppress logging for test traffic, or to opt individual calls in or out without changing your account setting. Everything under [What changes when it is off](#what-changes-when-it-is-off) applies to a call suppressed this way.
+
+<Note>
+  `false` is honoured as an explicit value, not treated as "unset". A suppressed call writes no incident, grooming assessment, or notification, exactly as if the account setting were off.
+</Note>
+
+The field is available in the same place as the other tracking fields (`external_id`, `customer_id`, `metadata`) across the REST API, the Node SDK, and the MCP tools.
 
 ## What changes when it is off
 

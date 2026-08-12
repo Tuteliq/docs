@@ -141,6 +141,7 @@ Detection tools share a common set:
 | `include_evidence` | boolean | No | Return supporting excerpts with flagged phrases and weights |
 | `support_threshold` | string | No | Minimum severity to include crisis helplines. `critical` always includes them |
 | `external_id`, `customer_id` | string | No | Your identifiers, echoed in the response |
+| `incident_moderation_enabled` | boolean | No | Override incident logging for this call: `true` forces it, `false` suppresses it. Omit for your account default. See [incident logging](/incident-logging#per-call-override) |
 | `verdict_only` | boolean | No | Fast mode: verdict without the per-message breakdown |
 
 `verdict_only` is the right trade when screening a live stream: screen everything fast, then re-run only what flags in standard mode for the detail.

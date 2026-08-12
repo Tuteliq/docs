@@ -6,6 +6,36 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
+## v1.17.0 (August 2026)
+
+### Improved: grooming detection recognises protective and educational speech
+
+`detect_grooming` now more reliably distinguishes speech that *warns about* or
+*teaches* grooming tactics from grooming itself. A parent telling a child "if
+someone asks you to keep secrets from us, tell me", a teacher's lesson on
+recognising grooming, and a survivor sharing their experience to help others
+are treated as safe, where before they were sometimes flagged for review.
+
+Detection of actual grooming is unchanged, including attempts wrapped in an
+"I'm just teaching you" framing that still ask the child to keep secrets, meet,
+or hide from their guardians. Those remain flagged.
+
+### Added: control incident logging per call
+
+Incident logging could already be switched off for a whole account. Every
+detection endpoint now also accepts an optional `incident_moderation_enabled`
+field that overrides that account setting for a single request: `true` forces
+the incident to be logged, `false` suppresses it, and omitting it uses your
+account default. Precedence is per-call, then account, then the built-in
+default (`true`).
+
+Use it to suppress logging for test traffic, or to opt individual calls in or
+out without changing your account setting. The field sits alongside the other
+tracking fields (`external_id`, `customer_id`, `metadata`) and is available
+across the REST API, the [Node SDK](/sdks/node) (2.23.0) and the
+[MCP tools](/mcp-server/tools) (3.21.7). See
+[incident logging control](/incident-logging#per-call-override).
+
 ## v1.16.0 (August 2026)
 
 ### Added: MCP connections refresh themselves
