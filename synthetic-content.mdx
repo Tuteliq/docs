@@ -18,7 +18,7 @@ For images and video, Tuteliq goes far beyond a single model call. The **multi-s
     Frame-by-frame face identity tracking, landmark stability analysis, and audio-visual lip-sync correlation to catch deepfakes that single-frame analysis misses.
   </Card>
   <Card title="Spectral Audio Forensics" icon="waveform-lines">
-    Mel spectrogram analysis via vision AI plus quantitative audio statistics — dynamic range, silence ratio, flat factor — to detect synthetic speech beyond transcript analysis.
+    Mel spectrogram analysis on our own EU-hosted vision models, plus quantitative audio statistics (dynamic range, silence ratio, flat factor) to detect synthetic speech beyond transcript analysis.
   </Card>
 </CardGroup>
 
@@ -256,7 +256,7 @@ Content-Type: multipart/form-data
     { "text": "Uniform skin texture and symmetrical facial features", "tactic": "AI_GENERATION_ARTIFACT_DETECTION", "weight": 0.9 }
   ],
   "recommended_action": "flag_for_review",
-  "rationale": "Multi-signal forensic analysis: vision AI detected artifacts, EXIF metadata lacks camera model, C2PA manifest confirms AI generation by DALL-E 3.",
+  "rationale": "Multi-signal forensic analysis: forensic vision models detected artifacts, EXIF metadata lacks camera model, C2PA manifest confirms AI generation by DALL-E 3.",
   "input_type": "image",
   "vision": {
     "is_likely_synthetic": true,
@@ -327,7 +327,7 @@ Content-Type: multipart/form-data
 
 ## Audio Detection
 
-Analyzes uploaded audio using **dual-signal forensics**: transcript-based text analysis plus spectral analysis — mel spectrogram via vision AI and quantitative audio statistics for synthetic speech indicators.
+Analyzes uploaded audio using **dual-signal forensics**: transcript-based text analysis plus spectral analysis, with the mel spectrogram assessed by our own EU-hosted vision models alongside quantitative audio statistics for synthetic speech indicators.
 
 ```
 POST /api/v1/safety/synthetic-content/audio
