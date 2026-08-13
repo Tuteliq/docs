@@ -12,7 +12,11 @@ Tuteliq processes content through a multi-stage AI pipeline designed specificall
 
 ### 1. Content ingestion & language detection
 
-When you send a request to any Safety endpoint, Tuteliq first normalizes the input and detects the content language. Text is analyzed directly. Audio files are transcribed via Whisper and then analyzed as text with timestamped segments preserved. Images are processed through Vision AI for visual classification and OCR text extraction simultaneously — so a screenshot of a harmful conversation is caught by both the visual and textual classifiers.
+When you send a request to any Safety endpoint, Tuteliq first normalizes the input and detects the content language. Text is analyzed directly. Audio is transcribed and then analyzed as text with timestamped segments preserved. Images are processed for visual classification and OCR text extraction simultaneously — so a screenshot of a harmful conversation is caught by both the visual and textual classifiers.
+
+<Info>
+  **Transcription runs on our own infrastructure.** Audio is transcribed by a self-hosted Whisper deployment on our GCP infrastructure in an EU region. It is never sent to a third-party transcription API, and it is never written to disk: the audio is transcribed and analysed in memory and discarded when the request completes.
+</Info>
 
 Language detection uses a layered approach for maximum reliability:
 
