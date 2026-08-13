@@ -161,7 +161,7 @@ DOB is extracted from multiple sources and cross-referenced. Priority order:
 1. **MRZ** (Machine Readable Zone) — Most reliable. ICAO 9303 check digit validated.
 2. **PDF417 barcode** — US/Canadian driver's licenses. AAMVA-encoded structured data.
 3. **OCR labels** — Text patterns like "Date of Birth:", "DOB:", date formats.
-4. **Selfie estimation** — Vision AI age bracket classification (fallback).
+4. **Selfie estimation** — AgeNet, our own convolutional age-estimation model, run on our infrastructure (fallback). No LLM and no third-party vision API touches a verification image.
 
 When multiple sources disagree, the verification flags the inconsistency.
 

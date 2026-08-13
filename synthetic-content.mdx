@@ -12,7 +12,7 @@ For images and video, Tuteliq goes far beyond a single model call. The **multi-s
 
 <CardGroup cols={3}>
   <Card title="6-Signal Image Pipeline" icon="microscope">
-    Vision AI, EXIF metadata, pixel statistics, C2PA Content Credentials, frequency-domain watermark analysis, and perceptual hash matching — all in parallel.
+    Our own forensic vision models, EXIF metadata, pixel statistics, C2PA Content Credentials, frequency-domain watermark analysis, and perceptual hash matching — all in parallel.
   </Card>
   <Card title="Temporal + Lip-Sync Video" icon="video">
     Frame-by-frame face identity tracking, landmark stability analysis, and audio-visual lip-sync correlation to catch deepfakes that single-frame analysis misses.
@@ -49,6 +49,34 @@ For images and video, Tuteliq goes far beyond a single model call. The **multi-s
 <Warning>
 `SYNTHETIC_CSAM` always escalates to severity 1.0, level `critical`, and recommended action `immediate_intervention` regardless of confidence score.
 </Warning>
+
+### Detecting CSAM risk without CSAM training data
+
+Hash matching (PhotoDNA, the IWF Hash List) catches material that has already been
+reported and catalogued. It cannot catch anything new. We approach the problem
+differently, through **compositional signal analysis**: several independent models
+each answer a narrow, legitimate question, and risk is inferred from how their
+answers combine.
+
+**Tuteliq never trains on, stores, or accesses real CSAM imagery.** That is a
+deliberate architectural constraint rather than a limitation, and it is what makes
+it possible to identify new, previously unseen exploitative content that has never
+been reported, hashed or catalogued.
+
+| Signal | What it does |
+|---|---|
+| **Age estimation** | Our own convolutional pipeline with multi-face detection. Applies a conservative ±3 year buffer biased toward the younger estimate. |
+| **Anatomical detection** | Our own ONNX model covering 18 body-part classes with severity levels. Anatomical findings override abstract scoring. |
+| **Skin exposure analysis** | HSV segmentation with body-zone distribution and intimate-region concentration detection. |
+| **Benign context recognition** | Recognises bath, beach and pool settings, with age-tiered thresholds: under-6 requires 90% NSFW confidence, while 13-17 requires only 30%. |
+
+Every one of these runs on models we train and host ourselves. No image is sent to
+a third-party vision API, and no image is retained once the request completes.
+
+<Info>
+  This is **complementary to hash-based systems, not a replacement**. They catch
+  known CSAM; this catches unknown CSAM. Run both.
+</Info>
 
 ---
 
@@ -125,7 +153,7 @@ Content-Type: multipart/form-data
   <Step title="Multi-Signal Forensic Analysis">
     Six independent analysis engines run in parallel, each fault-isolated so failures in one don't affect others:
 
-    1. **Vision AI** — Forensic prompt inspects pixel-level artifacts (face consistency, skin texture, hand anomalies, background coherence, lighting mismatches)
+    1. **Forensic vision models (ours)** — Purpose-trained models we run on our own infrastructure inspect pixel-level artifacts (face consistency, skin texture, hand anomalies, background coherence, lighting mismatches). No third-party vision API is involved.
     2. **EXIF Metadata** — Checks for AI generator signatures in EXIF tags, XMP data, and PNG text chunks. Flags suspicious absence of camera metadata.
     3. **Pixel Statistics** — Shannon entropy, edge density (Laplacian convolution), and channel uniformity analysis
     4. **C2PA Content Credentials** — Detects and validates C2PA manifests from DALL-E, Adobe Firefly, Google Imagen, and other tools
@@ -221,7 +249,7 @@ Content-Type: multipart/form-data
 
 | Signal | Weight | What It Checks |
 |---|---|---|
-| **Vision AI** | 30% | Face consistency, skin texture, hand anomalies, background coherence, lighting, hair rendering, text/symbols, resolution, AI model signatures |
+| **Forensic vision models (ours)** | 30% | Face consistency, skin texture, hand anomalies, background coherence, lighting, hair rendering, text/symbols, resolution, AI model signatures |
 | **EXIF Metadata** | 15% | Camera model, GPS, AI generator names in EXIF/XMP, PNG tEXt chunks (Stable Diffusion parameters), suspicious absence of camera data |
 | **Pixel Statistics** | 15% | Shannon entropy, Laplacian edge density, channel uniformity — GAN images have distinctive statistical signatures |
 | **C2PA Provenance** | 15% | Content Credentials manifests from DALL-E, Firefly, Imagen. **Definitive** when present — overrides classifier. |
