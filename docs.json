@@ -98,6 +98,7 @@
             "group": "Integrations",
             "icon": "plug",
             "pages": [
+              "integrations/vercel-ai-sdk",
               "integrations/roblox",
               "integrations/discord",
               "integrations/slack",

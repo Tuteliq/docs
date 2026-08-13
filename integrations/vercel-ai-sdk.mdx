@@ -1,0 +1,333 @@
+---
+title: Vercel AI SDK
+sidebarTitle: Vercel AI SDK
+icon: bolt
+description: Wrap a Vercel AI SDK chatbot with inbound and outbound Tuteliq moderation using language model middleware.
+keywords: [vercel ai sdk, ai sdk, streamText, middleware, chatbot moderation, ai companion, tutoring bot, next.js]
+---
+
+Wrap any Vercel AI SDK model with Tuteliq so every turn is screened in both
+directions, without touching the code that calls the model.
+
+This guide uses `wrapLanguageModel`, so moderation lives on the model itself. No
+route can forget to moderate, because there is nothing to remember.
+
+<Info>
+  The middleware below is verified against `ai` v6. If you are on an older major,
+  check the middleware type name and the stream part shape before copying.
+</Info>
+
+## Two pipelines, two detectors
+
+A tutoring or companion product usually has two distinct conversation types, and
+they need different detection. Conflating them is the most common mistake.
+
+| Pipeline | Participants | Risk | Endpoint |
+|---|---|---|---|
+| AI companion or curriculum bot | child ↔ model | child discloses distress; model emits something age-inappropriate | `detect_unsafe`, both directions |
+| Human tutor or peer chat | adult ↔ child | grooming, boundary erosion across sessions | `detect_grooming` with [continuation tokens](/continuation-tokens) |
+
+The first is a per-turn gate. The second is a **trajectory** problem: no single
+message looks wrong, the arc does. Only the second needs continuation tokens.
+This page covers the first, then shows the second.
+
+## Design decisions
+
+**Outbound streaming is the hard part.** You cannot moderate a reply before it
+starts rendering. Three approaches:
+
+<CardGroup cols={3}>
+  <Card title="Buffer then emit" icon="shield-check">
+    Collect the whole reply, moderate once, emit. Costs time-to-first-token. The right default for a minors product.
+  </Card>
+  <Card title="Sentence gated" icon="forward-step">
+    Release one moderated sentence at a time. Keeps progressive rendering, one call per sentence.
+  </Card>
+  <Card title="Optimistic" icon="triangle-exclamation">
+    Stream first, retract if flagged. Best latency, but the child has already read it. Not suitable for minors.
+  </Card>
+</CardGroup>
+
+**Fail open or fail closed, decided per direction.** If Tuteliq is unreachable:
+
+- **Inbound** (the child's own message): fail **open**. A moderation outage must
+  not lock a child out of their lesson.
+- **Outbound** (the model's reply): fail **closed**. If you cannot verify what
+  the model is about to say to a minor, do not say it.
+
+**Use `verdict_only`.** [Fast mode](/fast-mode) omits the per-message breakdown,
+which is the bulk of the response. Use the full response only when writing to a
+moderator queue.
+
+**Distress is not a block.** If a child says something that flags `self_harm` or
+`distress_signals`, blocking them is the wrong response. Let the turn through and
+surface the support resources Tuteliq returns.
+
+## Moderation helpers
+
+```ts lib/tuteliq/moderation.ts
+import { Tuteliq } from '@tuteliq/sdk'
+
+export const tuteliq = new Tuteliq(process.env.TUTELIQ_API_KEY!)
+
+export type Verdict = {
+  blocked: boolean
+  severity: 'none' | 'low' | 'medium' | 'high' | 'critical'
+  categories: string[]
+  support?: unknown
+}
+
+const BLOCK_AT = ['high', 'critical']
+
+/** Categories that mean "this child needs help", not "block this child". */
+const SUPPORT_NOT_BLOCK = ['self_harm', 'depression_anxiety', 'distress_signals', 'loneliness']
+
+/** Inbound: the learner's own message. Fails OPEN. */
+export async function moderateInbound(
+  text: string,
+  opts: { ageGroup?: string; language?: string } = {},
+): Promise<Verdict> {
+  try {
+    const r = await tuteliq.detectUnsafe({
+      text,
+      context: { age_group: opts.ageGroup, language: opts.language },
+      options: { verdict_only: true },
+    })
+    const categories = r.categories ?? []
+    return {
+      blocked: BLOCK_AT.includes(r.severity) && !categories.every(c => SUPPORT_NOT_BLOCK.includes(c)),
+      severity: r.severity,
+      categories,
+      support: (r as any).support,
+    }
+  } catch (err) {
+    console.error('[tuteliq] inbound unavailable, failing open', err)
+    return { blocked: false, severity: 'none', categories: [] }
+  }
+}
+
+/** Outbound: the model's reply. Fails CLOSED. */
+export async function moderateOutbound(
+  text: string,
+  opts: { ageGroup?: string; language?: string } = {},
+): Promise<Verdict> {
+  if (!text.trim()) return { blocked: false, severity: 'none', categories: [] }
+  try {
+    const r = await tuteliq.detectUnsafe({
+      text,
+      context: { age_group: opts.ageGroup, language: opts.language },
+      options: { verdict_only: true },
+    })
+    return { blocked: BLOCK_AT.includes(r.severity), severity: r.severity, categories: r.categories ?? [] }
+  } catch (err) {
+    console.error('[tuteliq] outbound unavailable, failing closed', err)
+    return { blocked: true, severity: 'critical', categories: ['moderation_unavailable'] }
+  }
+}
+```
+
+## The middleware
+
+```ts lib/tuteliq/middleware.ts
+import type { LanguageModelV4Middleware } from '@ai-sdk/provider'
+import { moderateInbound, moderateOutbound, type Verdict } from './moderation'
+
+export class ModerationBlocked extends Error {
+  constructor(public verdict: Verdict) {
+    super('Blocked by moderation')
+    this.name = 'ModerationBlocked'
+  }
+}
+
+type Options = {
+  ageGroup?: string
+  language?: string
+  refusalText?: string
+  onFlag?: (verdict: Verdict, direction: 'inbound' | 'outbound') => void | Promise<void>
+}
+
+const DEFAULT_REFUSAL =
+  "Let's keep to the lesson. If something is worrying you, please talk to a parent or teacher you trust."
+
+export function tuteliqMiddleware(options: Options = {}): LanguageModelV4Middleware {
+  const refusalText = options.refusalText ?? DEFAULT_REFUSAL
+
+  return {
+    // Inbound: screen the last user turn before it reaches the model.
+    transformParams: async ({ params }) => {
+      const lastUser = [...(params.prompt ?? [])].reverse().find((m: any) => m.role === 'user')
+      const text = textOf(lastUser?.content)
+      if (!text) return params
+
+      const verdict = await moderateInbound(text, options)
+      if (verdict.severity !== 'none') await options.onFlag?.(verdict, 'inbound')
+      if (verdict.blocked) throw new ModerationBlocked(verdict)
+
+      return params
+    },
+
+    // Outbound, non-streaming.
+    wrapGenerate: async ({ doGenerate }) => {
+      const result = await doGenerate()
+      const text = result.content.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('')
+
+      const verdict = await moderateOutbound(text, options)
+      if (!verdict.blocked) return result
+
+      await options.onFlag?.(verdict, 'outbound')
+      return { ...result, content: [{ type: 'text' as const, text: refusalText }] }
+    },
+
+    // Outbound, streaming: buffer, moderate once, then emit.
+    wrapStream: async ({ doStream }) => {
+      const { stream, ...rest } = await doStream()
+      const parts: any[] = []
+
+      const gate = new TransformStream({
+        transform(chunk) {
+          parts.push(chunk)
+        },
+        async flush(controller) {
+          const text = parts.filter(p => p.type === 'text-delta').map(p => p.delta).join('')
+          const verdict = await moderateOutbound(text, options)
+
+          for (const part of parts) {
+            // Non-text parts (stream-start, text-start/end, finish) always pass,
+            // or the SDK cannot close the stream cleanly.
+            if (part.type !== 'text-delta') controller.enqueue(part)
+            else if (!verdict.blocked) controller.enqueue(part)
+          }
+
+          if (verdict.blocked) {
+            await options.onFlag?.(verdict, 'outbound')
+            const anchor = parts.find(p => p.type === 'text-delta')
+            controller.enqueue({ type: 'text-delta', id: anchor?.id ?? '0', delta: refusalText })
+          }
+        },
+      })
+
+      return { stream: stream.pipeThrough(gate), ...rest }
+    },
+  }
+}
+
+function textOf(content: unknown): string {
+  if (typeof content === 'string') return content
+  if (!Array.isArray(content)) return ''
+  return content.filter((p: any) => p.type === 'text').map((p: any) => p.text).join(' ')
+}
+```
+
+<Warning>
+  Non-text stream parts must always be forwarded. If you drop `finish` or
+  `text-end` while blocking, the stream never closes and the request hangs.
+</Warning>
+
+## Wiring it into a route
+
+```ts app/api/chat/route.ts
+import { streamText, wrapLanguageModel } from 'ai'
+import { openai } from '@ai-sdk/openai'
+import { tuteliqMiddleware, ModerationBlocked } from '@/lib/tuteliq/middleware'
+
+export async function POST(req: Request) {
+  const { messages, ageGroup, language } = await req.json()
+
+  const model = wrapLanguageModel({
+    model: openai('gpt-4o'),
+    middleware: tuteliqMiddleware({
+      ageGroup,
+      language, // omit to auto-detect
+      onFlag: async (verdict, direction) => {
+        // Persist the transcript HERE if you may need it as evidence.
+        // Tuteliq does not retain content.
+        await recordIncident({ verdict, direction, messages })
+      },
+    }),
+  })
+
+  try {
+    return streamText({ model, messages }).toDataStreamResponse()
+  } catch (err) {
+    if (err instanceof ModerationBlocked) {
+      return Response.json({ error: 'blocked', verdict: err.verdict }, { status: 422 })
+    }
+    throw err
+  }
+}
+```
+
+## Human conversations: trajectory, not turns
+
+For chat between a human adult and a child, per-turn scoring is not enough.
+Grooming is an arc. Pass the [continuation token](/continuation-tokens) from each
+call into the next so escalation is tracked across the session, without Tuteliq
+storing the conversation.
+
+```ts lib/tuteliq/trajectory.ts
+import { tuteliq } from './moderation'
+
+export async function scoreTurn(conversationId: string, newTurns: Turn[], childAge: number) {
+  const prior = await tokenStore.get(conversationId)
+
+  const result = await tuteliq.detectGrooming({
+    messages: newTurns.map(t => ({ role: t.fromAdult ? 'adult' : 'child', content: t.text })),
+    childAge,
+    continuation_token: prior ?? undefined,
+    options: { verdict_only: true },
+  })
+
+  await tokenStore.set(conversationId, result.continuation_token, {
+    expiresAt: result.continuation_expires_at,
+  })
+
+  if (['high', 'critical'].includes(result.grooming_risk)) {
+    await escalate({
+      conversationId,
+      risk: result.grooming_risk,
+      flags: result.flags,
+      guide: result.response_guide, // immediate actions for your safeguarding lead
+      support: result.support,      // localised helplines for the child's country
+      transcript: newTurns,         // you must capture this; Tuteliq does not keep it
+    })
+  }
+}
+```
+
+Three things that catch people out:
+
+- **Send only new turns.** The token carries the history. Resending the whole
+  conversation double-counts tactics.
+- **Tokens expire after about 24 hours.** An expired or missing token is not an
+  error; the call simply starts a fresh trajectory.
+- **Set the child's profile country** so helplines resolve locally. It comes from
+  the user profile, not the language: an Arabic-speaking child in Germany should
+  get German resources.
+
+## Evidence capture
+
+Tuteliq operates a content-out pipeline and does not retain the messages you
+send. If you may need a conversation as evidence for a report to NCMEC, the IWF
+or a regional hotline, **your `onFlag` handler is where you capture it**. Design
+that in from the first commit rather than discovering it during an incident.
+
+Tuteliq issues signed [audit receipts](/api-reference/audit)
+proving what was analysed and what verdict was returned, which is the vendor-side
+artifact a regulator typically asks for. The content itself has to come from you.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Continuation tokens" icon="link" href="/continuation-tokens">
+    How trajectory state works across turns.
+  </Card>
+  <Card title="Fast mode" icon="gauge-high" href="/fast-mode">
+    Cutting latency on the inline path.
+  </Card>
+  <Card title="Node SDK" icon="node-js" href="/sdks/node">
+    Full SDK reference.
+  </Card>
+  <Card title="Incident logging" icon="clipboard-list" href="/incident-logging">
+    Routing what moderation surfaces.
+  </Card>
+</CardGroup>
