@@ -117,10 +117,35 @@ The following endpoints are publicly accessible and require no authentication:
 
 See the [GDPR Compliance](/gdpr) page for detailed data subject rights endpoints and consent management.
 
+## Independent penetration test
+
+Tuteliq's API was penetration tested by an independent third party (Workstreet)
+in February 2026, against the production surface at `api.tuteliq.ai`.
+
+| | Result |
+|---|---|
+| Overall risk rating | **Low** |
+| Critical findings | **0** |
+| High findings | **0** |
+| Medium findings | **0** |
+| Low findings | 2, both remediated |
+| Informational | 2, one remediated and one accepted by design |
+
+Both low-severity findings were closed within two weeks: standardised
+`RateLimit-*` response headers were added, and `'unsafe-inline'` was removed from
+the script-src content security policy in favour of per-request nonces with
+`strict-dynamic`. We also added an RFC 9116 `/.well-known/security.txt`. The
+informational finding we did not action was the public exposure of the OpenAPI
+specification, which is intentional: it is the documentation endpoint this site
+is built from.
+
+The full report is available under NDA. Contact
+[security@tuteliq.ai](mailto:security@tuteliq.ai).
+
 ## Certification
 
 Tuteliq also offers a **free certification program** for individuals and organizations who want to demonstrate their commitment to child safety. See the [Certification](/certification) page for details, or start directly at [tuteliq.ai/certify](https://tuteliq.ai/certify).
 
 ## Questions
 
-For security inquiries, compliance questions, or to request our latest penetration test report, contact [security@tuteliq.ai](mailto:security@tuteliq.ai).
+For security inquiries, compliance questions, or to request the [penetration test report](#independent-penetration-test) under NDA, contact [security@tuteliq.ai](mailto:security@tuteliq.ai). Vulnerability reports are welcome at the same address; see [/.well-known/security.txt](https://api.tuteliq.ai/.well-known/security.txt).
