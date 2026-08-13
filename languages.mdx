@@ -2,11 +2,11 @@
 title: Language Support
 sidebarTitle: Languages
 icon: globe
-description: "Automatic language detection and culture-aware safety analysis in 27 languages"
+description: "Automatic language detection and culture-aware safety analysis in 32 languages"
 keywords: [language detection, multilingual, i18n, localization, auto-detect]
 ---
 
-Tuteliq detects and analyzes content in 27 languages. Language is auto-detected — no configuration required.
+Tuteliq detects and analyzes content in 32 languages. Language is auto-detected — no configuration required.
 
 ## Supported Languages
 
@@ -39,6 +39,11 @@ Tuteliq detects and analyzes content in 27 languages. Language is auto-detected 
 | `sl` | Slovenian  | Beta   | |
 | `mt` | Maltese    | Beta   | Heavy English-Maltese code-switching supported |
 | `ga` | Irish      | Beta   | Explicit `language: "ga"` recommended for best results |
+| `zh` | Chinese    | Beta   | Simplified and Traditional |
+| `ja` | Japanese   | Beta   | |
+| `ko` | Korean     | Beta   | |
+| `ar` | Arabic     | Beta   | MSA plus Egyptian, Levantine, Gulf and Maghrebi dialects; Arabizi (Latin-and-numeral) writing recognized |
+| `ru` | Russian    | Beta   | Translit (Latin-alphabet) writing recognized |
 
 <Info>
   **Stable** means fully validated with comprehensive test coverage. **Beta** languages are production-ready but may have slightly lower accuracy on edge cases. All beta languages include culture-specific analysis guidelines.
@@ -136,7 +141,7 @@ If the detected language is not in the supported set and the text is long enough
 {
   "error": {
     "code": "ANALYSIS_6009",
-    "message": "Detected language \"Chinese\" is not supported. Supported languages: en, es, pt, uk, sv, no, da, fi, de, fr, nl, pl, it, tr, ro, el, cs, hu, bg, hr, sk, lt, lv, et, sl, mt, ga."
+    "message": "Detected language \"Thai\" is not supported. Supported languages: en, es, pt, uk, sv, no, da, fi, de, fr, nl, pl, it, tr, ro, el, cs, hu, bg, hr, sk, lt, lv, et, sl, mt, ga, zh, ja, ko, ar, ru."
   }
 }
 ```

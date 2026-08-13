@@ -115,7 +115,7 @@ Pass a `context` object with any detection request to improve accuracy:
 | Field | Type | Description |
 |-------|------|-------------|
 | `age_group` | string | `"under 10"`, `"10-12"`, `"13-15"`, `"16-17"`, or `"under 18"`. Triggers age-calibrated severity scoring. |
-| `language` | string | ISO 639-1 code (e.g., `"en"`, `"de"`, `"sv"`). Auto-detected if omitted. [27 languages supported](/languages). |
+| `language` | string | ISO 639-1 code (e.g., `"en"`, `"de"`, `"sv"`). Auto-detected if omitted. [32 languages supported](/languages). |
 | `platform` | string | Platform name (e.g., `"Discord"`, `"Roblox"`, `"WhatsApp"`). Adjusts for platform-specific norms. |
 | `conversation_history` | array | Prior messages for context-aware analysis. Each message needs `role` and `text`. |
 | `sender_trust` | string | `"verified"`, `"trusted"`, or `"unknown"`. Verified senders suppress authority impersonation false positives. |
