@@ -131,13 +131,10 @@ in February 2026, against the production surface at `api.tuteliq.ai`.
 | Low findings | 2, both remediated |
 | Informational | 2, one remediated and one accepted by design |
 
-Both low-severity findings were closed within two weeks: standardised
-`RateLimit-*` response headers were added, and `'unsafe-inline'` was removed from
-the script-src content security policy in favour of per-request nonces with
-`strict-dynamic`. We also added an RFC 9116 `/.well-known/security.txt`. The
-informational finding we did not action was the public exposure of the OpenAPI
-specification, which is intentional: it is the documentation endpoint this site
-is built from.
+Both low-severity findings were closed within two weeks and the fixes verified in
+production. The one informational finding we did not action was the public
+exposure of the OpenAPI specification, which is intentional: it is the
+documentation endpoint this site is built from.
 
 The full report is available under NDA. Contact
 [security@tuteliq.ai](mailto:security@tuteliq.ai).
