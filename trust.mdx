@@ -37,7 +37,7 @@ The **Tuteliq Trust Center** at [trust.tuteliq.ai](https://trust.tuteliq.ai) is 
 |------|-----------|
 | **Encryption** | TLS 1.3 in transit, AES-256 at rest |
 | **Data residency** | EU by default; US region available on request |
-| **Retention** | Analysis results: 90 days · Audio files: 24 hours · API logs: 30 days |
+| **Retention** | No user content, ever. The only record kept is the end-to-end encrypted incident report, which is the model's response and contains no content. Opt out entirely with `incident_moderation_enabled: false`. |
 | **Erasure** | Full data deletion within 1 hour of request |
 | **Access control** | Role-based access, audit logging, API key scoping |
 | **Incident response** | 24-hour notification for security incidents |
@@ -59,13 +59,18 @@ We operate a **content-out, metadata-in** pipeline. The distinction matters beca
 
 ### What we do store
 
+One thing: the **incident report**. It is the model's response, not your content, and it is end-to-end encrypted. It exists so the moderation dashboard has something to show you, which is why it is **entirely optional**: set `incident_moderation_enabled: false` on the account or on any single call and nothing is written at all.
+
 | Data | Why | Retention |
 |---|---|---|
-| Classification result (category, severity, confidence, recommended action) | Powers your moderation dashboard | 90 days |
-| LLM rationale that explains a flag | T&S analysts need context to review incidents | 90 days, encrypted at rest |
+| Classification result (category, severity, confidence, recommended action) | Powers your moderation dashboard | 90 days, or never if disabled |
+| Model rationale explaining the flag, stripped of quoted content and PII before it is written | Analysts need context to review an incident | 90 days, end-to-end encrypted, or never if disabled |
 | Aggregated trend signals (k-anonymised) | Powers `/intelligence` endpoints | 90 days |
 | API logs (no message body) | Operations, billing, abuse | 30 days |
-| Audio analysis results | Transcript-derived classification metadata | 24 hours |
+
+<Info>
+  **End-to-end means we cannot read it.** Incident fields are encrypted to a public key you register, so only you can decrypt them. If you never register a key, or you disable incident logging, there is correspondingly less or nothing for anyone to read. Either way the underlying content was already gone.
+</Info>
 
 ### Your controls
 

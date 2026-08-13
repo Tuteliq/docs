@@ -212,5 +212,5 @@ curl https://api.tuteliq.ai/compliance/retention
 ```
 
 <Note>
-  Audio files submitted to `/safety/voice` and the voice streaming endpoint are automatically deleted within 24 hours of processing. Transcriptions are retained according to the `analysis_results` policy.
+  Audio submitted to `/safety/voice` and the voice streaming endpoint is **never stored**. It is transcribed and analysed in memory and discarded when the request completes; there is no 24-hour window and no audio at rest. The same applies to images, video, documents and message text. What can be retained is the classification result, and only if incident logging is enabled.
 </Note>
