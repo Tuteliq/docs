@@ -6,7 +6,7 @@ description: How Tuteliq covers all nine Kids Online Safety Act harm categories
 keywords: [KOSA, compliance, harm categories, regulation]
 ---
 
-The **Kids Online Safety Act (KOSA)** requires covered platforms to prevent and mitigate specific categories of harm to minors. Tuteliq provides API endpoints that map directly to each of the nine KOSA harm categories, giving you a single integration point for full compliance coverage.
+The **Kids Online Safety Act (KOSA)** requires covered platforms to prevent and mitigate specific categories of harm to minors. Tuteliq provides API endpoints that map to every KOSA harm category, giving you a single integration point for the detection half of your compliance programme.
 
 ## Coverage Matrix
 
@@ -36,8 +36,8 @@ Tuteliq also provides detection for harm categories beyond the core nine KOSA re
 | Coercive Control           | `/safety/coercive-control`                       | Isolation, financial control, surveillance |
 | Vulnerability Exploitation | `/safety/vulnerability-exploitation`             | Cross-endpoint vulnerability profiling |
 | Radicalisation             | `/safety/radicalisation`                         | Extremist rhetoric, recruitment patterns |
-| Age Verification           | `/verification/age`                              | Document-based age assurance (Beta — Assure and above) |
-| Identity Verification      | `/verification/identity`                         | Document + liveness identity confirmation (Beta — Assure and above) |
+| Age Verification           | `/verify/age/submit`                             | Document-based age assurance (Beta — Assure and above) |
+| Identity Verification      | `/verify/identity/submit`                        | Document + liveness identity confirmation (Beta — Assure and above) |
 
 ## Category Details
 
@@ -102,7 +102,7 @@ All KOSA harm categories are detected across 32 languages: English (stable), plu
 
 ## Implementation Guidance
 
-To achieve full KOSA coverage, integrate the following endpoints into your content pipeline:
+To cover every harm category, integrate the following endpoints into your content pipeline:
 
 <Steps>
   <Step title="Text Content">

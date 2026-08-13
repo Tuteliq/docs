@@ -55,7 +55,7 @@ Most verification providers give you OCR and a face match. Tuteliq cross-referen
 
 ## Age Verification
 
-`POST /v1/verification/age`
+`POST /api/v1/verify/age/submit`
 
 Verify a user's age through document analysis, biometric age estimation, or both. Returns a verified age range, confidence score, and detailed document intelligence.
 
@@ -101,7 +101,7 @@ print(result.is_minor)        # True
 ```
 
 ```bash cURL
-curl -X POST https://api.tuteliq.ai/v1/verification/age \
+curl -X POST https://api.tuteliq.ai/api/v1/verify/age/submit \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -F "document=@id-front.jpg" \
   -F "document_back=@id-back.jpg" \
