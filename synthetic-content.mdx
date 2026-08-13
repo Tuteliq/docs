@@ -78,6 +78,43 @@ a third-party vision API, and no image is retained once the request completes.
   known CSAM; this catches unknown CSAM. Run both.
 </Info>
 
+#### Knowing which layers ran: `sources`
+
+Every `csam_assessment` reports the detection layers that produced it:
+
+```json
+"csam_assessment": {
+  "risk_level": "low",
+  "risk_score": 0.0435,
+  "requires_escalation": false,
+  "requires_review": false,
+  "sources": ["tuteliq_compositional"],
+  "signals": [],
+  "age_signal": { "...": "..." }
+}
+```
+
+| Source | Method | Availability |
+|---|---|---|
+| `tuteliq_compositional` | Our own models: age estimation, anatomical detection, skin exposure, benign context | All plans |
+| `iwf_hash_list` | Hash matching against the IWF Hash List | **IWF members only.** Requires your own IWF membership. |
+
+The naming convention is `{authority}_{method}`: the prefix is the organisation
+whose system made the assertion, the suffix is how. That is deliberate, because
+an assessment can become evidence, and the question asked of it later is
+provenance.
+
+<Note>
+  A source is listed when it **ran**, not when it matched. `iwf_hash_list`
+  appearing with no corresponding signal means the known-material list was
+  checked and came back clean, which is a stronger statement than its absence.
+</Note>
+
+`sources` is **reported, not requested.** There is no parameter to switch a
+detection layer off, and which layers run is determined by your account
+entitlement rather than by the request. Adding a source is a non-breaking
+change: responses simply become richer, and no client code has to change.
+
 #### Matching against the IWF Hash List
 
 If your organisation is an **Internet Watch Foundation member**, you can pair the
