@@ -121,6 +121,7 @@
             "icon": "bolt",
             "pages": [
               "composability",
+              "policy-automation",
               "grooming-detection",
               "bullying-toxicity-detection",
               "fast-mode",

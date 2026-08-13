@@ -1,0 +1,116 @@
+---
+title: Policy automation
+sidebarTitle: Policy automation
+icon: sliders
+description: Encode your own escalation thresholds and automated actions as server-side rules, evaluated on every detection.
+keywords: [policy engine, automation, escalation rules, moderation policy, thresholds, block, flag, escalate, trust and safety]
+---
+
+Every platform draws its own lines. A gaming community and a tutoring product can
+run the same detectors and reasonably want different thresholds, different
+escalation paths, and different definitions of "act now".
+
+Policy automation lets you encode those decisions as **server-side rules** that
+evaluate on every detection, so the judgement lives with your safeguarding
+policy rather than scattered through your application code.
+
+<Info>
+  Available on **Assure** and **Enterprise**.
+</Info>
+
+## What a rule looks like
+
+A rule is a set of conditions and an action. When a detection matches the
+conditions, the action is applied and returned to you in `policy_action`.
+
+```json
+{
+  "name": "Escalate grooming for under-13s",
+  "enabled": true,
+  "endpoints": ["grooming"],
+  "conditions": {
+    "min_severity": "high",
+    "age_groups": ["under 10", "10-12"]
+  },
+  "action": {
+    "type": "escalate",
+    "escalate_to": "safeguarding-lead",
+    "message": "Under-13 grooming signal. Preserve evidence before contacting the account."
+  },
+  "priority": 10
+}
+```
+
+**Conditions** can combine a minimum risk score, a minimum severity, specific
+categories, and age groups. **Endpoints** scopes the rule to particular detectors,
+or `["*"]` for all of them.
+
+**Actions** are one of:
+
+| Action | Effect |
+|---|---|
+| `block` | Content should not be published. Returned as a decisive verdict for your pipeline to enforce. |
+| `flag` | Publish, but mark for review. |
+| `escalate` | Route to a named person or queue, for the cases a moderator must see. |
+| `notify` | Fire a webhook or channel notification without changing the verdict. |
+| `log_only` | Record the match and do nothing else. Useful for trialling a rule before enforcing it. |
+
+Rules are evaluated in `priority` order, so you can put narrow, high-stakes rules
+above broad ones.
+
+## Managing rules
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/v1/policy/automation` | List all rules |
+| `POST /api/v1/policy/automation` | Create a rule |
+| `GET /api/v1/policy/automation/{ruleId}` | Fetch one rule |
+| `PUT /api/v1/policy/automation/{ruleId}` | Update a rule |
+| `DELETE /api/v1/policy/automation/{ruleId}` | Delete a rule |
+| `POST /api/v1/policy/automation/evaluate` | Dry-run a payload against your rules |
+
+The same operations are available as MCP tools if you drive moderation from an
+agent.
+
+## Test before you enforce
+
+`POST /api/v1/policy/automation/evaluate` runs a hypothetical detection result
+through your rule set and returns what *would* have happened, changing nothing.
+
+Combined with `log_only`, this gives you a safe path to introducing a rule:
+write it as `log_only`, watch what it would have caught for a week, then switch
+it to `block` or `escalate` once you trust it. Tightening a moderation threshold
+without knowing its false-positive rate is how platforms end up suppressing
+ordinary users, and this is the way to avoid it.
+
+## Where the result appears
+
+Every detection response carries the outcome:
+
+```json
+"policy_action": {
+  "action": "escalate",
+  "rule_id": "rule_a1b2c3",
+  "message": "Under-13 grooming signal. Preserve evidence before contacting the account.",
+  "rules_evaluated": 4,
+  "rules_matched": 1
+}
+```
+
+`rule_id` and `message` appear only when a rule matched and, for `message`, only
+when that rule defines one.
+
+If no rule matches, `action` is `allow` and your existing handling applies
+unchanged. Adding the policy engine to a running integration is therefore
+non-breaking: rules do nothing until you write one.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Incident logging" icon="clipboard-list" href="/incident-logging">
+    What happens to a detection after a rule fires.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/api-reference/webhooks">
+    Delivering `notify` and `escalate` outcomes to your systems.
+  </Card>
+</CardGroup>
