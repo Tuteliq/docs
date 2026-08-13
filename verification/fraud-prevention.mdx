@@ -2,8 +2,8 @@
 title: Fraud Prevention
 sidebarTitle: Fraud Prevention
 icon: shield-halved
-description: 7 cross-referencing layers, AI-powered document authenticity analysis, recapture detection, and geographic consistency checks
-keywords: [fraud prevention, document forgery, recapture detection, cross-referencing, tampering detection, document authenticity]
+description: 7 cross-referencing layers, deterministic document validation, MRZ check-digit verification, and geographic consistency checks
+keywords: [fraud prevention, document forgery, cross-referencing, tampering detection, MRZ validation, document validation]
 ---
 
 Tuteliq's fraud prevention doesn't rely on a single signal. Every verification runs **7 independent cross-referencing layers** that compare data from different sources on the same document. A forger must defeat all layers simultaneously — editing one field on the front of a document will be caught by mismatches against the MRZ, barcode, back side, or declared metadata.
@@ -122,7 +122,6 @@ Every fraud signal generates a specific, human-readable failure reason:
 {
   "failure_reasons": [
     "DOB mismatch: MRZ shows 1990-06-15 but document text shows 1995-06-15 — possible tampering",
-    "Document recapture detected (screen): image appears to be a photo of a screen",
     "Geographic inconsistency: document from BRA but request originated from VNM"
   ]
 }
@@ -139,8 +138,7 @@ These reasons are designed to be:
 |--------|----------|--------|
 | Liveness failed | Hard | `failed` |
 | Face mismatch | Hard | `failed` |
-| Recapture detected | Hard | `failed` |
-| Document authenticity failed (high confidence) | Hard | `failed` |
+| Selfie liveness spoof detected (screen or printout) | Hard | `failed` |
 | MRZ check digit invalid | Soft | `needs_review` |
 | Name/DOB cross-reference mismatch | Soft | `needs_review` |
 | Document expired | Soft | `needs_review` |

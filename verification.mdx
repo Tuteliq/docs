@@ -25,7 +25,7 @@ Most verification providers give you OCR and a face match. Tuteliq cross-referen
     45 countries with algorithmic validation. ICAO 9303 MRZ. PDF417 barcode decoding.
   </Card>
   <Card title="Fraud Prevention" icon="shield-halved" href="/verification/fraud-prevention">
-    7 cross-referencing layers, recapture detection, LLM-powered authenticity analysis, and IP geolocation checks.
+    7 cross-referencing layers, deterministic document validation, and IP geolocation checks.
   </Card>
 </CardGroup>
 
@@ -38,8 +38,8 @@ Most verification providers give you OCR and a face match. Tuteliq cross-referen
   <Card title="7-Layer Cross-Referencing" icon="layer-group">
     MRZ vs. OCR. Barcode vs. OCR. Front vs. back. Document vs. selfie. Declared type vs. detected type. IP vs. document country. OCR confidence gating. Every inconsistency is flagged.
   </Card>
-  <Card title="AI-Powered Authenticity" icon="brain">
-    Vision model analyzes document layout, security features, fonts, and color consistency against known templates. Detects screen photos, printout recaptures, and digital manipulation.
+  <Card title="No Image Ever Reaches a Model" icon="lock">
+    Document validation is deterministic: ICAO 9303 check digits, PDF417/AAMVA decoding, and field cross-referencing. Age comes from our own model on our own infrastructure. No identity document or selfie is sent to a language model.
   </Card>
 </CardGroup>
 
@@ -406,6 +406,6 @@ Verification errors use the `VERIFY_11xxx` code range:
     How visual liveness analysis prevents spoofing attacks.
   </Card>
   <Card title="Fraud Prevention" icon="shield-halved" href="/verification/fraud-prevention">
-    Multi-layer cross-referencing, recapture detection, and authenticity analysis.
+    Multi-layer cross-referencing, MRZ check-digit validation, and geographic consistency checks.
   </Card>
 </CardGroup>
