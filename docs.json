@@ -157,6 +157,301 @@
             "pages": [
               "api-reference/introduction"
             ]
+          },
+          {
+            "group": "Safety",
+            "pages": [
+              "POST /api/v1/safety/bullying",
+              "POST /api/v1/safety/document",
+              "POST /api/v1/safety/grooming",
+              "POST /api/v1/safety/image",
+              "POST /api/v1/safety/synthetic-content",
+              "POST /api/v1/safety/synthetic-content/audio",
+              "POST /api/v1/safety/synthetic-content/image",
+              "POST /api/v1/safety/synthetic-content/video",
+              "POST /api/v1/safety/unsafe",
+              "POST /api/v1/safety/video",
+              "POST /api/v1/safety/voice"
+            ]
+          },
+          {
+            "group": "Fraud",
+            "pages": [
+              "POST /api/v1/fraud/app-fraud",
+              "POST /api/v1/fraud/mule-recruitment",
+              "POST /api/v1/fraud/romance-scam",
+              "POST /api/v1/fraud/social-engineering"
+            ]
+          },
+          {
+            "group": "Safety Extended",
+            "pages": [
+              "POST /api/v1/safety/coercive-control",
+              "POST /api/v1/safety/distress-signals",
+              "POST /api/v1/safety/emotional-distress",
+              "POST /api/v1/safety/gambling-harm",
+              "POST /api/v1/safety/radicalisation",
+              "POST /api/v1/safety/tfgbv",
+              "POST /api/v1/safety/vulnerability-exploitation"
+            ]
+          },
+          {
+            "group": "Analyse",
+            "pages": [
+              "POST /api/v1/analyse/multi",
+              "POST /api/v1/detection/multi"
+            ]
+          },
+          {
+            "group": "Analysis",
+            "pages": [
+              "POST /api/v1/analysis/emotions"
+            ]
+          },
+          {
+            "group": "Guidance",
+            "pages": [
+              "POST /api/v1/guidance/action-plan"
+            ]
+          },
+          {
+            "group": "Reports",
+            "pages": [
+              "POST /api/v1/reports/incident"
+            ]
+          },
+          {
+            "group": "Batch",
+            "pages": [
+              "POST /api/v1/batch/analyze"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "DELETE /api/v1/webhooks/{webhookId}",
+              "GET /api/v1/webhooks/",
+              "POST /api/v1/webhooks/",
+              "POST /api/v1/webhooks/test",
+              "POST /api/v1/webhooks/{webhookId}/regenerate-secret",
+              "PUT /api/v1/webhooks/{webhookId}"
+            ]
+          },
+          {
+            "group": "Usage",
+            "pages": [
+              "GET /api/v1/usage/by-tool",
+              "GET /api/v1/usage/history",
+              "GET /api/v1/usage/monthly",
+              "GET /api/v1/usage/quota",
+              "GET /api/v1/usage/summary"
+            ]
+          },
+          {
+            "group": "Policy",
+            "pages": [
+              "GET /api/v1/policy/",
+              "PUT /api/v1/policy/"
+            ]
+          },
+          {
+            "group": "Pricing",
+            "pages": [
+              "GET /api/v1/pricing/",
+              "GET /api/v1/pricing/details"
+            ]
+          },
+          {
+            "group": "Account",
+            "pages": [
+              "DELETE /api/v1/account/consent/{type}",
+              "DELETE /api/v1/account/data",
+              "DELETE /api/v1/account/encryption-key",
+              "DELETE /api/v1/account/mcp-tokens/{tokenId}",
+              "GET /api/v1/account/api-keys/quota",
+              "GET /api/v1/account/audit-logs",
+              "GET /api/v1/account/consent",
+              "GET /api/v1/account/encryption-key",
+              "GET /api/v1/account/export",
+              "GET /api/v1/account/mcp-tokens",
+              "PATCH /api/v1/account/data",
+              "PATCH /api/v1/account/mcp-tokens/{tokenId}",
+              "POST /api/v1/account/consent",
+              "POST /api/v1/account/encryption-key"
+            ]
+          },
+          {
+            "group": "Compliance",
+            "pages": [
+              "GET /api/v1/compliance/dpa",
+              "GET /api/v1/compliance/retention",
+              "GET /api/v1/compliance/sub-processors"
+            ]
+          },
+          {
+            "group": "Admin",
+            "pages": [
+              "DELETE /api/v1/admin/retention/phash",
+              "GET /api/v1/admin/breach/",
+              "GET /api/v1/admin/breach/{id}",
+              "GET /api/v1/admin/ids/stats",
+              "GET /api/v1/admin/ids/threats",
+              "GET /api/v1/admin/ids/threats/{id}",
+              "PATCH /api/v1/admin/breach/{id}",
+              "POST /api/v1/admin/breach/",
+              "POST /api/v1/admin/ids/webhook",
+              "POST /api/v1/admin/retention/cleanup"
+            ]
+          },
+          {
+            "group": "Health",
+            "pages": [
+              "GET /health",
+              "GET /health/dependencies",
+              "GET /live",
+              "GET /ready"
+            ]
+          },
+          {
+            "group": "Status",
+            "pages": [
+              "GET /",
+              "GET /status",
+              "GET /status/page",
+              "GET /status/ping",
+              "GET /status/ping/components",
+              "GET /status/ping/{component}"
+            ]
+          },
+          {
+            "group": "Other",
+            "pages": [
+              "DELETE /api/v1/fraud/app-detection",
+              "DELETE /mcp/",
+              "GET /.well-known/oauth-authorization-server",
+              "GET /.well-known/oauth-protected-resource",
+              "GET /.well-known/oauth-protected-resource/mcp",
+              "GET /api/v1/fraud/app-detection",
+              "GET /mcp/",
+              "GET /mcp/sse",
+              "GET /oauth/authorize",
+              "PATCH /api/v1/fraud/app-detection",
+              "POST /api/v1/fraud/app-detection",
+              "POST /mcp/",
+              "POST /mcp/messages",
+              "POST /oauth/authorize",
+              "POST /oauth/register",
+              "POST /oauth/token",
+              "PUT /api/v1/fraud/app-detection"
+            ]
+          },
+          {
+            "group": "Age Verification",
+            "pages": [
+              "GET /api/v1/verify/age/challenge",
+              "GET /api/v1/verify/age/config",
+              "GET /api/v1/verify/age/{verificationId}",
+              "POST /api/v1/verify/age/submit",
+              "POST /api/v1/verify/age/validate-document",
+              "POST /api/v1/verify/age/validate-selfie"
+            ]
+          },
+          {
+            "group": "Wallet",
+            "pages": [
+              "POST /api/v1/wallet/token"
+            ]
+          },
+          {
+            "group": "Prescreen",
+            "pages": [
+              "GET /api/v1/prescreen/lexicon"
+            ]
+          },
+          {
+            "group": "Verification",
+            "pages": [
+              "DELETE /api/v1/verify/session/{id}",
+              "GET /api/v1/verify/challenge",
+              "GET /api/v1/verify/session/{id}",
+              "GET /api/v1/verify/session/{id}/events",
+              "GET /api/v1/verify/session/{id}/mode",
+              "GET /api/v1/verify/{verificationId}",
+              "POST /api/v1/verify-image-match",
+              "POST /api/v1/verify/session",
+              "POST /api/v1/verify/session/{id}/progress",
+              "POST /api/v1/verify/session/{id}/submit",
+              "POST /api/v1/verify/session/{id}/validate-document",
+              "POST /api/v1/verify/session/{id}/validate-selfie",
+              "POST /api/v1/verify/submit"
+            ]
+          },
+          {
+            "group": "Identity Verification",
+            "pages": [
+              "GET /api/v1/verify/identity/{verificationId}",
+              "POST /api/v1/verify/identity/submit",
+              "POST /api/v1/verify/identity/validate-document",
+              "POST /api/v1/verify/identity/validate-selfie"
+            ]
+          },
+          {
+            "group": "Risk Profile",
+            "pages": [
+              "GET /api/v1/safety/risk-trends"
+            ]
+          },
+          {
+            "group": "Threat Intelligence",
+            "pages": [
+              "GET /api/v1/intelligence/emerging",
+              "GET /api/v1/intelligence/trends",
+              "GET /api/v1/intelligence/weekly-digest"
+            ]
+          },
+          {
+            "group": "Policy Rules",
+            "pages": [
+              "DELETE /api/v1/policy/automation/{ruleId}",
+              "GET /api/v1/policy/automation/",
+              "GET /api/v1/policy/automation/{ruleId}",
+              "POST /api/v1/policy/automation/",
+              "POST /api/v1/policy/automation/evaluate",
+              "PUT /api/v1/policy/automation/{ruleId}"
+            ]
+          },
+          {
+            "group": "Settings",
+            "pages": [
+              "DELETE /api/v1/settings/detection",
+              "GET /api/v1/settings/detection",
+              "PUT /api/v1/settings/detection"
+            ]
+          },
+          {
+            "group": "Audit",
+            "pages": [
+              "GET /api/v1/audit/receipts/{request_id}"
+            ]
+          },
+          {
+            "group": "Incidents",
+            "pages": [
+              "GET /api/v1/incidents/",
+              "GET /api/v1/incidents/overview",
+              "GET /api/v1/incidents/trends",
+              "GET /api/v1/incidents/{incident_id}",
+              "POST /api/v1/incidents/batch-review",
+              "POST /api/v1/incidents/{incident_id}/review"
+            ]
+          },
+          {
+            "group": "Agent",
+            "pages": [
+              "GET /api/v1/agent/fleet",
+              "GET /api/v1/agent/fleet/{deviceId}",
+              "POST /api/v1/agent/check-in"
+            ]
           }
         ]
       }
