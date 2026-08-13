@@ -20,7 +20,7 @@ Tuteliq scores the interaction: who is targeting whom, whether it is reciprocal,
 ## What it catches in game and social chat
 
 - **Harassment vs banter.** Two players swapping "get rekt" is banter. One account repeatedly targeting a player who is asking them to stop is harassment. Tuteliq weighs reciprocity, target, intent, and persistence. See [Bullying and toxicity detection](/bullying-toxicity-detection).
-- **Coded slang, emoji, and evasion.** Abusive users deliberately dodge filters with leetspeak, emoji payloads, homoglyphs, and algospeak. On an evasion benchmark, Tuteliq detected roughly 1.7x more coded-language cases than general-purpose moderation APIs. See [Benchmarks](/benchmarks).
+- **Coded slang, emoji, and evasion.** Abusive users deliberately dodge filters with leetspeak, emoji payloads, homoglyphs, and algospeak. Tuteliq maintains a lexicon of these and reads them in conversation context rather than matching a word list. See [Prescreen lexicon](/prescreen-lexicon).
 - **Grooming of minors.** Game chat and DMs are a common grooming surface. Tuteliq detects the trajectory (trust-building, isolation to another app, secrecy, meeting requests) across many turns, and reasons about age and role. See [Grooming detection](/grooming-detection).
 - **Coordinated abuse and pile-ons.** A single insult is low severity; a group turning on one player, mass-reporting, or creating a side-channel to mock them is a different and higher-severity pattern.
 - **Threats and self-harm-adjacent language,** escalated appropriately rather than treated as ordinary game talk.
@@ -67,7 +67,7 @@ For grooming and predatory-behaviour detection in game DMs, use [`/api/v1/safety
 ## Why platforms choose Tuteliq
 
 - **Context over keywords,** so healthy competitive chat stays intact and real harm still fires.
-- **Coded-language resilience,** roughly 1.7x the recall of general-purpose moderation APIs on evasion cases.
+- **Coded-language resilience** against leetspeak, emoji payloads, homoglyphs and algospeak.
 - **One API for many harms:** toxicity, harassment, grooming, threats, and more.
 - **Explainable:** every result returns a rationale, categories, and a recommended action for moderator review.
 - **Privacy-first:** no user content is stored.
@@ -78,7 +78,7 @@ For grooming and predatory-behaviour detection in game DMs, use [`/api/v1/safety
 Yes. Tuteliq moderates game and social chat in real time, reading conversation context to separate trash-talk from harassment and to catch coded slang, grooming, and coordinated abuse.
 
 **Can it handle gaming slang, emoji, and filter evasion?**
-Yes. It is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and algospeak, and detected roughly 1.7x more evasion cases than general-purpose moderation APIs on a benchmark.
+Yes. It is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and algospeak, and evaluates them in the context of the surrounding conversation.
 
 **Is it fast enough for live chat?**
 Yes. Use fast mode (`verdict_only: true`) for low-latency screening of every message, and reserve full per-message analysis for the messages that flag.
@@ -117,7 +117,7 @@ Yes. The grooming detector tracks predatory trajectories across many turns and r
           name: "Can it handle gaming slang, emoji, and filter evasion?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes. It is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and algospeak, and detected roughly 1.7x more evasion cases than general-purpose moderation APIs on a benchmark."
+            text: "Yes. It is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and algospeak, and evaluates them in the context of the surrounding conversation."
           }
         },
         {

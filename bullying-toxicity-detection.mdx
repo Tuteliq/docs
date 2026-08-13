@@ -43,10 +43,10 @@ This coded-language and evasion resilience is not specific to bullying. It is a 
 
 ### How it compares
 
-In an internal benchmark of coded-language and filter-evasion cases, Tuteliq detected roughly **1.7x more** of them than leading general-purpose moderation APIs, on a 319-case evasion set. The gap is largest exactly where keyword filters and general-purpose classifiers are weakest: novel algospeak, emoji payloads, and context-dependent slang that only reads as harmful given the conversation around it.
+Tuteliq is built to catch what keyword filters and general-purpose classifiers miss: novel algospeak, emoji payloads, homoglyphs, and context-dependent slang that only reads as harmful given the conversation around it. Coded terms are maintained as an evolving lexicon and scored in context rather than matched against a fixed list.
 
 <Note>
-Methodology: an internal Tuteliq benchmark comparing coded-language recall against three leading general-purpose moderation APIs on a 319-case evasion set. Vendors are not named. Figures reflect this benchmark and are not a guarantee of performance on any specific dataset.
+Comparative benchmark figures are being re-validated and are not published here in the meantime.
 </Note>
 
 See [Prescreen lexicon](/prescreen-lexicon) for how the coded-term layer corroborates the behavioural signal.
@@ -108,7 +108,7 @@ Yes. It is built to keep competitive banter intact while flagging targeted haras
 Yes. It is maintained against an evolving lexicon of coded terms, emoji, leetspeak, and misspellings, and it corroborates those signals with the behavioural pattern of the conversation.
 
 **How does Tuteliq compare to other moderation APIs on slang and coded language?**
-In an internal benchmark of coded-language and filter-evasion cases, Tuteliq detected roughly 1.7x more of them than leading general-purpose moderation APIs (319-case evasion set, vendors unnamed). The advantage is a platform-wide capability that applies to every detector, not just bullying, and it is largest on novel algospeak, emoji payloads, and context-dependent slang.
+Coded-language and filter-evasion handling is a platform-wide capability that applies to every detector, not just bullying. It is strongest on novel algospeak, emoji payloads, and context-dependent slang, because those depend on reading the surrounding conversation rather than matching a word list.
 
 **Does it work in real time?**
 Yes. Use [fast mode](/fast-mode) for low-latency screening of live chat, or the standard mode for full per-message analysis.
@@ -155,7 +155,7 @@ See [Languages](/languages) for the full list. Detection is multilingual and han
           name: "How does Tuteliq compare to other moderation APIs on slang and coded language?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "In an internal benchmark of coded-language and filter-evasion cases, Tuteliq detected roughly 1.7x more of them than leading general-purpose moderation APIs (319-case evasion set, vendors unnamed). The advantage is a platform-wide capability that applies to every detector, not just bullying."
+            text: "Coded-language and filter-evasion handling is a platform-wide capability that applies to every detector, not just bullying. It is strongest on novel algospeak, emoji payloads, and context-dependent slang."
           }
         },
         {

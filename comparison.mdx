@@ -13,7 +13,7 @@ keywords: [content moderation API comparison, best moderation API, keyword filte
 | | Keyword filters | General-purpose moderation APIs | Tuteliq |
 |---|---|---|---|
 | Detection basis | Word list | Single-message classifier | Conversation and behaviour |
-| Coded slang, emoji, algospeak, leetspeak | Misses | Limited | Maintained lexicon, ~1.7x recall vs general-purpose ([benchmarks](/benchmarks)) |
+| Coded slang, emoji, algospeak, leetspeak | Misses | Limited | Maintained lexicon, read in conversation context ([how it works](/how-it-works)) |
 | Gaming banter vs harassment | Cannot tell apart | Weak | Reads reciprocity, target, intent, pile-ons |
 | Multi-turn harm (grooming, romance scam) | No | No | Trajectory-aware, with [continuation tokens](/continuation-tokens) |
 | Explainability | None | Score only | Rationale, categories, recommended action, evidence |
@@ -41,7 +41,7 @@ If you only need to block a fixed list of profanity in a low-risk context, a wor
 ## Frequently asked questions
 
 **What is the difference between Tuteliq and a general-purpose moderation API?**
-General-purpose moderation scores one message against a fixed set of categories. Tuteliq reads the conversation, so it tells banter apart from harassment, catches coded slang and evasion (~1.7x the recall of general-purpose APIs on an evasion benchmark), and follows multi-turn harm like grooming and romance scams.
+General-purpose moderation scores one message against a fixed set of categories. Tuteliq reads the conversation, so it tells banter apart from harassment, catches coded slang and evasion, and follows multi-turn harm like grooming and romance scams.
 
 **Is Tuteliq good for gaming chat moderation?**
 Yes. It is built to keep competitive trash-talk intact while flagging targeted harassment and coded abuse, by reading reciprocity, target, intent, and persistence rather than matching keywords.

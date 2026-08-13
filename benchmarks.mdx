@@ -1,23 +1,28 @@
 ---
 title: Benchmarks and accuracy
-description: How Tuteliq performs on coded language and filter evasion, how it is measured, and how it compares to general-purpose moderation APIs. Detection accuracy, multilingual coverage, and methodology.
+description: How Tuteliq measures coded-language and filter-evasion detection, what the methodology covers, and multilingual coverage.
 keywords: [content moderation benchmark, coded language detection, filter evasion, moderation API accuracy, gaming slang detection, toxicity detection accuracy, grooming detection benchmark]
 ---
 
 # Benchmarks and accuracy
 
-Tuteliq is built to catch the harm that general-purpose moderation misses: coded slang, emoji, algospeak, and deliberate filter evasion, read in the context of the conversation rather than matched against a word list. This page summarises how it performs, how that is measured, and how it compares.
+Tuteliq is built to catch the harm that general-purpose moderation misses: coded slang, emoji, algospeak, and deliberate filter evasion, read in the context of the conversation rather than matched against a word list. This page describes what we measure and how.
 
-## Headline result
+## Where the numbers are
 
-In an internal benchmark of coded-language and filter-evasion cases, **Tuteliq detected roughly 1.7x more of them than leading general-purpose moderation APIs**, on a 319-case evasion set. The gap is largest exactly where keyword filters and general-purpose classifiers are weakest: novel algospeak, emoji payloads, and context-dependent slang that only reads as harmful given the messages around it.
+We previously published a comparative recall figure against general-purpose
+moderation APIs. That figure is **withdrawn pending re-validation**: later runs on
+the same case set materially changed our own recall, and the vendor baselines have
+not been re-run against them, so no honest ratio can be quoted right now.
 
-| Capability | Tuteliq | General-purpose moderation APIs (avg) |
-|---|---|---|
-| Coded-language and filter-evasion recall (319-case set) | ~1.7x higher | baseline |
-| Reads conversation context, not just single messages | Yes | Partial or none |
-| Coded slang, emoji, leetspeak, algospeak coverage | Maintained lexicon, updated | Limited |
-| Languages | 32 (English stable, 31 beta) | Varies |
+Rather than restate a number we cannot currently stand behind, this page describes
+what we measure and how. Updated figures will be published once the comparison has
+been re-run end to end.
+
+If you are evaluating Tuteliq and need evidence now, the useful path is a
+benchmark on **your own** content: we will help you assemble a labelled set from
+your platform and run it, which is a better predictor for your deployment than any
+figure of ours.
 
 ## What is measured
 
@@ -33,7 +38,7 @@ The evasion benchmark is a set of messages that carry a harmful payload through 
 - Figures reflect this internal benchmark and are not a guarantee of performance on any specific dataset or deployment.
 - The advantage is a platform-wide property of how Tuteliq reads content, so it applies across every detector (grooming, romance and fraud, radicalisation, self-harm, bullying), not only to toxicity.
 
-## Why the gap exists
+## Why context beats word lists
 
 General-purpose moderation scores a single message against a fixed vocabulary. Tuteliq scores the interaction: who is targeting whom, whether it is reciprocal, whether it is escalating, and whether the wording performs a harmful function even when no banned word appears. That is why it separates gaming trash-talk from targeted harassment, and why obfuscation that walks straight past a word list still gets scored. See [Bullying and toxicity detection](/bullying-toxicity-detection) and the [Prescreen lexicon](/prescreen-lexicon) for how the coded-term layer corroborates the behavioural signal.
 
@@ -44,7 +49,7 @@ Detection runs in **32 languages** (English stable, all 24 EU official languages
 ## Frequently asked questions
 
 **How accurate is Tuteliq at detecting coded slang and filter evasion?**
-On a 319-case evasion benchmark, Tuteliq detected roughly 1.7x more coded-language and filter-evasion cases than leading general-purpose moderation APIs, while still separating benign look-alikes that share the same vocabulary.
+Comparative figures are being re-validated and are not published at present. What we can describe is the method: coded terms are maintained as an evolving lexicon, and every case is scored in the context of the surrounding conversation rather than matched against a fixed list, which is what makes novel algospeak and emoji payloads detectable at all.
 
 **How is the benchmark measured?**
 It uses obfuscated harmful messages (coded acronyms, emoji, leetspeak, algospeak, misspellings) plus benign look-alike controls, and reports recall on the positives alongside behaviour on the controls. Comparison is against three leading general-purpose moderation APIs, averaged and unnamed.
@@ -74,7 +79,7 @@ Yes. It is a platform-wide capability that applies to every detector, because th
           name: "How accurate is Tuteliq at detecting coded slang and filter evasion?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "On a 319-case evasion benchmark, Tuteliq detected roughly 1.7x more coded-language and filter-evasion cases than leading general-purpose moderation APIs, while still separating benign look-alikes that share the same vocabulary."
+            text: "Comparative figures are being re-validated and are not published at present. Coded terms are maintained as an evolving lexicon and scored in the context of the surrounding conversation rather than matched against a fixed list."
           }
         },
         {
