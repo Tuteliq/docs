@@ -182,7 +182,7 @@ Documents must be a clear, well-lit photo in JPEG or PNG format. Maximum file si
 
 `POST /api/v1/verify/identity/submit`
 
-Full KYC identity verification combining document authentication, face matching, liveness detection, and country-specific national-ID validation. Business plan and above.
+Full KYC identity verification combining document authentication, face matching, liveness detection, and country-specific national-ID validation. Assure plan and above.
 
 ### What it checks
 
@@ -374,7 +374,7 @@ Verification errors use the `VERIFY_11xxx` code range:
 | `VERIFY_11009` `VERIFY_SESSION_ALREADY_USED` | 409 | Session token already consumed |
 | `VERIFY_11010` `VERIFY_SESSION_WRONG_STATE` | 409 | Session not in the right state for this call |
 | `VERIFY_11011` `VERIFY_NOT_ENABLED` | 403 | Verification not provisioned for this account |
-| `VERIFY_11012` `VERIFY_IDENTITY_NOT_ENABLED` | 403 | Identity mode requires Business plan or above |
+| `VERIFY_11012` `VERIFY_IDENTITY_NOT_ENABLED` | 403 | Identity mode requires the Assure plan or above |
 | `VERIFY_11013` `VERIFY_NO_COUNTRY_FOUND` | 400 | Country could not be inferred — pass `country_code` explicitly |
 
 ```bash cURL example error response

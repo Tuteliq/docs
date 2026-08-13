@@ -19,7 +19,7 @@ You create a session on your server, hand the user a URL or QR code that opens T
 Verify a user's age in three steps with a hosted verification session. This is the exact flow you can try interactively in the API Playground in your dashboard, the document scan, selfie, and liveness checks all happen on Tuteliq's hosted page, so you never handle the user's ID or biometric data yourself.
 
 <Note>
-  Hosted age verification requires the Pro plan or above and costs 5 credits per completed verification. You'll need an API key, create one under **API Keys** in your dashboard.
+  Hosted age verification requires the Assure plan or above and costs 10 credits for liveness-only or 20 credits for a full document verification. You'll need an API key, create one under **API Keys** in your dashboard.
 </Note>
 
 ### How it works
@@ -181,7 +181,7 @@ if (
 }
 ```
 
-The rest of this page covers the deeper integration patterns: live updates via Server-Sent Events instead of polling, embedding the verification UI in a mobile webview, and handling identity verification (full KYC, Business plan and above).
+The rest of this page covers the deeper integration patterns: live updates via Server-Sent Events instead of polling, embedding the verification UI in a mobile webview, and handling identity verification (full KYC, Assure plan and above).
 
 ## Flow at a glance
 
@@ -643,7 +643,7 @@ See the full shape in [Step 3](#3-poll-for-the-result) above. The body is identi
 
 ### Identity verification result
 
-Identity mode (Business plan and above) returns the same outer envelope as age mode (`session_id`, `status`, `result`, `created_at`, `expires_at`), but the inner `result` object differs:
+Identity mode (Assure plan and above) returns the same outer envelope as age mode (`session_id`, `status`, `result`, `created_at`, `expires_at`), but the inner `result` object differs:
 
 ```json
 {
