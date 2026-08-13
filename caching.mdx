@@ -20,7 +20,7 @@ If you need to defend a privacy claim to a DPO or buyer, the precise wording is:
 | Input text / image / audio / video bytes | **No** | Never written to any storage tier. Held in process memory only for the duration of the request. |
 | SHA-256 of input bytes | **Yes** | Used as the cache key. One-way; not similarity-preserving. |
 | Verdict object (classification, signals, recommendation, rationale) | **Yes** | The response payload, exactly as returned. |
-| Perceptual hash (`perceptual_hash` field) | **Returned in response, not used as cache key** | Computed by the forensic pipeline to compare against pre-loaded known-bad-content databases (PhotoDNA-style). The cache itself is keyed on SHA-256. |
+| Perceptual hash (`perceptual_hash` field) | **Returned in response, not used as cache key** | Computed by the forensic pipeline so you can match it against a known-material hash list, such as the [IWF Hash List](/synthetic-content#matching-against-the-iwf-hash-list) if your organisation is an IWF member. The cache itself is keyed on SHA-256. |
 
 The cache key derivation:
 

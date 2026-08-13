@@ -280,8 +280,8 @@ curl -X POST https://api.tuteliq.ai/api/v1/verify/session \
 
 | Mode | Returns | Minimum tier |
 |---|---|---|
-| `age` | Verified age, `is_minor` boolean, document OCR fields, document validation checks, face match, liveness. Returned to your server so you can drive your age gate, then destroyed on Tuteliq's side. | Pro |
-| `identity` | Full KYC payload: name, date of birth, document type, country, document validity, face match score, liveness. | Business |
+| `age` | Verified age, `is_minor` boolean, document OCR fields, document validation checks, face match, liveness. Returned to your server so you can drive your age gate, then destroyed on Tuteliq's side. | Assure |
+| `identity` | Full KYC payload: name, date of birth, document type, country, document validity, face match score, liveness. | Assure |
 
 Both modes return the verified data to **your** server so you can act on it. Tuteliq does not retain any of it after the response is sent. See [Zero retention](#zero-retention) below.
 

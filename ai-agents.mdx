@@ -31,9 +31,9 @@ Tuteliq covers four capability areas — all accessible via API, MCP tools, or O
 
 | Endpoint | What it does | Tier |
 |----------|-------------|------|
-| `POST /api/v1/verify/age` | Document OCR, biometric age estimation, or combined — returns verified age range, `is_minor`, and confidence | Pro |
-| `POST /api/v1/verify/identity` | Document authentication + face matching + liveness detection — prevents impersonation and spoofing | Business |
-| `POST /api/v1/verify/session` | Manage multi-step verification sessions with liveness challenges | Pro |
+| `POST /api/v1/verify/age/submit` | Document OCR, biometric age estimation, or combined — returns verified age range, `is_minor`, and confidence | Assure |
+| `POST /api/v1/verify/identity/submit` | Document authentication + face matching + liveness detection — prevents impersonation and spoofing | Assure |
+| `POST /api/v1/verify/session` | Manage multi-step verification sessions with liveness challenges | Assure |
 
 Verification integrates directly with detection — verify once, then pass the confirmed `age_group` to all safety endpoints for properly calibrated risk scoring. See the [Verification guide](/verification) for full details.
 
