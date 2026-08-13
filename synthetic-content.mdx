@@ -78,6 +78,26 @@ a third-party vision API, and no image is retained once the request completes.
   known CSAM; this catches unknown CSAM. Run both.
 </Info>
 
+#### Matching against the IWF Hash List
+
+If your organisation is an **Internet Watch Foundation member**, you can pair the
+compositional analysis above with hash matching against the IWF Hash List, so
+known and unknown material are both covered. The forensic pipeline returns a
+`perceptual_hash` on every image response for exactly this purpose.
+
+The two layers answer different questions and neither replaces the other:
+
+| | Catches | Misses |
+|---|---|---|
+| **IWF Hash List matching** | Material already reported and catalogued, with very high precision | Anything new, and anything altered enough to change the hash |
+| **Compositional analysis** | New, previously unseen material, and altered variants | Nothing catalogued that it cannot see signals for |
+
+<Card title="Join the IWF" icon="shield-halved" href="https://www.iwf.org.uk/membership/how-to-join/">
+  Membership gives you access to the Hash List, the URL List and IWF's reporting
+  infrastructure. If you operate a platform where children are present, we
+  strongly encourage joining. See how to join.
+</Card>
+
 ---
 
 ## Text Detection
