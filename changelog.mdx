@@ -33,6 +33,64 @@ are recognised as benign.
 Chinese covers Simplified and Traditional script, with mainland, Taiwan, Hong
 Kong and Singapore usage differences, including written Cantonese.
 
+### Added: `csam_assessment.sources` reports which detection layers ran
+
+`POST /safety/synthetic-content/image` now returns a `sources` array inside
+`csam_assessment`, naming the detection layers that produced the assessment.
+
+`tuteliq_compositional` is our own compositional analysis and runs on every
+request. `iwf_hash_list` appears only for customers who are IWF members and
+have the hash list enabled; if you are not a member, it will never appear.
+Membership is arranged directly with the Internet Watch Foundation.
+
+The field is additive. Existing integrations are unaffected.
+
+### Changed: verification keeps the result, not the identity data
+
+Age and identity verification now persist the outcome only: status, estimated
+age, `is_minor`, confidence scores and failure reasons. Name, date of birth and
+document number are no longer written to our datastore in any form.
+
+The document image, the selfie and the liveness frames were already held in
+memory for the duration of the request and discarded; this closes the gap on
+the extracted fields. No API response shape changes.
+
+### Fixed: Russian text is no longer labelled Bulgarian
+
+Russian was intermittently reported as Bulgarian (`bg`), which meant Russian
+conversations were analysed against the wrong culture-specific guidelines. The
+correction now applies at every layer that can resolve a language, so the
+reported language and the guidelines that were actually applied always agree.
+
+### Fixed: the OpenAPI specification is available again
+
+`GET /docs/json` was returning a 500, which also left the interactive API
+reference blank. A single endpoint referenced a security scheme that was never
+declared, and that one omission invalidated the entire document rather than
+just that path. The scheme is now declared, and a regression test covers spec
+generation so a future undeclared scheme fails in CI instead of in production.
+
+### Changed: status components are named by what they do
+
+The per-component checks under `/status/ping/` are named for their function
+(`database`, `cache`, `face-matching`, `image-analysis` and so on) rather than
+for the technology behind them. `GET /status/ping/components` returns the
+current list.
+
+Previously published component names continue to resolve, so existing monitors
+keep working without changes.
+
+### Fixed: the GDPR sub-processor list was inaccurate
+
+`GET /compliance/gdpr` listed two model vendors as sub-processors. Neither
+processes any customer data, so both have been removed. Retention periods in
+the same response are now read from the values the platform actually enforces,
+rather than being maintained separately, which had let them drift apart.
+
+### SDK releases
+
+`@tuteliq/mcp@3.22.2`
+
 ## v1.17.0 (August 2026)
 
 ### Improved: grooming detection recognises protective and educational speech
@@ -179,6 +237,42 @@ A mistyped path now returns a correction alongside the error, for example `Did y
 ---
 
 ## v1.13.0 (July 2026)
+
+### Removed: model-based document authenticity and field extraction
+
+On 2 July 2026 we removed every path that sent a verification image to a
+language or vision model. Three capabilities announced in earlier releases were
+withdrawn:
+
+- **Model-based document authenticity checks**, which analysed document layout,
+  security features, fonts and colour consistency against known templates, and
+  claimed to detect screen photos, printout recaptures and digital manipulation
+  (announced in v1.6.0, and as "hologram detection, tamper analysis" in v1.4.0).
+- **Model-based OCR fallback**, which extracted name, date of birth and document
+  number when local OCR failed (announced in v1.6.1).
+- The `document_authenticated` signal that depended on them.
+
+This was a deliberate privacy decision rather than a quality one. The most
+sensitive images we ever handle are a child's selfie and an identity document,
+and we concluded that they should never reach a language model, including one we
+operate ourselves. The rule is now enforced in the codebase: nothing in the
+verification pipeline imports the model layer.
+
+**What replaces it.** Document validation is entirely deterministic and local:
+ICAO 9303 Machine Readable Zone parsing with check-digit validation, PDF417 and
+AAMVA barcode decoding, algorithmic document-number validation, and
+cross-referencing of every extracted field against the other sources that carry
+it. In practice the MRZ and barcode paths are stronger evidence than the removed
+checks, because a check digit either validates or it does not.
+
+**What is not currently replaced.** Detection of a photographed screen or
+printout *of a document* is not part of the verdict today. Selfie liveness
+anti-spoofing is unaffected and continues to run in full, including landmark
+motion, texture and moiré analysis, depth cues and cross-frame consistency. If
+document recapture detection returns, it will be a local model.
+
+If you relied on `document_authenticated`, treat MRZ or barcode validation as
+the equivalent assurance signal.
 
 ### New: Fast mode (verdict-only)
 
@@ -384,6 +478,7 @@ All per-endpoint credit costs have been revised to reflect processing complexity
 - **Liveness-only mode** now charged at 10 credits (reduced from full verification cost)
 - **Passport number validation** — passport document numbers are no longer incorrectly validated against national ID formats (e.g., Swedish personnummer)
 - **Vision AI OCR fallback** — when Tesseract OCR fails, document fields (name, DOB, document number) are extracted via vision AI and the confidence score reflects the extraction quality
+  <br />*Withdrawn 2 July 2026. No verification image reaches a model. See v1.13.0.*
 - **i18n for camera overlay** — all liveness challenge text (instructions, blink/smile prompts) now translates correctly when switching languages
 
 ---
@@ -426,6 +521,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 - **45-Country Document Number Validator** — Algorithmic check digit verification for CPF (Brazil), personnummer (Sweden), Aadhaar (India), Codice Fiscale (Italy), CURP (Mexico), SSN (US), SIN (Canada), TFN (Australia), and 37 more country-specific document formats
 - **Visual Liveness Analyzer** — Multi-signal liveness detection: landmark motion analysis, texture analysis (Laplacian variance + moire detection), depth cue analysis (face/background sharpness ratio), and cross-frame consistency checks
 - **AI-Powered Document Authenticator** — Vision model analyzes document layout, security features, fonts, color consistency, and photo integration against known templates. Detects screen photos, printout recaptures, and digital manipulation.
+  <br />*Withdrawn 2 July 2026. No verification image reaches a model. See v1.13.0.*
 - **MRZ/OCR/Barcode Cross-Referencing** — Compares name, DOB, and document number between MRZ, OCR text, barcode data, front and back sides, flagging any inconsistency as potential tampering
 
 ---
@@ -520,6 +616,7 @@ The synthetic content detection pipeline has been completely rebuilt into a **mu
 ### Identity Verification (Beta)
 - `POST /v1/verification/identity` — confirm user identity with document verification and liveness detection
 - Document authenticity checks (MRZ validation, hologram detection, tamper analysis)
+  <br />*MRZ validation still runs and is now check-digit validated. Hologram and tamper analysis were withdrawn 2 July 2026; see v1.13.0.*
 - Liveness detection to prevent spoofing (photo-of-photo, screen replay, mask attacks)
 - Face matching between document photo and selfie
 - Returns `verified`, `match_score`, `liveness_passed`, `document_authenticated`, and `flags`

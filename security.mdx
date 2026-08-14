@@ -1,0 +1,161 @@
+---
+title: Security Policy
+sidebarTitle: Security Policy
+icon: shield-halved
+description: How to report a vulnerability to Tuteliq, what we commit to in return, and the rules for testing a child-safety API
+keywords: [security, vulnerability disclosure, responsible disclosure, safe harbour, bug bounty, penetration test]
+---
+
+Tuteliq operates a hosted child-safety detection API. We welcome reports from
+security researchers, and we would rather hear about a weakness from you than
+from an incident.
+
+## Reporting a vulnerability
+
+Email **[security@tuteliq.ai](mailto:security@tuteliq.ai)**.
+
+Please do not open a public issue or post. If you need to send something
+sensitive, say so in your first message and we will arrange an encrypted channel.
+
+Include whatever you have. The most useful reports contain:
+
+- what an attacker can do, stated as impact rather than as a scanner category
+- the steps to reproduce it, including the request and the response you saw
+- the endpoint, timestamp and approximate source IP of your test traffic, so we
+  can separate it from real activity in our logs
+- any test account or key you used
+
+### What happens next
+
+| Stage | Target |
+| --- | --- |
+| Acknowledgement that a human has read it | 2 business days |
+| Initial assessment, severity, and whether we accept it | 5 business days |
+| Fix or documented mitigation, critical and high | 30 days |
+| Fix or documented mitigation, medium and low | 90 days |
+
+We will tell you what we decided and why. If we decline a report we will explain
+the reasoning rather than closing it silently, and you are welcome to push back.
+If a fix will take longer than the target, we will say so and give you a date
+rather than going quiet.
+
+Where a vulnerability affects customer data, our regulatory notification
+obligations run in parallel and are not contingent on any disclosure timeline
+agreed with you.
+
+## Supported versions
+
+**The API is hosted.** There is a single production version, it is the current
+one, and a security fix reaches every customer on deployment. There are no older
+API versions still running that you could be left on, and no back-porting.
+
+**Published client packages** are supported at their latest minor release. Where
+a fix requires a new version of `@tuteliq/sdk` or `@tuteliq/mcp`, we publish it
+and note the minimum safe version in the [changelog](/changelog). Older majors do
+not receive security fixes.
+
+## Scope
+
+<Columns cols={2}>
+<Card title="In scope" icon="circle-check">
+- `api.tuteliq.ai` and the endpoints it serves
+- `tuteliq.ai` and `docs.tuteliq.ai`
+- the `@tuteliq/sdk` and `@tuteliq/mcp` packages as published
+- authentication, authorisation, tenant isolation and billing integrity, including
+  any path that lets one account reach another account's data or consume another
+  account's quota
+</Card>
+
+<Card title="Out of scope" icon="circle-xmark">
+- our customers' own applications and integrations
+- third-party services we consume, which belong to that vendor
+- social engineering of our staff, customers or suppliers
+- physical attacks, and anything targeting personal accounts or devices
+- volumetric denial of service, load testing and traffic flooding
+- reports with no demonstrated impact, such as a missing hardening header or raw
+  scanner output with no working path to exploitation
+</Card>
+</Columns>
+
+## Rules for testing
+
+These exist because of what this API is for. Please read them before you test.
+
+<Warning>
+**Never use real child sexual abuse material.** Not to test a detection endpoint,
+not to demonstrate a bypass, and not as an attachment to a report. It is illegal
+to possess or transmit in every jurisdiction we operate in, we cannot lawfully
+accept or review it, and sending it to us creates a criminal matter rather than a
+security report.
+
+Use synthetic or clearly benign fixtures. If you believe you have found such
+material in the wild, do not send it to us. Report it to the
+[Internet Watch Foundation](https://report.iwf.org.uk/) or your national hotline.
+</Warning>
+
+**Do not use real people's data.** No real identity documents, no real biometrics,
+no images of real children, and no production personal data belonging to anyone
+other than yourself. Our verification endpoints accept documents and selfies, so
+this matters more here than on a typical API. Synthetic test data only.
+
+**Do not touch other tenants.** Test against your own account. If you find a path
+to another account's data, stop at the point of proof, record enough to show it
+works, and report it. Do not enumerate, download or retain what you can reach.
+
+**Ask for a sandbox.** Email us and we will issue a test key rather than have you
+probe production. It is faster for you and quieter for us.
+
+## Detection bypasses are in scope
+
+If you find an input that carries genuine harm past a detection endpoint, whether
+through an encoding, an obfuscation, a language, or a message structure that
+causes a harmful conversation to come back clean, that is a security report and
+we want it.
+
+<Warning>
+Report a bypass privately and do not publish a working payload. A published
+evasion technique against a child-safety filter is directly usable against
+children on our customers' platforms, and the window between publication and a
+deployed fix is the window in which that happens.
+
+We will work with you on timing, and on what can safely be described afterwards.
+</Warning>
+
+The same applies to a reliable way to force false positives at scale, since a
+detector that can be made to cry wolf can be used to bury real reports.
+
+## Safe harbour
+
+If you make a good-faith effort to follow this policy, we will treat your
+research as authorised. We will not pursue or support legal action against you,
+and if a third party does, we will make clear that your testing was authorised.
+
+Good faith means staying in scope, following the testing rules above, stopping at
+proof rather than extraction, avoiding degradation of service for our customers,
+and giving us a reasonable chance to fix the issue before discussing it publicly.
+
+This is not a waiver of anyone else's rights. If your testing reaches a system or
+data belonging to a customer or a third party, we cannot authorise that on their
+behalf.
+
+## Disclosure
+
+We work to coordinated disclosure and ask for 90 days from your report before
+publication, or less by agreement once a fix is deployed. For a detection bypass
+we may ask you to describe the class of weakness rather than a working payload.
+
+We are happy to credit you by name or handle in the changelog and in any advisory,
+or to keep you anonymous. Tell us which you prefer.
+
+We do not currently run a paid bug bounty, so please do not expect a payment. The
+absence of a bounty does not change the safe harbour above, and it does not make
+your report less welcome.
+
+## Related
+
+- Machine-readable contact: [`/.well-known/security.txt`](https://api.tuteliq.ai/.well-known/security.txt)
+- Our security posture, sub-processors and independent penetration test: [Trust Center](/trust)
+- How we build and review changes: [Secure development lifecycle](/sdlc)
+- Privacy questions: **[privacy@tuteliq.ai](mailto:privacy@tuteliq.ai)**, or
+  **[dpo@tuteliq.ai](mailto:dpo@tuteliq.ai)** for matters requiring the data
+  protection officer
