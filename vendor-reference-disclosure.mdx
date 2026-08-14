@@ -9,7 +9,7 @@ keywords: [transparency, disclosure, TUT-CSDT-001, benchmark, evaluation, child 
 <Note>
 **Tuteliq's own disclosure against our framework. We wrote the questions. Here are our answers, including where we fall short.**
 
-This is a **vendor reference disclosure** under clause P0.2.5. It confers no conformance level, because levels attach to platforms rather than to detection systems. It covers the vendor-side clauses only: the properties of the detection system, which only we can evidence. The platform-side clauses, covering how a given deployment is configured and what happens to a flagged user, belong to the platform using us and cannot be discharged by citing this document.
+This is a **vendor reference disclosure** under clause P0.2.5 of [TUT-CSDT-001, the Child Safety Detection Transparency Framework](https://tuteliq.ai/standard). It confers no conformance level, because levels attach to platforms rather than to detection systems. It covers the vendor-side clauses only: the properties of the detection system, which only we can evidence. The platform-side clauses, covering how a given deployment is configured and what happens to a flagged user, belong to the platform using us and cannot be discharged by citing this document.
 
 Our grooming detection shows **100% precision and 97.6% recall** on a held-out expert corpus. Two things about that. The figures are self-measured by an interested party, which is exactly what this framework exists to fix. And the corpus is 94.9% positive, so the precision is measured at a base rate nothing like production: carried to a realistic 1% prevalence it falls to roughly 0.07. Do not size human review capacity from the 100%.
 </Note>
@@ -112,8 +112,9 @@ One thing to read carefully before using any figure here: every number was measu
 
 ## Related
 
-- [Child Safety Detection Transparency Framework](https://docs.tuteliq.ai/security): the framework this answers
-- [Model card](https://huggingface.co/tuteliq/tuteliq-detect-24b-v6): full evaluation across nine suites
+- [TUT-CSDT-001, the Child Safety Detection Transparency Framework](https://tuteliq.ai/standard): the framework this answers, with the self-assessment instrument and the declaration of interest
+- [Security](/security): our security posture
+- Model card, `tuteliq/tuteliq-detect-24b-v6` on Hugging Face: full evaluation across nine suites. The model is proprietary and the repository is private, so access is granted under agreement rather than publicly readable
 - [TUT-100 dataset](https://huggingface.co/datasets/tuteliq/tut-100): card public, data gated under an access agreement
 - [Trust Center](/trust): security posture, sub-processors, penetration test
 
