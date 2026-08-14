@@ -6,32 +6,22 @@ description: Latest updates to the Tuteliq API
 keywords: [changelog, updates, releases, versions]
 ---
 
-## v1.18.0 (August 2026)
+<Info>
+**Versioning.** From v2.4.0 the version here is the release tag of the API
+itself, and it follows [semantic versioning](https://semver.org): a major bump
+for a breaking change, a minor for backwards-compatible additions, a patch for
+fixes. The jump from v1.18.0 to v2.4.0 is that alignment, not eighteen missing
+releases.
 
-### Added: Arabic and Russian, bringing supported languages to 32
+Entries below v2.4.0 used a separate product numbering that did not follow
+semver strictly. Two of them contain breaking changes that a major bump should
+have signalled: **v1.14.0** (`recommended_action` values, removal of the
+`normalized` block) and **v1.8.0** (endpoint rename, removed synthetic profile
+endpoint). They are left as published rather than renumbered, so anything that
+already cites them still resolves.
+</Info>
 
-`ar` (Arabic) and `ru` (Russian) are now supported beta languages, joining
-Chinese, Japanese and Korean. Both were validated against an English control
-before release, checking two things: that real harm is caught, and that
-protective speech (a parent warning a child) is *not* flagged.
-
-Arabic covers Modern Standard Arabic plus Egyptian, Levantine, Gulf and
-Maghrebi dialects, since everyday conversation happens in dialect rather than
-MSA. Arabizi (Arabic written in Latin letters and numerals, such as "7abibi")
-is recognised, as is Russian translit (Russian written in Latin characters).
-
-### Improved: culture-specific guidelines for Chinese, Japanese and Korean
-
-The Chinese, Japanese and Korean profiles now carry full culture-specific
-guidance rather than baseline coverage: region-specific grooming and
-exploitation vocabulary, script-specific evasion handling, and — most
-importantly for false positives — carve-outs for ordinary speech that
-resembles harmful vocabulary. Everyday affectionate address between family
-members, fandom and gaming hyperbole, and child-protection education material
-are recognised as benign.
-
-Chinese covers Simplified and Traditional script, with mainland, Taiwan, Hong
-Kong and Singapore usage differences, including written Cantonese.
+## v2.4.0 (14 August 2026)
 
 ### Added: `csam_assessment.sources` reports which detection layers ran
 
@@ -90,6 +80,33 @@ rather than being maintained separately, which had let them drift apart.
 ### SDK releases
 
 `@tuteliq/mcp@3.22.2`
+
+## v1.18.0 (13 August 2026)
+
+### Added: Arabic and Russian, bringing supported languages to 32
+
+`ar` (Arabic) and `ru` (Russian) are now supported beta languages, joining
+Chinese, Japanese and Korean. Both were validated against an English control
+before release, checking two things: that real harm is caught, and that
+protective speech (a parent warning a child) is *not* flagged.
+
+Arabic covers Modern Standard Arabic plus Egyptian, Levantine, Gulf and
+Maghrebi dialects, since everyday conversation happens in dialect rather than
+MSA. Arabizi (Arabic written in Latin letters and numerals, such as "7abibi")
+is recognised, as is Russian translit (Russian written in Latin characters).
+
+### Improved: culture-specific guidelines for Chinese, Japanese and Korean
+
+The Chinese, Japanese and Korean profiles now carry full culture-specific
+guidance rather than baseline coverage: region-specific grooming and
+exploitation vocabulary, script-specific evasion handling, and, most
+importantly for false positives, carve-outs for ordinary speech that resembles
+harmful vocabulary. Everyday affectionate address between family members,
+fandom and gaming hyperbole, and child-protection education material are
+recognised as benign.
+
+Chinese covers Simplified and Traditional script, with mainland, Taiwan, Hong
+Kong and Singapore usage differences, including written Cantonese.
 
 ## v1.17.0 (August 2026)
 
