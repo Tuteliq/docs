@@ -1,0 +1,547 @@
+{
+  "frameworkVersion": "TUT-CSDT-001-v1.0",
+  "schemaRevision": 3,
+  "disclosureType": "vendor-reference",
+  "notes": "Vendor reference disclosure under P0.2.5. Covers the vendor-side clause set only, confers no level, and is intended for platforms to cite under P0.2.6. DRAFT, not published. Figures are drawn from recorded evaluation artifacts; where no figure exists the entry states 'not measured' rather than an estimate.\n\nModality coverage is declared at P3 from the endpoints that actually run each detector. Per-modality performance is measured for text only, and only for grooming and fraud; every other cell in the matrix is false, meaning the modality is analysed but its accuracy on that modality is not separately measured.\n\nAge and identity verification are out of scope for this disclosure. Clause P0 excludes age assurance from the framework, so no clause asks about it and none is answered. Tuteliq operates age and identity verification as separate products; their absence here reflects the framework's scope, not the absence of the capability.",
+  "P0.2.5": {
+    "vendorName": "Tuteliq AB",
+    "systemName": "Tuteliq Detection API",
+    "version": "API v2.4.0; detection model tuteliq-detect-24b-v6",
+    "date": "2026-08-14",
+    "publicUrl": "https://docs.tuteliq.ai/vendor-reference-disclosure",
+    "contact": "research@tuteliq.ai"
+  },
+  "disclosure": {
+    "platformName": "Tuteliq AB: vendor reference disclosure",
+    "platformLegalEntity": "Tuteliq AB",
+    "publicUrl": "https://docs.tuteliq.ai/vendor-reference-disclosure",
+    "dateCompleted": "2026-08-14",
+    "dateOfNextReview": "2027-02-14",
+    "detectionSystemVersions": [
+      "API v2.4.0",
+      "tuteliq-detect-24b-v6"
+    ],
+    "contact": "research@tuteliq.ai",
+    "levelApplicable": false
+  },
+  "P1": {
+    "P1.1": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.2": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.3": {
+      "covered": false,
+      "knownGaps": "Not currently delivered to any customer. Tuteliq is an IWF member (1 June 2026) and the Hash List client, matcher and daily-pull tooling are built and exercised against IWF's endpoints. The capability is not enabled in the request path, because the IWF Hash List cannot be sublicensed: it can only be applied for a customer holding its own IWF membership, and no current customer holds one. Customers without membership receive compositional analysis only. This entry will change to covered when an entitled customer exists and per-account matching is live."
+    },
+    "P1.4": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.5": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.6": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.7": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.8": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.9": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.10": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.11": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.12": {
+      "covered": true,
+      "method": "automated"
+    },
+    "P1.13": {
+      "covered": true,
+      "method": "automated"
+    }
+  },
+  "P2": {
+    "P2.0": {
+      "P2.0.1": {
+        "P1.2": true,
+        "P1.1": false,
+        "P1.4": false,
+        "P1.5": false,
+        "P1.6": false,
+        "P1.7": false,
+        "P1.8": false,
+        "P1.9": true,
+        "P1.10": false,
+        "P1.11": false,
+        "P1.12": false,
+        "P1.13": false
+      },
+      "P2.0.2": {
+        "P1.9": "Recall is measured on the COVA-X scam corpus (147 of 150 conversation-level). Precision is not computed: that corpus contains scam conversations only, with no benign class, so no false-positive denominator exists. Marked true under the rule stated at P2.6.5, on one metric rather than two."
+      }
+    },
+    "perCategory": {
+      "P1.2": {
+        "operatingPoint": {
+          "description": "Single default production threshold applied uniformly. The numeric threshold is withheld under P0.3.3A, which permits withholding operating-point thresholds while requiring the metrics themselves.",
+          "basisForSelection": "Set once for the published seven-tactic taxonomy rather than tuned per deployment. Platforms choose their own escalation threshold on top of the returned risk level, so the platform-side operating point (P0.2, platform-side clauses) is not ours to declare."
+        },
+        "P2.1.1": {
+          "value": 1.0,
+          "ci95Lower": 0.875,
+          "ci95Upper": 1.0
+        },
+        "P2.1.3": {
+          "value": 0.976,
+          "ci95Lower": 0.959,
+          "ci95Upper": 0.986
+        },
+        "P2.4": {
+          "P2.4.1": {
+            "corpusSize": 527,
+            "composition": "527 conversations: 500 held-out expert trajectories, criminologist-authored and multi-turn, plus 27 benign control conversations. Detection is conversation-level, so both classes are counted in conversations and the precision interval reflects the 27-conversation negative sample. Zero false positives on those controls, 95% CI on the rate [0, 0.125].\n\nA separate message-level set of 450 benign turns also returns zero false positives, 95% CI [0, 0.0085]. That figure is NOT the basis of the precision above and must not be combined with it: pairing conversation-level positives against message-level negatives under-counts false positives structurally and inflates precision. It is message-level evidence in its own right.\n\nThe declared unit of detection and any production false-positive rate are platform-side clauses under P0.2 and are for the deploying platform to state.",
+            "provenance": "Authored for evaluation and held out from training. Fabricated by domain experts rather than collected from real people; no real personal data, no real casework and no production traffic. See P2.8.3 for the provenance of the expert panel and why real case material was deliberately not used. A separate 158-conversation set, TUT-100, is published at https://huggingface.co/datasets/tuteliq/tut-100 (card public, data gated under an access agreement)."
+          },
+          "P2.4.2": "Seven-tactic taxonomy with a versioned annotation guide, including a dedicated boundary-pushing adjudication guide.",
+          "P2.4.3": {
+            "notMeasured": true,
+            "reason": "Inter-annotator agreement has never been measured for the 527-conversation corpus described at P2.4.1, and no statistic exists to compute, because a single annotator applied every label (P2.4.5). The external consultants who supplied the material and ran domain validation did not apply labels, so they do not constitute a second annotator and no agreement figure is recoverable from their work. This is not a withholding: there is no figure being held back.",
+            "blockedBy": "P0.1 requires a qualified human reviewer independent of the detection system vendor, which for this disclosure is Tuteliq AB. Our own staff, including our Chief Scientific Officer, are therefore excluded from producing the ground truth against which our own figures would be validated. External labellers are being commissioned.",
+            "plannedBy": "2027-02-14"
+          },
+          "P2.4.4": {
+            "value": true,
+            "detail": "Evaluation conversations are held out from the training corpus."
+          },
+          "P2.4.5": {
+            "labellerQualifications": "Roles are separated deliberately, because they carry different weight.\n\nLabelling: every per-turn label and adjudication on this evaluation corpus was applied by Dr Nicola Harding, Tuteliq's Chief Scientific Officer, a criminologist and Specialist Advisor to the UK Home Office. She is the sole annotator.\n\nData and domain validation: external consultants in criminology, child psychology and linguistics supplied the underlying material and ran validation tests within their own domains against the taxonomy and the detection behaviour. They did not apply labels, so they are not annotators and their involvement does not create a second labelling opinion.\n\nThis does NOT constitute independent labelling or independent evaluation under P0.1, and the panel does not make it so. P0.1 excludes any reviewer with a financial, employment or contractual relationship with the vendor. Dr Harding is a co-founder and shareholder; the consultants were engaged and paid by Tuteliq. A credentialled panel is a statement about expertise, not about independence, and the two are routinely conflated. Every figure in this disclosure rests on ground truth we produced ourselves.",
+            "independentLabelling": false
+          },
+          "P2.4.6": "self-conducted",
+          "P2.4.7": "tuteliq-detect-24b-v6, evaluated as the model artifact directly rather than through the production API. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which these figures exercise. A platform calling the API should treat them as an upper bound on what the deployed path delivers, not as a measurement of it. API v2.4.0 is listed in detectionSystemVersions as the version this disclosure describes; it is not the version these numbers were measured against.",
+          "P2.4.8": "Every interval here is a Wilson interval computed from raw counts, and we invite the check: precision 1.000 CI [0.875, 1.000] is 0 false positives on 27 benign control conversations; recall 0.976 is 488 of 500; the message-level false-positive rate is 0 of 450 turns. The PAN-2012 figures below are 39/50 and 39/71.\n\nThe precision bound is wide because the conversation-level negative sample is small, 27 controls. That small negative sample is also why precision here is prevalence-sensitive to the point of being misleading if quoted alone; see P2.5.6, which gives the adjusted figures. An earlier draft reported CI [0.992, 1.000], which came from pairing the 488 trajectory-level positives against the 450 message-level negatives. That mixed units and materially overstated the precision of a conversation-level detector. It is corrected here.\n\nThe evaluation corpus is not openly downloadable, so a third party cannot reproduce these unaided. TUT-100 is obtainable under a gated access agreement. Inter-annotator agreement has never been measured (P2.4.3)."
+        }
+      }
+    },
+    "P2.5": {
+      "P2.5.1": "mixed",
+      "P2.5.2": {
+        "run": true,
+        "benchmarkName": "PAN-2012 Sexual Predator Identification (CLEF 2012; Inches & Crestani; https://pan.webis.de/clef12/pan12-web/sexual-predator-identification.html; dataset DOI 10.5281/zenodo.3713280)",
+        "precision": {
+          "value": 0.549,
+          "ci95Lower": 0.434,
+          "ci95Upper": 0.66
+        },
+        "recall": {
+          "value": 0.78,
+          "ci95Lower": 0.648,
+          "ci95Upper": 0.872
+        },
+        "systemVersionEvaluated": "tuteliq-detect-24b-v6"
+      },
+      "P2.5.3": "Figures come from a 100-conversation run, 50 predator and 50 benign, at the default threshold: 39 true positives of 50, and 32 false positives of 50 benign. A larger evaluation over 390 PAN-2012 conversations gives 85% conversation-level detection within forty-turn windows; precision was not computed for that run. Where these differ from any other Tuteliq document, the model card at https://huggingface.co/tuteliq/tuteliq-detect-24b-v6 is authoritative.\n\nPAN-2012's positive class comes from decoy operations in which adults posed as children, so it measures detection of an adult performing a child rather than of a child. Those conversations were pursued to a sting, over-representing fast escalation. Positive and negative classes were drawn from different sources, so a classifier can score on source artefacts. English-only, 2012 vintage.\n\nThe overlap, which is checkable rather than assertable: we adjudicated 82% of the clean set (41 of 50) as carrying grooming-pattern tactics genuinely present between adults. We flagged 32 of 50. All 32 fall inside those 41, that is 78% of the tactic-bearing subset and none outside it. The two figures are dimensionally consistent, which they did not have to be.\n\nHow that adjudication was conducted, held to the same standard as the boundary_pushing adjudication above: it was performed by Tuteliq, after the detection run, with no blinding protocol applied or recorded. Whoever judged which conversations carried tactics could see which had been flagged. Perfect containment of the 32 inside the 41 is therefore the result this method would tend to produce whether or not it were true, and it should be weighted accordingly. A blinded re-adjudication would settle it.\n\nThe residual subset adjudicated as genuinely clean is nine conversations. Zero of those nine were flagged, which bounds the false-positive rate on truly benign adult conversation at [0, 0.299]. That interval, not the containment argument, is the honest measure of how this system behaves on clean adult text.\n\nThe caution that follows, and platforms should carry it into their own P6.10: if adult-to-adult conversation reliably carries these tactics, that is a production false-positive characteristic and not merely a benchmark artefact. A deployment analysing adult-to-adult traffic should expect flags of this kind. Our curated benign sets return zero false positives across 27 control conversations, 95% CI [0, 0.125], and across 450 benign turns, but those sets are child-context conversations, not adult IRC.",
+      "P2.5.4": "TUT-100: 158 expert-authored conversations, fabricated rather than collected across 16 languages, per-turn tactic annotations, 100% synthetic with no real personal data. Published gated. The expert trajectory corpus is authored to the same taxonomy.",
+      "P2.5.5": "No production or customer content is held. The private corpus is expert-authored and fabricated rather than collected, by deliberate decision of the authoring experts (P2.8.3); no personal data of any child is contained in it.",
+      "P2.5.6": "Prevalence sensitivity, which is the most important limitation on these figures.\n\nThe evaluation corpus is 94.9% positive: 500 positive conversations against 27 negative. Production is nothing like that. Precision is the metric most sensitive to prevalence, so the 1.000 reported at P2.1.1 must not be carried into capacity planning at a realistic base rate.\n\nCarrying our recall of 0.976 and the upper bound of the false-positive rate (0.125, from zero false positives on 27 negative conversations) through to plausible prevalences:\n  10% prevalence: precision 0.465\n   5% prevalence: precision 0.292\n   1% prevalence: precision 0.073\n 0.1% prevalence: precision 0.008\n\nAt the point estimate of zero false positives, precision computes to 1.000 at every prevalence. That is the tell: the point estimate carries no information, and the interval is doing all the work. A platform sizing human review capacity from the 1.000 would be wrong by an order of magnitude. Size it from the interval.\n\nProduction prevalence and prevalence-adjusted precision are platform-side clauses under P0.2 (P2.3 and P2.1.2), because only the deploying platform knows its own base rate. This paragraph gives a platform what it needs to compute them: our recall, our false-positive bound, and the corpus prevalence the precision was measured at.\n\nThese results also do not generalise to any platform's traffic mix, and per-language precision and recall are not published for any language other than English."
+    },
+    "P2.6": {
+      "P2.6.1": "boundary_pushing is the weakest per-message tactic, at F1 0.750 (recall 0.60, precision 1.00) on a purpose-built set of 10 genuine anchors plus 4 benign controls. It catches explicit and repeated pushes and misses softer first-move normalisation.\n\nAn earlier figure of 0.316 has been withdrawn and should not be cited. On re-adjudication (13 August 2026) all sixteen boundary_pushing anchors in TUT-100 v1 were found to be mislabelled: four were concealment framing belonging to secrecy_request, and twelve were supervision and availability probes belonging to reconnaissance, an arc-level tactic the seven-tactic per-message benchmark did not carry. No genuine anchors remained, so the tactic was untested by that benchmark rather than failed. The same predictions with corrected labels give a per-message macro of 0.886 at precision 1.00.\n\nHow that re-adjudication was conducted, stated plainly because it bears on how much weight it carries: it was performed by the same annotator who produced the original labels, unblinded, on a corpus for which no inter-annotator agreement statistic exists. A label correction that raises one's own score, made by the person who set the original labels, is the weakest form of evidence in this document. The per-item reasoning for all sixteen turns will be published by 30 September 2026 so the adjudication can be assessed rather than taken on trust. If that date passes without publication, treat the adjudication as unverified.\n\nThe residual weakness is real: softer first-move normalisation, and severity not yet conditioned on speaker relationship, so the same words score alike from a teacher and from a stranger.",
+      "P2.6.4": {
+        "withheld": true,
+        "basis": "evasion-risk",
+        "reason": "Naming the specific encodings and obfuscations that currently defeat detection would be directly usable against children on customer platforms before integrations update.",
+        "partialAnswer": "A deterministic normalisation pre-pass runs ahead of analysis, so text disguised by character substitution, hidden characters, or encoding is assessed as the message it carries rather than as an opaque token. The specific techniques it covers, and the ones that still defeat it, are the withheld part: publishing either is directly usable against children on customer platforms. Before 14 August 2026 no such pre-pass existed and encoded payloads reached analysis unresolved."
+      },
+      "P2.6.5": "The rule applied to P2.0.1, stated once because two thresholds for one boolean would otherwise be invisible. P2.0.1 is true where at least one metric was measured on a corpus specific to that category, and false where the category was only exercised inside an aggregate with no category-specific figure of its own.\n\nBy that rule: grooming (P1.2) is true, with precision and recall on the 527-conversation corpus. Fraud (P1.9) is true on recall alone, measured on the COVA-X scam corpus, which is specific to that category; its precision is absent because that corpus carries no benign class. Recall without precision is not a complete per-category measurement, and the entry should be read as one metric rather than two.\n\nSextortion (P1.5) and coercive control (P1.10) are false. Both are exercised by the 500-case expert trajectory corpus, which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and no figure is attributable to either category alone. An earlier draft marked them measured, which read as stronger than the evidence supports."
+    },
+    "P2.7": {
+      "P2.7.1": false,
+      "P2.7.3": [
+        "Not measured. Differential performance across languages, dialects and demographics has not been evaluated. This is a gap we consider material given the consequences disclosed by platforms at P6.10."
+      ]
+    },
+    "P2.8": {
+      "P2.8.1": "Re-evaluated on each model iteration against the held-out sets. No fixed calendar drift-monitoring schedule is in place.",
+      "P2.8.2": "Model card published at https://huggingface.co/tuteliq/tuteliq-detect-24b-v6, covering nine evaluation suites over 2,400+ held-out cases. Datasets: TUT-100 and kids-online-slang (https://huggingface.co/datasets/tuteliq/kids-online-slang).",
+      "P2.8.3": "No real personal data, customer content, production traffic or real casework is used at any stage of training or evaluation, and no material depicting abuse is held at any point. Content is indicator-level only, with no explicit or graphic material.\n\nProvenance: the underlying material was supplied by external domain consultants in criminology, child psychology and linguistics, who also ran validation tests within their own domains against the taxonomy and detection behaviour, with findings acted on. The programme was led and the corpus validated by Dr Nicola Harding, Tuteliq's Chief Scientific Officer, a criminologist and Specialist Advisor to the UK Home Office. It is grounded in published frameworks in the grooming and child-sexual-exploitation literature. Expansion was AI-assisted under expert direction, with expert validation of the output. Where this corpus is described as synthetic, here and in the published model card, the term means the conversations were fabricated rather than collected from real people; it is neither unsupervised model output nor a claim that every row was hand-written.\n\nFabrication was a deliberate data-protection decision by the authoring experts rather than a convenience. They declined to work from real case material so that no victim's personal data could enter the corpus, be retained, or leak through the model. No row of training or evaluation data traces back to a real child.\n\nOne boundary, so the claim is not read wider than it holds: the expert-authored material is the English backbone. Multilingual coverage is derived from it by translation and in-language generation with native-speaker review, not authored independently per language. The no-real-data guarantee holds across both.",
+      "P2.8.4": "Adversarial and red-team suites are run per iteration, including protective-speech and evasion sets.",
+      "P2.8.5": "Model versions are tagged; the serving revision records the commit it was built from."
+    }
+  },
+  "P3": {
+    "matrix": {
+      "P1.1": {
+        "modalities": [
+          "P3.1",
+          "P3.4",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.4": false,
+          "P3.5": false
+        },
+        "notes": "Text, audio and documents. The image endpoint additionally returns text extracted from an image, so a platform can route a screenshotted conversation through a text endpoint itself. That is a real capability and it is stated here so no reader misses it, but it is not claimed as image-modality coverage for this category: the detection would run on extracted text, and the vision path's own accuracy on screenshotted conversations has not been measured."
+      },
+      "P1.2": {
+        "modalities": [
+          "P3.1",
+          "P3.4",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": true,
+          "P3.4": false,
+          "P3.5": false
+        },
+        "notes": "Text, audio and documents. The image endpoint additionally returns text extracted from an image, so a platform can route a screenshotted conversation through a text endpoint itself. That is a real capability and it is stated here so no reader misses it, but it is not claimed as image-modality coverage for this category: the detection would run on extracted text, and the vision path's own accuracy on screenshotted conversations has not been measured."
+      },
+      "P1.4": {
+        "modalities": [
+          "P3.2",
+          "P3.6"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.2": false,
+          "P3.6": false
+        },
+        "notes": "Compositional assessment runs on the synthetic-content image path, not on the general image endpoint. Video is not covered: the CSAM scorer is not reached from the video path."
+      },
+      "P1.5": {
+        "modalities": [
+          "P3.1",
+          "P3.4",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.4": false,
+          "P3.5": false
+        }
+      },
+      "P1.6": {
+        "modalities": [
+          "P3.1",
+          "P3.4",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.4": false,
+          "P3.5": false
+        }
+      },
+      "P1.7": {
+        "modalities": [
+          "P3.1",
+          "P3.2",
+          "P3.3",
+          "P3.4",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.2": false,
+          "P3.3": false,
+          "P3.4": false,
+          "P3.5": false
+        },
+        "notes": "Text, audio and documents through the language path; image and video through visual classification of self-harm imagery, per frame on video."
+      },
+      "P1.8": {
+        "modalities": [
+          "P3.1",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.5": false
+        }
+      },
+      "P1.9": {
+        "modalities": [
+          "P3.1",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": true,
+          "P3.5": false
+        }
+      },
+      "P1.10": {
+        "modalities": [
+          "P3.1",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.5": false
+        }
+      },
+      "P1.11": {
+        "modalities": [
+          "P3.1",
+          "P3.2",
+          "P3.3",
+          "P3.4",
+          "P3.5"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.2": false,
+          "P3.3": false,
+          "P3.4": false,
+          "P3.5": false
+        },
+        "notes": "Text, audio and documents through the language path; image and video through visual classification of drug content, per frame on video."
+      },
+      "P1.12": {
+        "modalities": [
+          "P3.1",
+          "P3.2",
+          "P3.3"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.1": false,
+          "P3.2": false,
+          "P3.3": false
+        },
+        "notes": "Visual classification of nudity and explicit material, per frame on video."
+      },
+      "P1.13": {
+        "modalities": [
+          "P3.6",
+          "P3.7",
+          "P3.8"
+        ],
+        "perModalityPerformanceMeasured": {
+          "P3.6": false,
+          "P3.7": false,
+          "P3.8": false
+        }
+      }
+    }
+  },
+  "P4": {
+    "P4.1": [
+      {
+        "code": "en",
+        "name": "English",
+        "P4.2": "stable",
+        "P4.3": true
+      },
+      {
+        "code": "es",
+        "name": "Spanish",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "pt",
+        "name": "Portuguese",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "uk",
+        "name": "Ukrainian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "sv",
+        "name": "Swedish",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "no",
+        "name": "Norwegian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "da",
+        "name": "Danish",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "fi",
+        "name": "Finnish",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "de",
+        "name": "German",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "fr",
+        "name": "French",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "nl",
+        "name": "Dutch",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "pl",
+        "name": "Polish",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "it",
+        "name": "Italian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "tr",
+        "name": "Turkish",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "ro",
+        "name": "Romanian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "el",
+        "name": "Greek",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "cs",
+        "name": "Czech",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "hu",
+        "name": "Hungarian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "bg",
+        "name": "Bulgarian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "hr",
+        "name": "Croatian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "sk",
+        "name": "Slovak",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "lt",
+        "name": "Lithuanian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "lv",
+        "name": "Latvian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "et",
+        "name": "Estonian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "sl",
+        "name": "Slovenian",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "mt",
+        "name": "Maltese",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "ga",
+        "name": "Irish",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "zh",
+        "name": "Chinese",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "ja",
+        "name": "Japanese",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "ko",
+        "name": "Korean",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "ar",
+        "name": "Arabic",
+        "P4.2": "beta",
+        "P4.3": true
+      },
+      {
+        "code": "ru",
+        "name": "Russian",
+        "P4.2": "beta",
+        "P4.3": true
+      }
+    ],
+    "notes": "Thirty-two languages are processed, and detection runs in every one of them (P4.11). What differs between them is how much has been measured.\n\nTwenty-six of the thirty-two, English among them, are covered by a held-out multilingual evaluation of 728 expert-pattern cases conducted in language rather than by translation. That is 28 cases per language, across seven tactics, so four cases per tactic per language. The arithmetic is exact and checkable, and it is the reason no confidence intervals are computed for those languages: four observations per cell will not support one. That is what the beta tier means here.\n\nEnglish is additionally tiered stable because its precision and recall are separately measured and published on the 527-conversation corpus at P2.4.1. No other language has per-language precision and recall, which is the substantive gap and what would move any of them to stable.\n\nThe remaining six of the thirty-two have no evaluation of their own. Twenty-six plus six is thirty-two. They carry culture-specific guidelines authored per language, as all thirty-two do, and the same multilingual model runs on them, but their beta tier rests on inference from the twenty-six rather than on evidence. We state that rather than let a uniform tier imply otherwise, and the per-language list will be published so a reader can see which six.\n\nAll thirty-two are supported in the ordinary sense that we build, test and stand behind detection in them, and P4.11 records that detection is enabled in every one. What varies is how much has been measured, which is what P4.2 states.\n\nThe beta tier is a deliberate statement to customers that mistakes can happen and that per-language figures are not yet published. It is not a statement that a language is untested or unfit for production, and it is not grounds for a platform to disable detection in it. Doing so would leave children writing in that language with no automated protection at all, which is plainly worse than protection whose per-language error rate we have not yet quantified.",
+    "P4.11": {
+      "allLanguagesFullyEnabled": true,
+      "statement": "Detection runs in all thirty-two listed languages. There is no language in which it is disabled, sampled, gated behind a flag, or run at reduced escalation, and no language whose detections are downgraded or suppressed before reaching the customer. The same model, the same tactics and the same thresholds apply throughout.\n\nThe performance tier at P4.2 describes what has been measured, not what is switched on. English is tiered stable because its precision and recall are published; the other thirty-one are tiered beta because theirs are not. None of that changes whether detection runs, and we would not withdraw protection from a language in order to avoid declaring a tier for it."
+    },
+    "P4.7": "A deterministic normalisation pre-pass runs ahead of analysis in every language, covering character substitution, hidden characters and encoded payloads, so disguised text is assessed as what it says. Shipped 14 August 2026. The specific techniques covered are withheld under P0.3.3 on evasion-risk grounds; see P2.6.4.",
+    "P4.6": "Coded language, slang, acronyms and emoji codes are a dedicated detection layer rather than a by-product of general moderation, and they are evaluated as such.\n\nEvidence, from the published model card. On a proprietary coded-language set of 60 cases: 39 of 39 coded-positive detections with zero false positives on 21 benign look-alikes. On a head-to-head of 25 coded-slang and emoji positives against 15 benign look-alikes, 72% recall against a 19% average across three leading general-purpose moderation systems, best alternative 44%, with zero false positives for every system tested.\n\nThe evaluation set is published as kids-online-slang at https://huggingface.co/datasets/tuteliq/kids-online-slang: 315 high-confidence test cases across 14 risk categories plus benign-lookalike controls, covering English, Spanish, Portuguese, French, German and Swedish. The card is public and the data is gated behind an access agreement and use-case review, because a published list of the terms children use to discuss risk is directly usable by the people those children are at risk from. An approved researcher can reproduce the figures above; a casual reader cannot lift the lexicon.\n\nNeither figure carries a confidence interval, and both come from sets we built and scored ourselves. The head-to-head in particular compares our system on our own benchmark, which is the weakest form of comparison and should be read as indicative rather than as an independent ranking. Coverage of the coded layer beyond those six languages is not separately measured."
+  }
+}

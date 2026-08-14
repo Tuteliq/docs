@@ -147,7 +147,8 @@
               "trust",
               "certification",
               "sdlc",
-              "security"
+              "security",
+              "vendor-reference-disclosure"
             ]
           }
         ]

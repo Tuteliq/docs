@@ -1,0 +1,122 @@
+---
+title: Vendor Reference Disclosure
+sidebarTitle: Our Own Disclosure
+icon: file-shield
+description: Tuteliq's completed disclosure against TUT-CSDT-001, the transparency framework we wrote, including where we fall short
+keywords: [transparency, disclosure, TUT-CSDT-001, benchmark, evaluation, child safety detection]
+---
+
+<Note>
+**Tuteliq's own disclosure against our framework. We wrote the questions. Here are our answers, including where we fall short.**
+
+This is a **vendor reference disclosure** under clause P0.2.5. It confers no conformance level, because levels attach to platforms rather than to detection systems. It covers the vendor-side clauses only: the properties of the detection system, which only we can evidence. The platform-side clauses, covering how a given deployment is configured and what happens to a flagged user, belong to the platform using us and cannot be discharged by citing this document.
+
+Our grooming detection shows **100% precision and 97.6% recall** on a held-out expert corpus. Two things about that. The figures are self-measured by an interested party, which is exactly what this framework exists to fix. And the corpus is 94.9% positive, so the precision is measured at a base rate nothing like production: carried to a realistic 1% prevalence it falls to roughly 0.07. Do not size human review capacity from the 100%.
+</Note>
+
+## The short version
+
+| | |
+|---|---|
+| Harm categories covered | 12 of 13 |
+| Categories with published performance figures | 2 of 12 |
+| Languages | 32 (English stable, 31 beta) |
+| Languages with published per-language figures | 1 |
+| Independent labelling | **No** |
+| Independent evaluation | **No.** In progress via COVA-X |
+| Inter-annotator agreement | **Never measured** |
+| Subgroup equity | **Not measured** |
+
+The machine-readable form is at [`csdt-disclosure.json`](https://docs.tuteliq.ai/csdt-disclosure.json). Where this page and that file differ, the JSON is authoritative.
+
+## What we measured
+
+**Grooming, behavioural and multi-turn.** Precision 1.00 (95% CI 0.875 to 1.0), recall 0.976 (95% CI 0.959 to 0.986). Corpus: 527 conversations, being 500 held-out expert trajectories, criminologist-authored and annotated per turn against the seven-tactic taxonomy, plus 27 benign control conversations. Fabricated by domain experts rather than collected from real people; no real personal data, no real casework and no production traffic. See "How the corpus was built" below.
+
+Detection is conversation-level, so both classes are counted in conversations and the precision interval reflects a 27-conversation negative sample, which is why it is wide. A separate message-level set of 450 benign turns also returns zero false positives, 95% CI 0 to 0.0085, but that figure is not the basis of the precision above and must not be combined with it. Pairing conversation-level positives against message-level negatives under-counts false positives structurally and inflates precision. An earlier draft of this page did exactly that and reported 0.992 to 1.0; it is corrected here.
+
+**Fraud and social engineering.** Recall 0.98 (147 of 150) on the COVA-X scam corpus, used with the authorisation of its authors. Precision is not reported for this category: the evaluated set contains scam conversations only, with no benign class, so there is no false-positive denominator.
+
+**Sextortion and coercive control are exercised but not separately measured.** They sit inside the same 500-case expert evaluation, which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and a macro is not a per-category precision and recall. An earlier draft of this page counted them as measured, which read as stronger than the evidence supports.
+
+### The public benchmark
+
+PAN-2012 Sexual Predator Identification (CLEF 2012, Inches and Crestani, [DOI 10.5281/zenodo.3713280](https://doi.org/10.5281/zenodo.3713280)): precision 0.549 (95% CI 0.434 to 0.660), recall 0.780 (95% CI 0.648 to 0.872).
+
+That precision figure looks poor and we publish it anyway, because a vendor who runs a public benchmark and does not publish the result is withholding the most comparable number it possesses.
+
+It should not be read as a production false-positive rate. PAN-2012's positive class comes from decoy operations in which adults posed as children, so it measures detection of an adult performing a child rather than of a child. Positive and negative classes were drawn from different sources, so a classifier can score well on artefacts of the source. It is English-only and of 2012 vintage.
+
+Most consequentially: the PAN-2012 "clean" set is raw adult IRC chat, and on our own inspection 82% of it (41 of 50) contains grooming-pattern tactics genuinely present between adults. The benign class is not benign.
+
+The overlap is checkable rather than assertable. We flagged 32 of the 50. All 32 fall inside those 41, being 78% of the tactic-bearing subset and none outside it. The two figures are dimensionally consistent, which they did not have to be.
+
+Held to the same standard as the adjudication below: that judgement was made by Tuteliq, after the run, with no blinding protocol applied or recorded. Whoever judged which conversations carried tactics could see which had been flagged, so perfect containment is what this method would tend to produce whether or not it were true. The residual subset adjudicated as genuinely clean is nine conversations, none flagged, which bounds the false-positive rate on truly benign adult text at 0 to 0.299. That interval, not the containment argument, is the honest measure.
+
+The caution that follows, and platforms should carry it into their own P6.10: if adult-to-adult conversation reliably carries these tactics, that is a production false-positive characteristic and not merely a benchmark artefact. A deployment analysing adult-to-adult traffic should expect flags of this kind. Our curated benign sets return zero false positives across 27 control conversations and across 450 benign turns, but those are child-context conversations, not adult IRC.
+
+## How the corpus was built
+
+External consultants in criminology, child psychology and linguistics supplied the material and ran validation tests in their own domains against the taxonomy and the detection behaviour, with their findings acted on. Dr Nicola Harding, our Chief Scientific Officer, a criminologist and Specialist Advisor to the UK Home Office, led the programme and labelled and validated the corpus. It is grounded in published frameworks in the grooming and child-sexual-exploitation literature.
+
+The conversations are fabricated rather than collected from real people, and expansion was AI-assisted under expert direction with expert validation of the output. The experts declined to work from real case material so that no victim's personal data could enter the corpus, be retained, or leak through the model. No row of training or evaluation data traces back to a real child.
+
+Dr Harding is the sole annotator; the consultants supplied and tested but did not label. That is why no inter-annotator agreement figure exists, and why the panel does not make our labelling independent.
+
+The expert-authored material is the English backbone. Multilingual coverage is derived from it by translation and in-language generation with native-speaker review, rather than authored independently in each language.
+
+## Where we fall short
+
+**Our labels are not independent, and the expert panel does not change that.** Under clause P0.1, a false positive or negative determination requires a reviewer with no financial, employment or contractual relationship with the vendor. Our evaluation labels come from our Chief Scientific Officer, who is a co-founder and shareholder, and the consultants above were engaged and paid by us. A credentialled panel is a statement about expertise, not about independence, and the two are easily conflated. Every figure above rests on ground truth we produced ourselves.
+
+**Inter-annotator agreement has never been measured.** A single annotator labelled the corpus, so no agreement statistic exists to compute. This is recorded as not measured rather than withheld: there is no figure being held back. External labellers are being commissioned.
+
+**Ten of twelve covered categories have no published figures.** Detection runs for all of them. Performance has not been measured per category for most.
+
+**No per-language performance exists outside English.** Thirty-one languages are supported and tested, with culture-specific guidelines authored per language rather than translated, and a held-out multilingual evaluation across twenty-six of them. What does not exist is per-language precision and recall.
+
+**Six of the thirty-two have no evaluation of their own.** Twenty-six, English among them, are covered by a held-out multilingual evaluation of 728 cases. That is 28 per language across seven tactics, so four per tactic per language: the arithmetic is exact, and four observations per cell is why no confidence intervals are computed for those languages. That is what beta means here. The remaining six carry the same tier on inference rather than evidence, and we say so rather than let a uniform tier imply otherwise.
+
+**Detection nevertheless runs everywhere (clause P4.11).** There is no language in which detection is disabled, sampled, gated behind a flag, or run at reduced escalation. The performance tier describes what has been measured, not what is switched on, and we would not withdraw protection from a language in order to avoid declaring a tier for it.
+
+**Subgroup equity is unmeasured.** We have not measured differential performance across languages, dialects, demographics or content types. Differential false-positive rates across protected groups are a discrimination risk and a child-rights issue.
+
+**Known-material hash matching is not delivered.** We hold IWF membership, but the IWF Hash List cannot be sublicensed, so it can only be applied for a customer holding its own membership.
+
+## One correction we made to ourselves
+
+An earlier figure of 0.316 for the `boundary_pushing` tactic has been **withdrawn** and should not be cited.
+
+On expert re-adjudication, all sixteen anchor turns behind that figure were found to be mislabelled: four were concealment framing belonging to `secrecy_request`, and twelve were supervision probes belonging to `reconnaissance`, an arc-level tactic that the seven-tactic per-message benchmark did not carry. No genuine `boundary_pushing` anchors remained, so the tactic was untested by that benchmark rather than failed.
+
+Corrected, from identical predictions with no retraining: per-message macro F1 0.886 at precision 1.00. On a purpose-built set of genuine anchors, `boundary_pushing` scores F1 0.750.
+
+How that re-adjudication was conducted, because it bears on the weight it carries: it was performed by the same annotator who produced the original labels, unblinded, on a corpus for which no inter-annotator agreement statistic exists. A label correction that raises one's own score, made by the person who set the original labels, is the weakest form of evidence in this document. The per-item reasoning for all sixteen turns will be published so the adjudication can be assessed rather than taken on trust.
+
+We record this because a withdrawn number that stays in circulation is worse than a bad number that is explained.
+
+## Check it yourself
+
+The disclosure validates against the published schema with zero errors. You can reproduce that:
+
+```bash
+pip install jsonschema rfc3339-validator
+curl -O https://docs.tuteliq.ai/csdt-disclosure.json
+curl -O https://docs.tuteliq.ai/schema/tut-csdt-001/v1.0/disclosure.schema.json
+python validate_disclosure.py csdt-disclosure.json --schema disclosure.schema.json
+```
+
+The validator computes the conformance level from the disclosure's own contents rather than trusting what it claims, and reports every item recorded as withheld or not measured.
+
+One thing to read carefully before using any figure here: every number was measured against the model artifact directly, not through the production API. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which these figures exercise. Treat them as an upper bound on what the deployed path delivers.
+
+## Related
+
+- [Child Safety Detection Transparency Framework](https://docs.tuteliq.ai/security): the framework this answers
+- [Model card](https://huggingface.co/tuteliq/tuteliq-detect-24b-v6): full evaluation across nine suites
+- [TUT-100 dataset](https://huggingface.co/datasets/tuteliq/tut-100): card public, data gated under an access agreement
+- [Trust Center](/trust): security posture, sub-processors, penetration test
+
+<Info>
+This disclosure is reviewed at least annually and on material change to the detection system, the harm categories covered, the operating points used in production, or data-handling arrangements. A level claim is not made from a disclosure more than twelve months old.
+</Info>

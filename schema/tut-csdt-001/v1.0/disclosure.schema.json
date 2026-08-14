@@ -1,0 +1,2162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.tuteliq.ai/schema/tut-csdt-001/v1.0/disclosure.schema.json",
+  "title": "Child Safety Detection Transparency Framework — Platform Disclosure",
+  "description": "Machine-readable disclosure format for TUT-CSDT-001 v1.0. Property names mirror the framework's clause identifiers exactly, so a disclosure can be checked against the document clause by clause. Every disclosure item accepts either a substantive answer or a 'withheld' record with a stated basis (clause P0.3.3) — silent omission is non-conformant and is enforced here by requiring the property to be present. NOTE: JSON Schema cannot express referential integrity (e.g. 'every category marked covered at P1 must have metrics at P2'). Those cross-checks, and the computation of the conformance level, are performed by the companion validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "frameworkVersion",
+    "schemaRevision",
+    "disclosure",
+    "P1"
+  ],
+  "properties": {
+    "frameworkVersion": {
+      "description": "Framework version this disclosure is made against.",
+      "const": "TUT-CSDT-001-v1.0"
+    },
+    "disclosure": {
+      "$ref": "#/$defs/disclosureMetadata"
+    },
+    "P0_2": {
+      "title": "P0.2 Outsourced detection",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detectionProvidedBy"
+      ],
+      "properties": {
+        "detectionProvidedBy": {
+          "enum": [
+            "in-house",
+            "third-party-vendor",
+            "hybrid"
+          ]
+        },
+        "vendors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "referenceDisclosureUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "platformSupplementProvided": {
+                "type": "boolean",
+                "description": "P0.2: the platform must supplement a vendor reference disclosure with platform-specific information. A platform cannot discharge its obligations solely by referencing vendor claims."
+              }
+            }
+          }
+        },
+        "P0.2.6": {
+          "description": "P0.2.6. Vendor reference disclosure incorporated by reference for vendor-side clauses only, citing its URL, version and date. The platform completes platform-side clauses itself.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "version",
+            "date"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "date": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        "P0.2.7": {
+          "description": "P0.2.7. Vendor-side clauses the vendor did not supply, naming the vendor. A recorded unavailability is a disclosure and does not prevent a Coverage Declared claim; a silent omission is not.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "clause",
+              "vendorName"
+            ],
+            "properties": {
+              "clause": {
+                "type": "string",
+                "minLength": 2
+              },
+              "vendorName": {
+                "type": "string",
+                "minLength": 1
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "P0.2.8": {
+          "$ref": "#/$defs/statement",
+          "description": "P0.2.8. Whether supply of the vendor-side clause set is a condition of procurement."
+        }
+      }
+    },
+    "P1": {
+      "title": "P1 Detection Coverage",
+      "description": "All thirteen harm categories must be addressed. 'Not covered' is a valid disclosure; absence is not.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P1.1",
+        "P1.2",
+        "P1.3",
+        "P1.4",
+        "P1.5",
+        "P1.6",
+        "P1.7",
+        "P1.8",
+        "P1.9",
+        "P1.10",
+        "P1.11",
+        "P1.12",
+        "P1.13"
+      ],
+      "properties": {
+        "P1.1": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Grooming (keyword/pattern)"
+        },
+        "P1.2": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Grooming (behavioural, multi-turn)"
+        },
+        "P1.3": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Known CSAM (hash matching)"
+        },
+        "P1.4": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Previously unseen CSAM"
+        },
+        "P1.5": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Sextortion"
+        },
+        "P1.6": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Bullying and harassment"
+        },
+        "P1.7": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Self-harm and suicide"
+        },
+        "P1.8": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Radicalisation and extremism"
+        },
+        "P1.9": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Fraud and social engineering"
+        },
+        "P1.10": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Coercive control"
+        },
+        "P1.11": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Substance abuse"
+        },
+        "P1.12": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Age-inappropriate content"
+        },
+        "P1.13": {
+          "$ref": "#/$defs/harmCategory",
+          "title": "Synthetic harmful content"
+        }
+      }
+    },
+    "P2": {
+      "title": "P2 Detection Quality",
+      "description": "Required at Level 2. Metrics are reported per covered harm category at the declared operating point.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "perCategory": {
+          "type": "object",
+          "description": "Keyed by P1 clause id. An entry is expected for every category disclosed as covered.",
+          "propertyNames": {
+            "$ref": "#/$defs/harmCategoryId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/categoryPerformance"
+          }
+        },
+        "P2.5": {
+          "$ref": "#/$defs/benchmarkCorpus"
+        },
+        "P2.6": {
+          "$ref": "#/$defs/knownLimitations"
+        },
+        "P2.7": {
+          "$ref": "#/$defs/subgroupEquity"
+        },
+        "P2.8": {
+          "$ref": "#/$defs/modelGovernance"
+        },
+        "P2.0": {
+          "$ref": "#/$defs/measurementStatus"
+        }
+      }
+    },
+    "P3": {
+      "title": "P3 Modality Coverage",
+      "description": "Harm-category x modality matrix. Keyed by P1 clause id; each entry lists the modalities analysed for that category and whether performance was separately measured per modality.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matrix"
+      ],
+      "properties": {
+        "matrix": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/harmCategoryId"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "modalities"
+            ],
+            "properties": {
+              "modalities": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/modalityId"
+                }
+              },
+              "perModalityPerformanceMeasured": {
+                "type": "object",
+                "description": "Keyed by modality id; true where performance was separately measured for that modality.",
+                "propertyNames": {
+                  "$ref": "#/$defs/modalityId"
+                },
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              },
+              "notes": {
+                "$ref": "#/$defs/statement"
+              }
+            }
+          }
+        }
+      }
+    },
+    "P4": {
+      "title": "P4 Language and Cultural Coverage",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P4.1"
+      ],
+      "properties": {
+        "P4.1": {
+          "title": "All languages the service processes listed",
+          "description": "Reach, not capability, and not a commercial support list. Every language the detection system will encounter and process, whether or not performance has been measured in it. Shortening this list does not improve a disclosure; it conceals the surface the disclosure exists to describe.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/languageEntry"
+          }
+        },
+        "P4.4": {
+          "$ref": "#/$defs/statement",
+          "title": "Code-switching capability"
+        },
+        "P4.5": {
+          "$ref": "#/$defs/statement",
+          "title": "Dialect and regional variant support"
+        },
+        "P4.6": {
+          "$ref": "#/$defs/statement",
+          "title": "Coded language and emoji detection"
+        },
+        "P4.7": {
+          "$ref": "#/$defs/statement",
+          "title": "Adversarial evasion handling"
+        },
+        "P4.8": {
+          "$ref": "#/$defs/statement",
+          "title": "Language-specific grooming patterns"
+        },
+        "P4.9": {
+          "$ref": "#/$defs/statement",
+          "title": "Non-Latin script support"
+        },
+        "P4.11": {
+          "$ref": "#/$defs/languageDetectionStatus",
+          "title": "Languages in which detection is disabled, restricted, or run without escalation, and the reason"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional narrative qualifying the language table — for example stating that per-language performance has been measured in one language only, so the remainder are listed as reach rather than as performance-disclosed languages (P0.1). Do not use this field to assert or deny commercial support for a language; the framework takes no position on that term."
+        }
+      }
+    },
+    "P5": {
+      "title": "P5 Data Protection and Lawful Basis",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P5.1",
+        "P5.2",
+        "P5.3",
+        "P5.4"
+      ],
+      "properties": {
+        "P5.1": {
+          "title": "P5.1 Lawful basis",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "P5.1.1",
+            "P5.1.2",
+            "P5.1.4",
+            "P5.1.5"
+          ],
+          "properties": {
+            "P5.1.1": {
+              "$ref": "#/$defs/statement",
+              "title": "GDPR Art. 6 lawful basis per processing activity"
+            },
+            "P5.1.2": {
+              "$ref": "#/$defs/statement",
+              "title": "GDPR Art. 9 condition for special category data"
+            },
+            "P5.1.3": {
+              "$ref": "#/$defs/statement",
+              "title": "GDPR Art. 22 automated decision-making (Recital 71)"
+            },
+            "P5.1.4": {
+              "$ref": "#/$defs/statement",
+              "title": "DPIA completed (Art. 35)"
+            },
+            "P5.1.5": {
+              "$ref": "#/$defs/statement",
+              "title": "ePrivacy Art. 5(3) basis"
+            },
+            "P5.1.6": {
+              "$ref": "#/$defs/statement",
+              "title": "ICO Children's Code — how tension with escalating detection is resolved in the DPIA"
+            },
+            "P5.1.7": {
+              "$ref": "#/$defs/statement",
+              "title": "Art. 8 ECHR / OSA s.22 necessity and proportionality"
+            }
+          }
+        },
+        "P5.2": {
+          "title": "P5.2 Data handling",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "P5.2.1",
+            "P5.2.2",
+            "P5.2.5",
+            "P5.2.6",
+            "P5.2.7",
+            "P5.2.8"
+          ],
+          "properties": {
+            "P5.2.1": {
+              "$ref": "#/$defs/statement",
+              "title": "Content retention policy"
+            },
+            "P5.2.2": {
+              "$ref": "#/$defs/statement",
+              "title": "Detection output retention"
+            },
+            "P5.2.3": {
+              "$ref": "#/$defs/booleanStatement",
+              "title": "Detection outputs persist after content deletion"
+            },
+            "P5.2.4": {
+              "$ref": "#/$defs/booleanStatement",
+              "title": "Detection outputs follow the child across services or into shared industry signals"
+            },
+            "P5.2.5": {
+              "$ref": "#/$defs/statement",
+              "title": "Data residency"
+            },
+            "P5.2.6": {
+              "$ref": "#/$defs/booleanStatement",
+              "title": "Content used for model training"
+            },
+            "P5.2.7": {
+              "$ref": "#/$defs/statement",
+              "title": "Encryption at rest and in transit"
+            },
+            "P5.2.8": {
+              "$ref": "#/$defs/statement",
+              "title": "Access controls"
+            }
+          }
+        },
+        "P5.3": {
+          "title": "P5.3 Lawful handling of CSAM",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "trainedOnRealCsam",
+            "csamStoredOrCached",
+            "authorisationsRelied"
+          ],
+          "properties": {
+            "trainedOnRealCsam": {
+              "$ref": "#/$defs/booleanStatement"
+            },
+            "legalAuthority": {
+              "$ref": "#/$defs/statement",
+              "description": "e.g. PCA 1978 s.1B (inserted by SOA 2003 s.46); CPS/NPCC memorandum; 18 U.S.C. 2258A-2258B; IWF membership terms."
+            },
+            "csamStoredOrCached": {
+              "$ref": "#/$defs/booleanStatement"
+            },
+            "authorisationsRelied": {
+              "$ref": "#/$defs/statement"
+            },
+            "relationshipWithAuthorities": {
+              "$ref": "#/$defs/statement"
+            }
+          }
+        },
+        "P5.4": {
+          "title": "P5.4 Rights of data subjects",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "P5.4.1"
+          ],
+          "properties": {
+            "P5.4.1": {
+              "$ref": "#/$defs/statement",
+              "title": "Users informed of automated detection"
+            },
+            "P5.4.2": {
+              "$ref": "#/$defs/statement",
+              "title": "Appeals and redress for flagged users"
+            },
+            "P5.4.3": {
+              "$ref": "#/$defs/statement",
+              "title": "Right to meaningful explanation (Art. 22)"
+            },
+            "P5.4.4": {
+              "$ref": "#/$defs/statement",
+              "title": "Freedom of expression considerations (OSA s.22)"
+            }
+          }
+        },
+        "P5.5": {
+          "title": "P5.5 EU AI Act",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "P5.5.1": {
+              "$ref": "#/$defs/statement",
+              "title": "Assessed against Annex III high-risk classification"
+            },
+            "P5.5.2": {
+              "$ref": "#/$defs/statement",
+              "title": "If high-risk: compliance with Arts. 8-15"
+            },
+            "P5.5.3": {
+              "$ref": "#/$defs/statement",
+              "title": "Art. 5 prohibition on AI generating CSAM/NCII"
+            },
+            "P5.5.4": {
+              "$ref": "#/$defs/statement",
+              "title": "Art. 50 transparency compliance"
+            }
+          }
+        }
+      }
+    },
+    "P6": {
+      "title": "P6 Human Oversight, Escalation, and Outcomes",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P6.1",
+        "P6.4",
+        "P6.5",
+        "P6.9",
+        "P6.10"
+      ],
+      "properties": {
+        "P6.1": {
+          "$ref": "#/$defs/statement",
+          "title": "Human review process and severity thresholds"
+        },
+        "P6.2": {
+          "$ref": "#/$defs/statement",
+          "title": "Reviewer qualifications, training, domain expertise"
+        },
+        "P6.3": {
+          "$ref": "#/$defs/statement",
+          "title": "Reviewer welfare measures"
+        },
+        "P6.4": {
+          "$ref": "#/$defs/statement",
+          "title": "Escalation for critical-risk detections"
+        },
+        "P6.5": {
+          "$ref": "#/$defs/statement",
+          "title": "Law enforcement reporting pathway"
+        },
+        "P6.6": {
+          "$ref": "#/$defs/statement",
+          "title": "Evidence preservation"
+        },
+        "P6.7": {
+          "$ref": "#/$defs/statement",
+          "title": "Response timeframes"
+        },
+        "P6.8": {
+          "$ref": "#/$defs/statement",
+          "title": "QA for human review decisions"
+        },
+        "P6.9": {
+          "title": "Consequences of a detection event for the user",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "possibleActions"
+          ],
+          "properties": {
+            "possibleActions": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "content-removal",
+                  "account-restriction",
+                  "account-suspension",
+                  "parental-or-guardian-notification",
+                  "referral-to-external-services",
+                  "law-enforcement-report",
+                  "no-action",
+                  "other"
+                ]
+              }
+            },
+            "detail": {
+              "$ref": "#/$defs/statement"
+            }
+          }
+        },
+        "P6.10": {
+          "title": "Foreseeable harms from false positives",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "assessment"
+          ],
+          "properties": {
+            "assessment": {
+              "$ref": "#/$defs/statement"
+            },
+            "parentalNotificationHarmAddressed": {
+              "type": "boolean",
+              "description": "Whether the disclosure specifically addresses a false positive triggering parental notification about a teenager's private messages relating to sexual orientation, gender identity, mental health, or other sensitive matters."
+            }
+          }
+        },
+        "P6.11": {
+          "$ref": "#/$defs/operationalOutcomes"
+        }
+      }
+    },
+    "disclosureType": {
+      "enum": [
+        "full",
+        "partial",
+        "vendor-reference"
+      ],
+      "default": "full",
+      "description": "P8. 'full' pursues a level. 'partial' names its own gaps and confers no level. 'vendor-reference' is a vendor's P0.2.5 publication of the vendor-side clause set; it confers no level because levels attach to platforms, not to detection systems."
+    },
+    "completedClauses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2
+      },
+      "uniqueItems": true,
+      "description": "P8 partial disclosure: clause identifiers completed. Required when disclosureType is 'partial'."
+    },
+    "incompleteClauses": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clause"
+        ],
+        "properties": {
+          "clause": {
+            "type": "string",
+            "minLength": 2
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "P8 partial disclosure: clause identifiers not completed, with optional reason."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional human-readable preamble. Carries no conformance weight; readers should not rely on it in place of a clause answer."
+    },
+    "schemaRevision": {
+      "const": 3,
+      "description": "Revision of the TUT-CSDT-001 v1.0 JSON Schema this disclosure was written against. Revision 1 numbered P2.5 differently (P2.5.2 = construction methodology); revision 2 uses P2.5.2 and P2.5.3 for the public benchmark result and its limitations. Revision 3 retires 'supported (language)' as a defined term in favour of 'performance-disclosed', and adds P4.11 — languages in which detection is disabled, restricted, or run without escalation. A revision-2 disclosure is silent on P4.11, and its silence cannot be read as 'detection runs everywhere': that is why the revision marker is mandatory rather than advisory.",
+      "$comment": "Revision 3 is additive at P4 and terminological elsewhere. A revision-2 disclosure upgrades by answering P4.11 and re-reading any P4 narrative that used 'supported' in the framework's old narrow sense."
+    },
+    "P0.2.5": {
+      "$ref": "#/$defs/vendorReference"
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "A full disclosure pursues a level, so it must state one. levelApplicable: false is available only to partial and vendor-reference disclosures, where levels do not attach.",
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "disclosureType": {
+                "const": "full"
+              }
+            },
+            "required": [
+              "disclosureType"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "disclosureType"
+              ]
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "disclosure": {
+            "required": [
+              "claimedLevel"
+            ],
+            "properties": {
+              "levelApplicable": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Coverage Declared (Level 1): P0.3 publication and validity, P1 all categories, P2.0 measurement status, P3 modality list, P4.1, P5 L1 set, P6 L1 set.",
+      "if": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "claimedLevel": {
+                "enum": [
+                  1,
+                  2
+                ]
+              }
+            },
+            "required": [
+              "claimedLevel"
+            ]
+          }
+        },
+        "required": [
+          "disclosure"
+        ]
+      },
+      "then": {
+        "properties": {
+          "disclosure": {
+            "required": [
+              "publicUrl",
+              "dateCompleted",
+              "detectionSystemVersions",
+              "dateOfNextReview"
+            ]
+          },
+          "P2": {
+            "required": [
+              "P2.0"
+            ]
+          },
+          "P3": {
+            "required": [
+              "matrix"
+            ]
+          },
+          "P4": {
+            "$comment": "P4.1 and P4.11 are both Level 1 items: reach, and whether detection actually runs across that reach. Requiredness sits in the level conditional rather than in the P4 object shape, so partial and vendor reference disclosures are not asked for a platform-side fact they cannot supply.",
+            "required": [
+              "P4.1",
+              "P4.11"
+            ]
+          }
+        },
+        "required": [
+          "P2",
+          "P3",
+          "P4"
+        ]
+      }
+    },
+    {
+      "$comment": "Level 2 conformance: adds P2 in full, P3 matrix, P4 Level 2 items, P5 Level 2 items, P6 Level 2 items including P6.11 operational outcomes.",
+      "if": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "claimedLevel": {
+                "const": 2
+              }
+            },
+            "required": [
+              "claimedLevel"
+            ]
+          }
+        },
+        "required": [
+          "disclosure"
+        ]
+      },
+      "then": {
+        "required": [
+          "P2"
+        ],
+        "properties": {
+          "P2": {
+            "required": [
+              "P2.0",
+              "perCategory",
+              "P2.5",
+              "P2.6",
+              "P2.7"
+            ],
+            "properties": {
+              "perCategory": {
+                "additionalProperties": {
+                  "required": [
+                    "operatingPoint",
+                    "P2.1.1",
+                    "P2.1.2",
+                    "P2.1.3",
+                    "P2.1.6",
+                    "P2.2",
+                    "P2.3",
+                    "P2.4"
+                  ],
+                  "properties": {
+                    "P2.4": {
+                      "required": [
+                        "P2.4.1",
+                        "P2.4.2",
+                        "P2.4.3",
+                        "P2.4.4",
+                        "P2.4.5",
+                        "P2.4.6",
+                        "P2.4.7"
+                      ]
+                    }
+                  }
+                }
+              },
+              "P2.6": {
+                "required": [
+                  "P2.6.1",
+                  "P2.6.2",
+                  "P2.6.3",
+                  "P2.6.4",
+                  "P2.6.5"
+                ]
+              }
+            }
+          },
+          "P4": {
+            "required": [
+              "P4.1",
+              "P4.6",
+              "P4.7",
+              "P4.9",
+              "P4.11"
+            ]
+          },
+          "P5": {
+            "properties": {
+              "P5.1": {
+                "required": [
+                  "P5.1.1",
+                  "P5.1.2",
+                  "P5.1.3",
+                  "P5.1.4",
+                  "P5.1.5",
+                  "P5.1.6"
+                ]
+              },
+              "P5.2": {
+                "required": [
+                  "P5.2.1",
+                  "P5.2.2",
+                  "P5.2.3",
+                  "P5.2.4",
+                  "P5.2.5",
+                  "P5.2.6",
+                  "P5.2.7",
+                  "P5.2.8"
+                ]
+              },
+              "P5.4": {
+                "required": [
+                  "P5.4.1",
+                  "P5.4.2",
+                  "P5.4.3"
+                ]
+              },
+              "P5.5": {
+                "required": [
+                  "P5.5.1",
+                  "P5.5.2",
+                  "P5.5.3",
+                  "P5.5.4"
+                ]
+              }
+            },
+            "required": [
+              "P5.1",
+              "P5.2",
+              "P5.3",
+              "P5.4",
+              "P5.5"
+            ]
+          },
+          "P6": {
+            "required": [
+              "P6.1",
+              "P6.2",
+              "P6.3",
+              "P6.4",
+              "P6.5",
+              "P6.6",
+              "P6.7",
+              "P6.8",
+              "P6.9",
+              "P6.10",
+              "P6.11"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "$comment": "P8 partial disclosure: requires the clause inventory and forbids a level claim.",
+      "if": {
+        "properties": {
+          "disclosureType": {
+            "const": "partial"
+          }
+        },
+        "required": [
+          "disclosureType"
+        ]
+      },
+      "then": {
+        "required": [
+          "completedClauses",
+          "incompleteClauses"
+        ],
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "claimedLevel": {
+                "const": 0
+              },
+              "levelName": {
+                "const": "Non-conformant"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "P8: levelName must agree with claimedLevel 0.",
+      "if": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "levelName": {
+                "const": "Non-conformant"
+              }
+            },
+            "required": [
+              "levelName"
+            ]
+          }
+        },
+        "required": [
+          "disclosure"
+        ]
+      },
+      "then": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "claimedLevel": {
+                "const": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "P8: levelName must agree with claimedLevel 1.",
+      "if": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "levelName": {
+                "const": "Coverage Declared"
+              }
+            },
+            "required": [
+              "levelName"
+            ]
+          }
+        },
+        "required": [
+          "disclosure"
+        ]
+      },
+      "then": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "claimedLevel": {
+                "const": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "P8: levelName must agree with claimedLevel 2.",
+      "if": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "levelName": {
+                "const": "Performance Measured"
+              }
+            },
+            "required": [
+              "levelName"
+            ]
+          }
+        },
+        "required": [
+          "disclosure"
+        ]
+      },
+      "then": {
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "claimedLevel": {
+                "const": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "P0.2.5 vendor reference: identity block required, no level claimable, platform-side pillars absent.",
+      "if": {
+        "properties": {
+          "disclosureType": {
+            "const": "vendor-reference"
+          }
+        },
+        "required": [
+          "disclosureType"
+        ]
+      },
+      "then": {
+        "required": [
+          "P0.2.5"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "P6"
+              ]
+            },
+            {
+              "required": [
+                "completedClauses"
+              ]
+            }
+          ]
+        },
+        "properties": {
+          "disclosure": {
+            "properties": {
+              "claimedLevel": {
+                "const": 0
+              },
+              "levelName": {
+                "const": "Non-conformant"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "withheld": {
+      "title": "Withheld item (P0.3.3)",
+      "description": "A recorded refusal to publish, with a stated basis. Counts as disclosed for conformance. Silent omission does not.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "withheld",
+        "basis",
+        "reason"
+      ],
+      "properties": {
+        "withheld": {
+          "const": true
+        },
+        "basis": {
+          "enum": [
+            "evasion-risk",
+            "legal-restriction",
+            "protected-material"
+          ],
+          "description": "P0.3.3 permits withholding only where publication would materially assist evasion, breach a legal restriction, or disclose lawfully protected material."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 10
+        },
+        "partialAnswer": {
+          "type": "string",
+          "description": "P0.3.3: withholding shall not extend to a whole clause where a partial answer is possible."
+        }
+      }
+    },
+    "statement": {
+      "description": "A substantive free-text disclosure, a recorded withholding (P0.3.3), or a recorded non-measurement. Withholding and non-measurement are different claims and are not interchangeable.",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "$ref": "#/$defs/withheld"
+        },
+        {
+          "$ref": "#/$defs/notMeasured"
+        }
+      ]
+    },
+    "booleanStatement": {
+      "description": "A yes/no disclosure with optional detail, or a recorded withholding.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "detail": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/withheld"
+        }
+      ]
+    },
+    "harmCategoryId": {
+      "enum": [
+        "P1.1",
+        "P1.2",
+        "P1.3",
+        "P1.4",
+        "P1.5",
+        "P1.6",
+        "P1.7",
+        "P1.8",
+        "P1.9",
+        "P1.10",
+        "P1.11",
+        "P1.12",
+        "P1.13"
+      ]
+    },
+    "modalityId": {
+      "enum": [
+        "P3.1",
+        "P3.2",
+        "P3.3",
+        "P3.4",
+        "P3.5",
+        "P3.6",
+        "P3.7",
+        "P3.8",
+        "P3.9"
+      ]
+    },
+    "disclosureMetadata": {
+      "title": "Disclosure metadata (P0.3.4)",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platformName"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "claimedLevel"
+          ]
+        },
+        {
+          "required": [
+            "levelApplicable"
+          ],
+          "properties": {
+            "levelApplicable": {
+              "const": false
+            }
+          }
+        }
+      ],
+      "properties": {
+        "platformName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platformLegalEntity": {
+          "type": "string"
+        },
+        "levelApplicable": {
+          "type": "boolean",
+          "description": "Set false where the level scheme does not apply to this document at all, which is the case for a vendor reference disclosure: levels attach to platforms, not to detection systems (P0.2.5). Where this is false, claimedLevel and levelName are omitted. This exists because requiring a vendor reference to record claimedLevel 0 forced it to label itself 'Non-conformant', which is a finding about a platform and not a true statement about a document to which levels never attached. Revision 3, added after the distinction was raised against the authors' own disclosure.",
+          "$comment": "Only a partial or vendor-reference disclosure may set this false; the top-level conditional enforces that a full disclosure still carries claimedLevel."
+        },
+        "claimedLevel": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "description": "Level 3 is RESERVED and not operable pending a conformity assessment scheme (P8). A claim of Level 3 is invalid under v1.0."
+        },
+        "publicUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "P0.3.1: stable, publicly accessible URL, without registration, payment, or NDA."
+        },
+        "dateCompleted": {
+          "type": "string",
+          "format": "date"
+        },
+        "dateOfNextReview": {
+          "type": "string",
+          "format": "date",
+          "description": "P0.3.5: at least annual, and on material change."
+        },
+        "detectionSystemVersions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "P0.3.4: the detection system version(s) this disclosure covers."
+        },
+        "childAgeDefinition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "thresholdYears"
+          ],
+          "properties": {
+            "thresholdYears": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18
+            },
+            "jurisdictionalVariation": {
+              "type": "string"
+            }
+          },
+          "description": "P0.1: age-calibrated detection disclosures shall state which age definition is applied."
+        },
+        "contact": {
+          "type": "string"
+        },
+        "levelName": {
+          "enum": [
+            "Non-conformant",
+            "Coverage Declared",
+            "Performance Measured"
+          ],
+          "description": "P8. Named form of claimedLevel. 'Independently Verified' is RESERVED and not claimable under v1.0."
+        }
+      },
+      "description": "P0.3.4 metadata. levelName and claimedLevel must agree (P8)."
+    },
+    "harmCategory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "covered"
+      ],
+      "properties": {
+        "covered": {
+          "type": "boolean"
+        },
+        "method": {
+          "enum": [
+            "automated",
+            "human",
+            "hybrid"
+          ],
+          "description": "Required where covered is true."
+        },
+        "knownGaps": {
+          "$ref": "#/$defs/statement"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "if": {
+        "properties": {
+          "covered": {
+            "const": true
+          }
+        },
+        "required": [
+          "covered"
+        ]
+      },
+      "then": {
+        "required": [
+          "covered",
+          "method"
+        ]
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "P2.1.5 requires 95% confidence intervals at Performance Measured. Per P0.3.3a a commercially sensitive point estimate may be given as a range (rangeLower/rangeUpper) but shall not be withheld entirely.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rangeLower": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rangeUpper": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ci95Lower": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ci95Upper": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "value"
+          ]
+        },
+        {
+          "required": [
+            "rangeLower",
+            "rangeUpper"
+          ]
+        }
+      ]
+    },
+    "categoryPerformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operatingPoint"
+      ],
+      "properties": {
+        "operatingPoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "description",
+            "basisForSelection"
+          ],
+          "properties": {
+            "description": {
+              "type": "string",
+              "minLength": 1
+            },
+            "threshold": {
+              "type": [
+                "number",
+                "string"
+              ]
+            },
+            "basisForSelection": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "P2.1.1": {
+          "$ref": "#/$defs/metric",
+          "title": "Corpus precision"
+        },
+        "P2.1.2": {
+          "$ref": "#/$defs/metric",
+          "title": "Prevalence-adjusted precision"
+        },
+        "P2.1.3": {
+          "$ref": "#/$defs/metric",
+          "title": "Recall"
+        },
+        "P2.1.4": {
+          "$ref": "#/$defs/metric",
+          "title": "PR-AUC"
+        },
+        "P2.1.6": {
+          "$ref": "#/$defs/metric",
+          "title": "False positive rate"
+        },
+        "P2.1.7": {
+          "title": "False detection volume",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "falsePositivesPerPeriod": {
+              "type": "number",
+              "minimum": 0
+            },
+            "period": {
+              "enum": [
+                "hour",
+                "day",
+                "week",
+                "month"
+              ]
+            },
+            "benignVolumePerPeriod": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "P2.1.8": {
+          "$ref": "#/$defs/statement",
+          "title": "Alert volume vs moderation capacity"
+        },
+        "P2.1.9": {
+          "title": "Latency",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "p50Ms": {
+              "type": "number",
+              "minimum": 0
+            },
+            "p95Ms": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "P2.2": {
+          "title": "P2.2 Unit of detection",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "P2.2.1"
+          ],
+          "properties": {
+            "P2.2.1": {
+              "enum": [
+                "message",
+                "turn",
+                "conversation",
+                "session",
+                "relationship"
+              ]
+            },
+            "P2.2.2": {
+              "type": "boolean",
+              "description": "Grooming categories only: whether detection operates at conversation level or above."
+            },
+            "P2.2.3": {
+              "$ref": "#/$defs/statement",
+              "description": "Grooming categories only: how conversation context is maintained across sessions."
+            }
+          }
+        },
+        "P2.3": {
+          "title": "P2.3 Prevalence",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "P2.3.1",
+            "P2.3.2"
+          ],
+          "properties": {
+            "P2.3.1": {
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "$ref": "#/$defs/withheld"
+                }
+              ],
+              "description": "Estimated prevalence in production traffic, as a proportion."
+            },
+            "P2.3.2": {
+              "enum": [
+                "reflects-production",
+                "artificially-balanced",
+                "unknown"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "P2.4": {
+          "title": "P2.4 Evaluation methodology",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "P2.4.1"
+          ],
+          "properties": {
+            "P2.4.1": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "corpusSize",
+                "composition",
+                "provenance"
+              ],
+              "properties": {
+                "corpusSize": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "composition": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "provenance": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "P2.4.2": {
+              "$ref": "#/$defs/statement",
+              "title": "Labelling methodology and versioned guidelines"
+            },
+            "P2.4.3": {
+              "description": "Inter-annotator agreement: statistic used and value (P2.4.3). Where agreement has not been measured, use the notMeasured form — not a withholding. Withholding under P0.3.3 is for an answer that exists and cannot be published; its three bases (evasion risk, legal restriction, protected material) cannot express 'we have not done this'.",
+              "oneOf": [
+                {
+                  "title": "Inter-annotator agreement",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "statistic",
+                    "value"
+                  ],
+                  "properties": {
+                    "statistic": {
+                      "enum": [
+                        "cohens-kappa",
+                        "krippendorffs-alpha",
+                        "pabak",
+                        "per-class-kappa"
+                      ],
+                      "description": "P2.4.3: kappa degrades under extreme class imbalance (the kappa paradox). Alternatives are acceptable where justified."
+                    },
+                    "value": {
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    },
+                    "justificationIfNotKappa": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/$defs/notMeasured"
+                },
+                {
+                  "$ref": "#/$defs/withheld"
+                }
+              ]
+            },
+            "P2.4.4": {
+              "$ref": "#/$defs/booleanStatement",
+              "title": "Evaluation corpus separated from training data"
+            },
+            "P2.4.5": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "labellerQualifications",
+                "independentLabelling"
+              ],
+              "properties": {
+                "labellerQualifications": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "independentLabelling": {
+                  "type": "boolean",
+                  "description": "P0.1 'independent labelling': labels produced by reviewers with no financial, employment, or contractual relationship with the detection system vendor."
+                }
+              }
+            },
+            "P2.4.6": {
+              "enum": [
+                "self-conducted",
+                "public-benchmark",
+                "independent-labelling",
+                "independent-evaluation"
+              ],
+              "description": "P0.1 distinguishes a public-benchmark run (externally constructed and labelled corpus, self-executed) from independent labelling (corpus labels produced by vendor-independent reviewers) and independent evaluation (whole system, including corpus construction, methodology, threshold selection and reproduction of results)."
+            },
+            "P2.4.7": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Detection system version evaluated"
+            },
+            "P2.4.8": {
+              "$ref": "#/$defs/statement",
+              "title": "Reproducibility constraints"
+            }
+          }
+        }
+      }
+    },
+    "benchmarkCorpus": {
+      "title": "P2.5 Benchmark corpora",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P2.5.1",
+        "P2.5.2",
+        "P2.5.5"
+      ],
+      "properties": {
+        "P2.5.1": {
+          "enum": [
+            "real",
+            "synthetic",
+            "mixed",
+            "public-benchmark"
+          ],
+          "description": "Whether the evaluation corpus is real, synthetic, mixed, or a public benchmark."
+        },
+        "P2.5.2": {
+          "title": "Public benchmark run",
+          "description": "P2.5.2. Whether any public benchmark has been run, and if so which, with results. 'run: false' is a complete answer.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "run"
+          ],
+          "properties": {
+            "run": {
+              "type": "boolean"
+            },
+            "benchmarkName": {
+              "type": "string",
+              "minLength": 2,
+              "examples": [
+                "PAN-2012 Sexual Predator Identification"
+              ]
+            },
+            "precision": {
+              "$ref": "#/$defs/metric"
+            },
+            "recall": {
+              "$ref": "#/$defs/metric"
+            },
+            "systemVersionEvaluated": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "if": {
+            "properties": {
+              "run": {
+                "const": true
+              }
+            },
+            "required": [
+              "run"
+            ]
+          },
+          "then": {
+            "required": [
+              "run",
+              "benchmarkName",
+              "precision",
+              "recall",
+              "systemVersionEvaluated"
+            ]
+          }
+        },
+        "P2.5.3": {
+          "$ref": "#/$defs/statement",
+          "description": "Limitations qualifying the benchmark result for this platform. Required only where P2.5.2.run is true."
+        },
+        "P2.5.4": {
+          "$ref": "#/$defs/statement",
+          "description": "Construction methodology of any private corpus."
+        },
+        "P2.5.5": {
+          "$ref": "#/$defs/statement",
+          "description": "Ethical and legal arrangements under which the corpus was assembled and is held."
+        },
+        "P2.5.6": {
+          "$ref": "#/$defs/statement",
+          "description": "Limitations on generalisability."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "P2.5.2": {
+                "properties": {
+                  "run": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "run"
+                ]
+              }
+            },
+            "required": [
+              "P2.5.2"
+            ]
+          },
+          "then": {
+            "required": [
+              "P2.5.1",
+              "P2.5.2",
+              "P2.5.3",
+              "P2.5.5"
+            ]
+          }
+        }
+      ]
+    },
+    "knownLimitations": {
+      "title": "P2.6 Known limitations",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P2.6.1"
+      ],
+      "properties": {
+        "P2.6.1": {
+          "$ref": "#/$defs/statement",
+          "title": "Weakest harm categories"
+        },
+        "P2.6.2": {
+          "$ref": "#/$defs/statement",
+          "title": "Unmeasured modalities"
+        },
+        "P2.6.3": {
+          "$ref": "#/$defs/statement",
+          "title": "Unevaluated languages"
+        },
+        "P2.6.4": {
+          "$ref": "#/$defs/statement",
+          "title": "Known adversarial evasion techniques (may be withheld under P0.3.3)"
+        },
+        "P2.6.5": {
+          "$ref": "#/$defs/statement",
+          "title": "Unreliable edge cases"
+        }
+      }
+    },
+    "subgroupEquity": {
+      "title": "P2.7 Subgroup equity",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P2.7.1"
+      ],
+      "properties": {
+        "P2.7.1": {
+          "type": "boolean",
+          "description": "Whether differential performance has been measured. False is an acceptable disclosure and does not prevent Level 2. Omitting this property does."
+        },
+        "P2.7.2": {
+          "$ref": "#/$defs/statement",
+          "description": "Required where P2.7.1 is true: the results. An unaccompanied assertion that equity 'has been measured' conveys nothing."
+        },
+        "P2.7.3": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Groups considered, e.g. LGBTQ+ young people, disabled users, care-experienced children, ethnic minority users."
+        }
+      },
+      "if": {
+        "properties": {
+          "P2.7.1": {
+            "const": true
+          }
+        },
+        "required": [
+          "P2.7.1"
+        ]
+      },
+      "then": {
+        "required": [
+          "P2.7.1",
+          "P2.7.2"
+        ]
+      }
+    },
+    "modelGovernance": {
+      "title": "P2.8 Model governance",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "P2.8.1": {
+          "$ref": "#/$defs/statement",
+          "title": "Drift monitoring and re-evaluation schedule"
+        },
+        "P2.8.2": {
+          "$ref": "#/$defs/statement",
+          "title": "Model and system cards"
+        },
+        "P2.8.3": {
+          "$ref": "#/$defs/statement",
+          "title": "Training data provenance"
+        },
+        "P2.8.4": {
+          "$ref": "#/$defs/statement",
+          "title": "Adversarial red-teaming practices"
+        },
+        "P2.8.5": {
+          "$ref": "#/$defs/statement",
+          "title": "Version control"
+        }
+      }
+    },
+    "languageDetectionStatus": {
+      "title": "P4.11 — where detection actually runs",
+      "description": "P4.1 lists the languages the service processes and P4.2 states what is known about detection quality in each. Neither says whether detection is running. A disclosure listing thirty languages while detection operates in four is misleading without this clause. Answer one of two ways: assert that every listed language is fully enabled, or enumerate the exceptions with reasons. There is no third form, and silence is not one of them. An unmeasured performance tier is not a reason to disable detection: withdrawing protection from a language in order to avoid declaring a beta or experimental tier would leave children in that language worse protected than before the disclosure was made. Where restriction is nonetheless the right decision — an unacceptable false positive rate, or foreseeable harms under P6.10 falling hardest on the users concerned — it is disclosed here with its reason, not effected silently.",
+      "oneOf": [
+        {
+          "title": "No restrictions",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allLanguagesFullyEnabled"
+          ],
+          "properties": {
+            "allLanguagesFullyEnabled": {
+              "const": true,
+              "description": "Detection runs, and detection events escalate, in every language listed at P4.1 — including those at beta and experimental tier."
+            },
+            "statement": {
+              "type": "string",
+              "description": "Optional narrative."
+            }
+          }
+        },
+        {
+          "title": "Restrictions enumerated",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "restrictions"
+          ],
+          "properties": {
+            "restrictions": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "code",
+                  "status",
+                  "reason"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$",
+                    "description": "BCP 47 tag. Shall appear in the P4.1 list — a restriction on a language the disclosure does not admit to processing is not a disclosure."
+                  },
+                  "status": {
+                    "enum": [
+                      "disabled",
+                      "restricted",
+                      "no-escalation"
+                    ],
+                    "description": "disabled = detection does not run in this language. restricted = detection runs at reduced scope, higher threshold, or on a subset of harm categories. no-escalation = detection runs and produces events, but those events do not reach human review or any downstream action, which for the user is indistinguishable from disabled."
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 20,
+                    "description": "Why. 'Not measured' is not a reason on its own — an unmeasured tier is a disclosure, not a ground for withdrawal (P4.11). State the harm the restriction avoids."
+                  },
+                  "since": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "reviewBy": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "When the restriction will next be reconsidered. A restriction with no review date is a permanent gap presented as a temporary one."
+                  }
+                }
+              }
+            },
+            "statement": {
+              "type": "string",
+              "description": "Optional narrative. Languages not listed in the array are fully enabled."
+            }
+          }
+        }
+      ]
+    },
+    "languageEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$",
+          "description": "BCP 47 language tag."
+        },
+        "name": {
+          "type": "string"
+        },
+        "P4.2": {
+          "enum": [
+            "stable",
+            "beta",
+            "experimental"
+          ],
+          "description": "Performance tier per P0.1. stable = precision and recall measured in this language on a corpus of stated size, with 95% confidence intervals. beta = production-ready, evaluation corpus smaller or intervals not yet computed. experimental = processed by the system, not evaluated in this language. Stable and beta are performance-disclosed; experimental is a disclosure of reach. A tier records what is known about detection quality in a language. It is not a statement about whether detection runs there — that is P4.11 — and an unmeasured tier is not a reason to stop detecting.",
+          "$comment": "Revision 3: the description formerly read 'A language is not supported merely because the model can process it.' The framework's narrow definition of 'supported' collided with the ordinary commercial meaning, pushing accurate disclosures toward statements a reader would take as false."
+        },
+        "P4.3": {
+          "type": "boolean",
+          "description": "Culture-specific guidelines authored for this language rather than translated."
+        },
+        "P4.10": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "precision": {
+              "$ref": "#/$defs/metric"
+            },
+            "recall": {
+              "$ref": "#/$defs/metric"
+            },
+            "corpusSize": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "operationalOutcomes": {
+      "title": "P6.11 Operational outcomes",
+      "description": "Production outcomes. Appeal volume and reversal rate are the most informative available signal about real-world false positive impact.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P6.11.6",
+        "P6.11.1",
+        "P6.11.2",
+        "P6.11.3",
+        "P6.11.4",
+        "P6.11.5"
+      ],
+      "properties": {
+        "P6.11.6": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "periodStart",
+            "periodEnd"
+          ],
+          "properties": {
+            "periodStart": {
+              "type": "string",
+              "format": "date"
+            },
+            "periodEnd": {
+              "type": "string",
+              "format": "date"
+            },
+            "alignedWithDsaReporting": {
+              "type": "boolean",
+              "description": "Whether figures are aligned with DSA Art. 15 / Art. 24 reporting."
+            }
+          }
+        },
+        "P6.11.1": {
+          "type": "object",
+          "description": "Detection event volume keyed by P1 clause id.",
+          "propertyNames": {
+            "$ref": "#/$defs/harmCategoryId"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "P6.11.2": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Proportion of detection events escalated to human review."
+        },
+        "P6.11.3": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "content-removal": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "account-restriction": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "account-suspension": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "parental-or-guardian-notification": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "referral-to-external-services": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "law-enforcement-report": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "no-action": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "other": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "P6.11.4": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Appeal volume."
+        },
+        "P6.11.5": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Appeal reversal rate. A system with excellent laboratory precision and a high reversal rate is not performing well."
+        }
+      }
+    },
+    "measurementStatus": {
+      "title": "P2.0 Measurement status",
+      "description": "Required at Coverage Declared. 'Not measured' is an acceptable answer.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P2.0.1"
+      ],
+      "properties": {
+        "P2.0.1": {
+          "type": "object",
+          "description": "Keyed by P1 clause id. true = detection performance has been measured for that category.",
+          "propertyNames": {
+            "$ref": "#/$defs/harmCategoryId"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "P2.0.2": {
+          "type": "object",
+          "description": "Keyed by P1 clause id. Reason where performance is measured but not disclosed.",
+          "propertyNames": {
+            "$ref": "#/$defs/harmCategoryId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/statement"
+          }
+        }
+      }
+    },
+    "vendorReference": {
+      "title": "P0.2.5 Vendor reference disclosure",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vendorName",
+        "systemName",
+        "version",
+        "date",
+        "publicUrl"
+      ],
+      "properties": {
+        "vendorName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "systemName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "publicUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "supersedes": {
+          "type": "string"
+        },
+        "contact": {
+          "type": "string"
+        }
+      }
+    },
+    "notMeasured": {
+      "title": "Not measured",
+      "description": "The honest form for a measurement that has not been performed. Distinct from a withheld item under P0.3.3, which asserts the answer exists and is not being published. An unmeasured statistic is not withheld — it does not exist. Parallel to P2.0.1 and P2.7.1, where 'not measured' is a first-class answer and only silence is the failure.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "notMeasured",
+        "reason"
+      ],
+      "properties": {
+        "notMeasured": {
+          "const": true
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 10
+        },
+        "blockedBy": {
+          "type": "string",
+          "description": "Where something prevents the measurement being made — for example the P0.1 independence requirement excluding the vendor's own staff from producing ground truth."
+        },
+        "plannedBy": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  }
+}
