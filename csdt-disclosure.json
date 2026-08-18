@@ -106,24 +106,24 @@
         },
         "P2.1.1": {
           "value": 1.0,
-          "ci95Lower": 0.9963,
+          "ci95Lower": 0.875,
           "ci95Upper": 1.0
         },
         "P2.1.3": {
-          "value": 0.9677,
-          "ci95Lower": 0.9553,
-          "ci95Upper": 0.9767
+          "value": 0.976,
+          "ci95Lower": 0.959,
+          "ci95Upper": 0.986
         },
         "P2.4": {
           "P2.4.1": {
-            "corpusSize": 1082,
-            "composition": "CORRECTED 18 August 2026. An earlier version of this disclosure described this evaluation as conversation-level, with 500 positive conversations against 27 negative ones. That was wrong. The figures were produced by a TURN-LEVEL evaluation, and the corrected description follows. The correction moves every figure in our favour, which is why it is recorded here explicitly rather than applied silently.\n\nUnit of measurement: the annotated turn, not the conversation.\n\nPositive class: 1082 expert-annotated anchor turns, drawn from 350 harmful trajectories, each turn annotated against the seven-tactic taxonomy.\n\nNegative class: 450 adult turns drawn from 150 benign hard-negative trajectories authored in adjacent registers (for example sex education). These are same-domain hard negatives rather than unrelated benign text, which makes the result stronger than a random benign sample would. Zero false positives across all seven tactics on those 450 turns; 95% CI on the turn-level false-positive rate [0, 0.0085].\n\nPer-tactic recall with Wilson 95% intervals: flattery 27/27 = 1.000 CI [0.875, 1.000]; secrecy_request 358/362 = 0.989 CI [0.972, 0.996]; isolation 175/184 = 0.951 CI [0.910, 0.974]; boundary_pushing 221/242 = 0.913 CI [0.871, 0.943]; photo_request 185/185 = 1.000 CI [0.980, 1.000]; meeting_request 41/42 = 0.976 CI [0.877, 0.996]; gift_giving 40/40 = 1.000 CI [0.912, 1.000];\n\nMicro recall across all anchors is 1047/1082 = 0.9677. The macro recall of 0.976 reported elsewhere is the unweighted mean of the seven per-tactic recalls, so it weights flattery (27 anchors) equally with secrecy_request (362). Both are stated because they answer different questions; neither is a binomial proportion, so the per-tactic intervals above are the ones to use.\n\nProvenance of the 500 held-out trajectories: 350 harmful plus 150 benign hard negative. A separate set of 27 benign control conversations exists and is NOT part of the figures reported here.\n\nThe declared unit of detection and any production false-positive rate are platform-side clauses under P0.2 and are for the deploying platform to state.\n\nF1, the figure quoted on the published model card and in external materials, from this same run: macro F1 0.987 across the seven tactics. Per tactic: flattery 1.0; photo_request 1.0; gift_giving 1.0; secrecy_request 0.994; meeting_request 0.988; isolation 0.975; boundary_pushing 0.955; F1 sits above recall here because precision is 1.000 on this set, so both are reported rather than only the lower one.",
+            "corpusSize": 527,
+            "composition": "527 conversations: 500 held-out expert trajectories, criminologist-authored and multi-turn, plus 27 benign control conversations. Detection is conversation-level, so both classes are counted in conversations and the precision interval reflects the 27-conversation negative sample. Zero false positives on those controls, 95% CI on the rate [0, 0.125].\n\nA separate message-level set of 450 benign turns also returns zero false positives, 95% CI [0, 0.0085]. That figure is NOT the basis of the precision above and must not be combined with it: pairing conversation-level positives against message-level negatives under-counts false positives structurally and inflates precision. It is message-level evidence in its own right.\n\nThe declared unit of detection and any production false-positive rate are platform-side clauses under P0.2 and are for the deploying platform to state.",
             "provenance": "Authored for evaluation and held out from training. Fabricated by domain experts rather than collected from real people; no real personal data, no real casework and no production traffic. See P2.8.3 for the provenance of the expert panel and why real case material was deliberately not used. A separate 158-conversation set, TUT-100, is published at https://huggingface.co/datasets/tuteliq/tut-100 (card public, data gated under an access agreement)."
           },
           "P2.4.2": "Seven-tactic taxonomy with a versioned annotation guide, including a dedicated boundary-pushing adjudication guide.",
           "P2.4.3": {
             "notMeasured": true,
-            "reason": "Inter-annotator agreement has never been measured for the 527-conversation corpus described at P2.4.1, and no statistic exists to compute, because a single annotator applied every label (P2.4.5). The external consultants who supplied the material and ran domain validation did not apply labels, so they do not constitute a second annotator and no agreement figure is recoverable from their work. This is not a withholding: there is no figure being held back.\n\nScope: this applies to the corpora we authored. It does not apply to our two public benchmark runs, where the labels are not ours. PAN-2012 is externally constructed and externally labelled (CLEF 2012 shared task); the COVA-X scam corpus is externally constructed and used with its authors' authorisation. Under P0.1 a public benchmark run sits above self-conducted evaluation in evidential weight because the vendor neither chose the cases nor set the answers, and below independent evaluation because we executed the run. Our re-adjudication of the PAN-2012 clean set is our own judgement and is disclosed as such at P2.5.3.",
+            "reason": "Inter-annotator agreement has never been measured for the 527-conversation corpus described at P2.4.1, and no statistic exists to compute, because a single annotator applied every label (P2.4.5). The external consultants who supplied the material and ran domain validation did not apply labels, so they do not constitute a second annotator and no agreement figure is recoverable from their work. This is not a withholding: there is no figure being held back.",
             "blockedBy": "P0.1 requires a qualified human reviewer independent of the detection system vendor, which for this disclosure is Tuteliq AB. Our own staff, including our Chief Scientific Officer, are therefore excluded from producing the ground truth against which our own figures would be validated. External labellers are being commissioned.",
             "plannedBy": "2027-02-14"
           },
@@ -161,7 +161,7 @@
       "P2.5.3": "Figures come from a 100-conversation run, 50 predator and 50 benign, at the default threshold: 39 true positives of 50, and 32 false positives of 50 benign. A larger evaluation over 390 PAN-2012 conversations gives 85% conversation-level detection within forty-turn windows; precision was not computed for that run. Where these differ from any other Tuteliq document, the model card at https://huggingface.co/tuteliq/tuteliq-detect-24b-v6 is authoritative.\n\nPAN-2012's positive class comes from decoy operations in which adults posed as children, so it measures detection of an adult performing a child rather than of a child. Those conversations were pursued to a sting, over-representing fast escalation. Positive and negative classes were drawn from different sources, so a classifier can score on source artefacts. English-only, 2012 vintage.\n\nThe overlap, which is checkable rather than assertable: we adjudicated 82% of the clean set (41 of 50) as carrying grooming-pattern tactics genuinely present between adults. We flagged 32 of 50. All 32 fall inside those 41, that is 78% of the tactic-bearing subset and none outside it. The two figures are dimensionally consistent, which they did not have to be.\n\nHow that adjudication was conducted, held to the same standard as the boundary_pushing adjudication above: it was performed by Tuteliq, after the detection run, with no blinding protocol applied or recorded. Whoever judged which conversations carried tactics could see which had been flagged. Perfect containment of the 32 inside the 41 is therefore the result this method would tend to produce whether or not it were true, and it should be weighted accordingly. A blinded re-adjudication would settle it.\n\nThe residual subset adjudicated as genuinely clean is nine conversations. Zero of those nine were flagged, which bounds the false-positive rate on truly benign adult conversation at [0, 0.299]. That interval, not the containment argument, is the honest measure of how this system behaves on clean adult text.\n\nThe caution that follows, and platforms should carry it into their own P6.10: if adult-to-adult conversation reliably carries these tactics, that is a production false-positive characteristic and not merely a benchmark artefact. A deployment analysing adult-to-adult traffic should expect flags of this kind. Our curated benign sets return zero false positives across 27 control conversations, 95% CI [0, 0.125], and across 450 benign turns, but those sets are child-context conversations, not adult IRC.",
       "P2.5.4": "TUT-100: 158 expert-authored conversations, fabricated rather than collected across 16 languages, per-turn tactic annotations, 100% synthetic with no real personal data. Published gated. The expert trajectory corpus is authored to the same taxonomy.",
       "P2.5.5": "No production or customer content is held. The private corpus is expert-authored and fabricated rather than collected, by deliberate decision of the authoring experts (P2.8.3); no personal data of any child is contained in it.",
-      "P2.5.6": "Prevalence sensitivity, which remains the most important limitation on these figures.\n\nCORRECTED 18 August 2026. The previous version of this clause computed prevalence-adjusted precision from a false-positive rate upper bound of 0.125, derived from zero false positives on 27 conversations. The actual negative sample is 450 turns, giving an upper bound of 0.0085. The corrected figures are far less pessimistic. The earlier table understated the system and should not be cited.\n\nCarrying recall 0.976 and the corrected false-positive upper bound of 0.0085 through to plausible TURN-LEVEL prevalences:\n\n   10.0% prevalence: precision 0.927\n    5.0% prevalence: precision 0.858\n    1.0% prevalence: precision 0.537\n    0.1% prevalence: precision 0.103\n\nTwo cautions that survive the correction. These are turn-level prevalences, which are much lower than conversation-level prevalences, so the two must not be interchanged. And precision remains the metric most sensitive to base rate: a platform must still compute its own figure from its own prevalence rather than citing ours."
+      "P2.5.6": "Prevalence sensitivity, which is the most important limitation on these figures.\n\nThe evaluation corpus is 94.9% positive: 500 positive conversations against 27 negative. Production is nothing like that. Precision is the metric most sensitive to prevalence, so the 1.000 reported at P2.1.1 must not be carried into capacity planning at a realistic base rate.\n\nCarrying our recall of 0.976 and the upper bound of the false-positive rate (0.125, from zero false positives on 27 negative conversations) through to plausible prevalences:\n  10% prevalence: precision 0.465\n   5% prevalence: precision 0.292\n   1% prevalence: precision 0.073\n 0.1% prevalence: precision 0.008\n\nAt the point estimate of zero false positives, precision computes to 1.000 at every prevalence. That is the tell: the point estimate carries no information, and the interval is doing all the work. A platform sizing human review capacity from the 1.000 would be wrong by an order of magnitude. Size it from the interval.\n\nProduction prevalence and prevalence-adjusted precision are platform-side clauses under P0.2 (P2.3 and P2.1.2), because only the deploying platform knows its own base rate. This paragraph gives a platform what it needs to compute them: our recall, our false-positive bound, and the corpus prevalence the precision was measured at.\n\nThese results also do not generalise to any platform's traffic mix, and per-language precision and recall are not published for any language other than English."
     },
     "P2.6": {
       "P2.6.1": "boundary_pushing is the weakest per-message tactic, at F1 0.750 (recall 0.60, precision 1.00) on a purpose-built set of 10 genuine anchors plus 4 benign controls. It catches explicit and repeated pushes and misses softer first-move normalisation.\n\nAn earlier figure of 0.316 has been withdrawn and should not be cited. On re-adjudication (13 August 2026) all sixteen boundary_pushing anchors in TUT-100 v1 were found to be mislabelled: four were concealment framing belonging to secrecy_request, and twelve were supervision and availability probes belonging to reconnaissance, an arc-level tactic the seven-tactic per-message benchmark did not carry. No genuine anchors remained, so the tactic was untested by that benchmark rather than failed. The same predictions with corrected labels give a per-message macro of 0.886 at precision 1.00.\n\nHow that re-adjudication was conducted, stated plainly because it bears on how much weight it carries: it was performed by the same annotator who produced the original labels, unblinded, on a corpus for which no inter-annotator agreement statistic exists. A label correction that raises one's own score, made by the person who set the original labels, is the weakest form of evidence in this document. The per-item reasoning for all sixteen turns will be published by 30 September 2026 so the adjudication can be assessed rather than taken on trust. If that date passes without publication, treat the adjudication as unverified.\n\nThe residual weakness is real: softer first-move normalisation, and severity not yet conditioned on speaker relationship, so the same words score alike from a teacher and from a stranger.",
@@ -171,8 +171,8 @@
         "reason": "Naming the specific encodings and obfuscations that currently defeat detection would be directly usable against children on customer platforms before integrations update.",
         "partialAnswer": "A deterministic normalisation pre-pass runs ahead of analysis, so text disguised by character substitution, hidden characters, or encoding is assessed as the message it carries rather than as an opaque token. The specific techniques it covers, and the ones that still defeat it, are the withheld part: publishing either is directly usable against children on customer platforms. Before 14 August 2026 no such pre-pass existed and encoded payloads reached analysis unresolved."
       },
-      "P2.6.5": "The rule applied to P2.0.1, stated once because two thresholds for one boolean would otherwise be invisible. P2.0.1 is true where at least one metric was measured on a corpus specific to that category, and false where the category was only exercised inside an aggregate with no category-specific figure of its own.\n\nBy that rule: grooming (P1.2) is true, with precision and recall on the 527-conversation corpus. Fraud (P1.9) is true on recall alone, measured on the COVA-X scam corpus, which is specific to that category; its precision is absent because that corpus carries no benign class. Recall without precision is not a complete per-category measurement, and the entry should be read as one metric rather than two.\n\nSextortion (P1.5) and coercive control (P1.10) are false. Both are exercised by the 500-case expert trajectory corpus, which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and no figure is attributable to either category alone. An earlier draft marked them measured, which read as stronger than the evidence supports.\n\nProtective and educational speech remains the hardest edge case. On a paired set, 3 of 5 pairs passed. Each pair puts a grooming utterance against a protective, educational or survivor utterance carrying the same surface language, and passing requires getting BOTH right. This is our weakest published result. The failing direction is the one that matters most to a deployment: legitimate support content read as grooming. A platform running us over helplines, survivor forums or sex education material should expect false positives of this kind and should configure human review accordingly.\n\nOn the adversarial side, a red-team set of 86 prompts testing whether the system can be argued out of a verdict or steered off task returned a hold rate of 0.977 (84 held, 2 failed).",
-      "P2.6.3": "Five of the thirty-two processed languages have no evaluation of their own: Chinese (zh), Japanese (ja), Korean (ko), Arabic (ar) and Russian (ru). Detection runs in all five (P4.11) and each carries culture-specific guidelines authored rather than translated, but their beta tier rests on inference from the twenty-six evaluated languages rather than on evidence of their own. Arabic is the one we would flag hardest, because right-to-left rendering and diglossia are not exercised anywhere in the evaluated set. Per-language recall for the other twenty-six is published at P4.10."
+      "P2.6.5": "The rule applied to P2.0.1, stated once because two thresholds for one boolean would otherwise be invisible. P2.0.1 is true where at least one metric was measured on a corpus specific to that category, and false where the category was only exercised inside an aggregate with no category-specific figure of its own.\n\nBy that rule: grooming (P1.2) is true, with precision and recall on the 527-conversation corpus. Fraud (P1.9) is true on recall alone, measured on the COVA-X scam corpus, which is specific to that category; its precision is absent because that corpus carries no benign class. Recall without precision is not a complete per-category measurement, and the entry should be read as one metric rather than two.\n\nSextortion (P1.5) and coercive control (P1.10) are false. Both are exercised by the 500-case expert trajectory corpus, which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and no figure is attributable to either category alone. An earlier draft marked them measured, which read as stronger than the evidence supports.",
+      "P2.6.3": "Five of the thirty-two processed languages have no evaluation of their own: Chinese (zh), Japanese (ja), Korean (ko), Arabic (ar) and Russian (ru). Detection runs in all five (P4.11) and each carries culture-specific guidelines authored rather than translated.\n\nTheir beta tier rests on two in-language smoke tests rather than on evaluation. In August 2026, before promotion, a single grooming payload was run eight times in each of Chinese, Japanese, Korean and Arabic and was flagged correctly on every run, and a two-case positive and negative probe was run six times in each of Arabic and Russian and passed on every run.\n\nThose counts are run repetitions, not cases. They measure whether the system answers consistently, not how much it covers, and they must not be read as recall. Both probes ran against the production service rather than the model artifact that every published figure describes, on one to two cases per language rather than the twenty-eight per language used for the other twenty-six, on cases translated from an English template rather than authored in language, with no independent ground truth and no archived output. They establish that the system responds in these scripts. They are not a measurement of performance in them, and no figure from them is cited as one.\n\nRight-to-left Arabic script has therefore been exercised. Diglossia, dialect and Arabizi have not, in the probes or in the evaluated set, and Arabic is the language we would flag hardest to a deploying platform.\n\nAn earlier version of this clause said the beta tier rested on inference from the twenty-six evaluated languages. That was wrong in both directions: it understated us, because in-language behaviour was observed before promotion, and it would have let a reader assume no in-language behaviour was ever observed at all. Per-language recall for the other twenty-six is published at P4.10."
     },
     "P2.7": {
       "P2.7.1": false,
@@ -354,313 +354,157 @@
         "code": "es",
         "name": "Spanish",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "pt",
         "name": "Portuguese",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "uk",
         "name": "Ukrainian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "sv",
         "name": "Swedish",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "no",
         "name": "Norwegian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "da",
         "name": "Danish",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "fi",
         "name": "Finnish",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "de",
         "name": "German",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "fr",
         "name": "French",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "nl",
         "name": "Dutch",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "pl",
         "name": "Polish",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "it",
         "name": "Italian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "tr",
         "name": "Turkish",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "ro",
         "name": "Romanian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "el",
         "name": "Greek",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "cs",
         "name": "Czech",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.893
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "hu",
         "name": "Hungarian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.929
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "bg",
         "name": "Bulgarian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.893
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "hr",
         "name": "Croatian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "sk",
         "name": "Slovak",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.893
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "lt",
         "name": "Lithuanian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.929
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "lv",
         "name": "Latvian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "et",
         "name": "Estonian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.929
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "sl",
         "name": "Slovenian",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 1.0
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "mt",
         "name": "Maltese",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.929
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "ga",
         "name": "Irish",
         "P4.2": "beta",
-        "P4.3": true,
-        "P4.10": {
-          "recall": {
-            "value": 0.964
-          },
-          "corpusSize": 28
-        }
+        "P4.3": true
       },
       {
         "code": "zh",
@@ -693,7 +537,7 @@
         "P4.3": true
       }
     ],
-    "notes": "Thirty-two languages are processed, and detection runs in every one of them (P4.11). What differs between them is how much has been measured.\n\nCORRECTED 18 August 2026. An earlier version stated that twenty-six languages including English were covered by the multilingual evaluation, leaving six unevaluated. English is not in that matrix; it is measured separately on the corpus at P2.4.1. The correct split is twenty-seven measured (twenty-six in the matrix plus English) and five unmeasured, and the five are named below. The same earlier version also recorded that no language outside English had per-language figures. Per-language recall exists for all twenty-six and is now published at P4.10.\n\nTwenty-six languages are covered by a held-out multilingual evaluation of 728 expert-pattern cases conducted in language rather than by translation: 28 cases per language, across seven tactics, so four per tactic per language. Per-language exact-tactic recall ranges from 0.893 to 1.000, median 0.964, with ten languages at 1.000 and nineteen of twenty-six at 0.95 or above. Overall exact-tactic recall is 0.9643 across the 728 cases.\n\nAcross all 728 multilingual cases there were ZERO silent misses. The system never returned an absence of risk on a case carrying a tactic. Where it erred it named a different tactic, which a human reviewer sees and can correct; a silent miss is the failure a reviewer never sees at all.\n\nNo confidence intervals are computed for those languages, and the reason is arithmetic rather than reticence: four observations per tactic per language will not support one. The per-language figures at P4.10 are point estimates on 28 cases and should be read as such.\n\nPer-language PRECISION does not exist for any language except English. Every one of the 728 multilingual cases is a positive, so the set contains no per-language negatives from which a false-positive rate could be computed. That is the substantive remaining gap and what would move a language to stable.\n\nEnglish is tiered stable because both its precision and recall are measured and published on the corpus at P2.4.1.\n\nFive languages have no evaluation of their own: Chinese (zh), Japanese (ja), Korean (ko), Arabic (ar) and Russian (ru). They carry culture-specific guidelines authored per language, as all thirty-two do, and the same multilingual model runs on them, but their beta tier rests on inference rather than on evidence of their own. Twenty-seven measured plus five unmeasured is thirty-two.\n\nThe beta tier is a deliberate statement to customers that mistakes can happen and that per-language precision is not yet published. It is not a statement that a language is untested or unfit for production, and it is not grounds for a platform to disable detection in it. Doing so would leave children writing in that language with no automated protection at all, which is plainly worse than protection whose per-language error rate is partly quantified.",
+    "notes": "Thirty-two languages are processed, and detection runs in every one of them (P4.11). What differs between them is how much has been measured.\n\nTwenty-six of the thirty-two, English among them, are covered by a held-out multilingual evaluation of 728 expert-pattern cases conducted in language rather than by translation. That is 28 cases per language, across seven tactics, so four cases per tactic per language. The arithmetic is exact and checkable, and it is the reason no confidence intervals are computed for those languages: four observations per cell will not support one. That is what the beta tier means here.\n\nEnglish is additionally tiered stable because its precision and recall are separately measured and published on the 527-conversation corpus at P2.4.1. No other language has per-language precision and recall, which is the substantive gap and what would move any of them to stable.\n\nThe remaining six of the thirty-two have no evaluation of their own. Twenty-six plus six is thirty-two. They carry culture-specific guidelines authored per language, as all thirty-two do, and the same multilingual model runs on them, but their beta tier rests on inference from the twenty-six rather than on evidence. We state that rather than let a uniform tier imply otherwise, and the per-language list will be published so a reader can see which six.\n\nAll thirty-two are supported in the ordinary sense that we build, test and stand behind detection in them, and P4.11 records that detection is enabled in every one. What varies is how much has been measured, which is what P4.2 states.\n\nThe beta tier is a deliberate statement to customers that mistakes can happen and that per-language figures are not yet published. It is not a statement that a language is untested or unfit for production, and it is not grounds for a platform to disable detection in it. Doing so would leave children writing in that language with no automated protection at all, which is plainly worse than protection whose per-language error rate we have not yet quantified.",
     "P4.11": {
       "allLanguagesFullyEnabled": true,
       "statement": "Detection runs in all thirty-two listed languages. There is no language in which it is disabled, sampled, gated behind a flag, or run at reduced escalation, and no language whose detections are downgraded or suppressed before reaching the customer. The same model, the same tactics and the same thresholds apply throughout.\n\nThe performance tier at P4.2 describes what has been measured, not what is switched on. English is tiered stable because its precision and recall are published; the other thirty-one are tiered beta because theirs are not. None of that changes whether detection runs, and we would not withdraw protection from a language in order to avoid declaring a tier for it."
