@@ -27,7 +27,8 @@ Our grooming detection shows **zero false positives across 450 benign hard-negat
 | Categories with published performance figures | 2 of 12 |
 | Languages with published per-language figures | 1 |
 | Independent evaluation | In progress via COVA-X |
-| Independent labelling | Not yet. External reviewers being commissioned |
+| Externally labelled public benchmarks run | 2 (PAN-2012, COVA-X) |
+| Independent labelling of our own corpora | Not yet. External reviewers being commissioned |
 | Inter-annotator agreement | Not yet measured. Study designed, sample drawn |
 | Subgroup equity | Not yet measured |
 
@@ -75,7 +76,7 @@ External consultants in criminology, child psychology and linguistics supplied t
 
 The conversations are fabricated rather than collected from real people, and expansion was AI-assisted under expert direction with expert validation of the output. The experts declined to work from real case material so that no victim's personal data could enter the corpus, be retained, or leak through the model. No row of training or evaluation data traces back to a real child.
 
-Dr Harding is the sole annotator; the consultants supplied and tested but did not label. That is why no inter-annotator agreement figure exists, and why the panel does not make our labelling independent.
+Dr Harding is the sole annotator of our own corpora; the consultants supplied and tested but did not label. That is why no inter-annotator agreement figure exists for those corpora, and why the panel does not make our labelling independent. It does not apply to the public benchmarks below, whose labels are not ours.
 
 The expert-authored material is the English backbone. Multilingual coverage is derived from it by translation and in-language generation with native-speaker review, rather than authored independently in each language.
 
@@ -83,7 +84,11 @@ The expert-authored material is the English backbone. Multilingual coverage is d
 
 **Our labels are not independent, and the expert panel does not change that.** Under clause P0.1, a false positive or negative determination requires a reviewer with no financial, employment or contractual relationship with the vendor. Our evaluation labels come from our Chief Scientific Officer, who is a co-founder and shareholder, and the consultants above were engaged and paid by us. A credentialled panel is a statement about expertise, not about independence, and the two are easily conflated. Every figure above rests on ground truth we produced ourselves.
 
-**Inter-annotator agreement has never been measured.** A single annotator labelled the corpus, so no agreement statistic exists to compute. This is recorded as not measured rather than withheld: there is no figure being held back. External labellers are being commissioned.
+**Inter-annotator agreement has not been measured on our own corpora.** A single annotator labelled them, so no agreement statistic exists to compute. This is recorded as not measured rather than withheld: there is no figure being held back. The study is designed and the sample drawn; external labellers are being commissioned.
+
+This applies to the corpora we authored. It does not apply to our two public benchmark runs, where the labels are not ours: PAN-2012 is an externally constructed and externally labelled corpus from the CLEF 2012 shared task, and the COVA-X scam corpus is externally constructed and used with its authors' authorisation. Under clause P0.1 a public benchmark run sits above self-conducted evaluation in evidential weight, because the vendor did not choose the cases or set the answers. It sits below independent evaluation, because we executed the run.
+
+One boundary within that: our re-adjudication of the PAN-2012 clean set is our own judgement, not the corpus authors', and it is described as such below.
 
 **Ten of twelve covered categories have no published figures.** Detection runs for all of them. Performance has not been measured per category for most.
 
