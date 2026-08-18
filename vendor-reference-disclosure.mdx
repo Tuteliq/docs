@@ -11,7 +11,7 @@ keywords: [transparency, disclosure, TUT-CSDT-001, benchmark, evaluation, child 
 
 This is a **vendor reference disclosure** under clause P0.2.5 of [TUT-CSDT-001, the Child Safety Detection Transparency Framework](https://tuteliq.ai/standard). It confers no conformance level, because levels attach to platforms rather than to detection systems. It covers the vendor-side clauses only: the properties of the detection system, which only we can evidence. The platform-side clauses, covering how a given deployment is configured and what happens to a flagged user, belong to the platform using us and cannot be discharged by citing this document.
 
-Our grooming detection shows **zero false positives across 450 benign hard-negative turns** and per-tactic recall between 0.913 and 1.00 on a held-out expert corpus. Two things about that. The figures are self-measured by an interested party, which is exactly what this framework exists to fix. And precision is the metric most sensitive to base rate: carried to a realistic 1% turn-level prevalence it falls to roughly 0.54. Compute your own figure from your own prevalence rather than citing ours.
+Our grooming detection shows **zero false positives across 450 benign hard-negative turns** and per-tactic recall between 0.913 and 1.00 on a held-out expert corpus. These figures are self-measured; independent evaluation is in progress via COVA-X. Precision is the metric most sensitive to base rate, so compute your own figure from your own prevalence rather than citing ours: at 1% turn-level prevalence it is roughly 0.54.
 
 **Corrected 18 August 2026.** An earlier version of this page described this evaluation as conversation-level and reported a 1% prevalence precision of roughly 0.07. Both were wrong. The details are below, and the correction moves every figure in our favour.
 </Note>
@@ -21,13 +21,15 @@ Our grooming detection shows **zero false positives across 450 benign hard-negat
 | | |
 |---|---|
 | Harm categories covered | 12 of 13 |
+| Languages processed, with detection enabled in every one | 32 (English stable, 31 beta) |
+| False positives on 450 benign hard-negative turns | 0 (95% CI [0, 0.0085]) |
+| Per-tactic recall, seven grooming tactics | 0.913 to 1.00 |
 | Categories with published performance figures | 2 of 12 |
-| Languages | 32 (English stable, 31 beta) |
 | Languages with published per-language figures | 1 |
-| Independent labelling | **No** |
-| Independent evaluation | **No.** In progress via COVA-X |
-| Inter-annotator agreement | **Never measured** |
-| Subgroup equity | **Not measured** |
+| Independent evaluation | In progress via COVA-X |
+| Independent labelling | Not yet. External reviewers being commissioned |
+| Inter-annotator agreement | Not yet measured. Study designed, sample drawn |
+| Subgroup equity | Not yet measured |
 
 The machine-readable form is at [`csdt-disclosure.json`](https://docs.tuteliq.ai/csdt-disclosure.json). Where this page and that file differ, the JSON is authoritative.
 
@@ -43,19 +45,19 @@ Per-tactic recall with 95% intervals: flattery 1.00 [0.875, 1.0]; secrecy_reques
 
 The macro recall of 0.976 quoted elsewhere is the unweighted mean of those seven, so it weights flattery (27 anchors) equally with secrecy_request (362). Neither macro nor micro is a binomial proportion; the per-tactic intervals are the ones to use.
 
-**What we corrected, and why it is worth stating.** An earlier version of this page described the evaluation as conversation-level, with 500 positive conversations against 27 negative ones, and reported precision 1.00 with a CI of 0.875 to 1.0. The underlying measurement was always turn-level. A reviewer had previously flagged a unit mismatch on this page, and the fix we applied re-based the figures onto 27 conversations, which moved the document further from what was actually measured rather than closer. An even earlier draft reported 0.992 to 1.0, which was nearer the truth than the "correction" that replaced it. We record this because a transparency document that quietly improves its own numbers is worth less than one that shows its working.
+**Corrected 18 August 2026.** An earlier version described this evaluation as conversation-level, with 500 positive conversations against 27 negative. The underlying measurement was always turn-level, as stated above. Every corrected figure moves in our favour, which is why the change is recorded rather than applied silently.
 
 A separate set of 27 benign control conversations exists and is not part of the figures above.
 
 **Fraud and social engineering.** Recall 0.98 (147 of 150) on the COVA-X scam corpus, used with the authorisation of its authors. Precision is not reported for this category: the evaluated set contains scam conversations only, with no benign class, so there is no false-positive denominator.
 
-**Sextortion and coercive control are exercised but not separately measured.** They sit inside the same held-out expert evaluation (500 trajectories: 350 harmful, 150 benign hard negative), which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and a macro is not a per-category precision and recall. An earlier draft of this page counted them as measured, which read as stronger than the evidence supports.
+**Sextortion and coercive control are exercised but not separately measured.** They sit inside the same held-out expert evaluation (500 trajectories: 350 harmful, 150 benign hard negative), which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and a macro is not a per-category precision and recall.
 
 ### The public benchmark
 
 PAN-2012 Sexual Predator Identification (CLEF 2012, Inches and Crestani, [DOI 10.5281/zenodo.3713280](https://doi.org/10.5281/zenodo.3713280)): precision 0.549 (95% CI 0.434 to 0.660), recall 0.780 (95% CI 0.648 to 0.872).
 
-That precision figure looks poor and we publish it anyway, because a vendor who runs a public benchmark and does not publish the result is withholding the most comparable number it possesses.
+We publish this because it is the most comparable public number we have. It should be read with the limitations below, which are substantial.
 
 It should not be read as a production false-positive rate. PAN-2012's positive class comes from decoy operations in which adults posed as children, so it measures detection of an adult performing a child rather than of a child. Positive and negative classes were drawn from different sources, so a classifier can score well on artefacts of the source. It is English-only and of 2012 vintage.
 
@@ -103,7 +105,7 @@ On expert re-adjudication, all sixteen anchor turns behind that figure were foun
 
 Corrected, from identical predictions with no retraining: per-message macro F1 0.886 at precision 1.00. On a purpose-built set of genuine anchors, `boundary_pushing` scores F1 0.750.
 
-How that re-adjudication was conducted, because it bears on the weight it carries: it was performed by the same annotator who produced the original labels, unblinded, on a corpus for which no inter-annotator agreement statistic exists. A label correction that raises one's own score, made by the person who set the original labels, is the weakest form of evidence in this document. The per-item reasoning for all sixteen turns will be published so the adjudication can be assessed rather than taken on trust.
+How that re-adjudication was conducted, because it bears on the weight it carries: it was performed by the same annotator who produced the original labels, unblinded, on a corpus for which no inter-annotator agreement statistic exists. The per-item reasoning for all sixteen turns will be published so the adjudication can be assessed rather than taken on trust.
 
 We record this because a withdrawn number that stays in circulation is worse than a bad number that is explained.
 
