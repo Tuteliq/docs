@@ -25,7 +25,10 @@ Our grooming detection shows **zero false positives across 450 benign hard-negat
 | False positives on 450 benign hard-negative turns | 0 (95% CI [0, 0.0085]) |
 | Per-tactic recall, seven grooming tactics | 0.913 to 1.00 |
 | Categories with published performance figures | 2 of 12 |
-| Languages with published per-language figures | 1 |
+| Languages with measured per-language recall | 26 (plus English, measured separately) |
+| Languages with both precision and recall | 1 |
+| Silent misses across 728 multilingual cases | 0 |
+| Adversarial red-team hold rate | 0.977 (84 of 86) |
 | Independent evaluation | In progress via COVA-X |
 | Externally labelled public benchmarks run | 2 (PAN-2012, COVA-X) |
 | Independent labelling of our own corpora | Not yet. External reviewers being commissioned |
@@ -92,9 +95,21 @@ One boundary within that: our re-adjudication of the PAN-2012 clean set is our o
 
 **Ten of twelve covered categories have no published figures.** Detection runs for all of them. Performance has not been measured per category for most.
 
-**No per-language performance exists outside English.** Thirty-one languages are supported and tested, with culture-specific guidelines authored per language rather than translated, and a held-out multilingual evaluation across twenty-six of them. What does not exist is per-language precision and recall.
+**Per-language recall is measured for 26 languages; per-language precision is not.** The held-out multilingual evaluation covers 728 expert-pattern cases written in language rather than translated: 28 per language, seven tactics, four cases per tactic per language.
 
-**Six of the thirty-two have no evaluation of their own.** Twenty-six, English among them, are covered by a held-out multilingual evaluation of 728 cases. That is 28 per language across seven tactics, so four per tactic per language: the arithmetic is exact, and four observations per cell is why no confidence intervals are computed for those languages. That is what beta means here. The remaining six carry the same tier on inference rather than evidence, and we say so rather than let a uniform tier imply otherwise.
+Exact-tactic recall by language, ten at 1.000 and nineteen of twenty-six at 0.95 or above: Greek 1.000; Spanish 1.000; Finnish 1.000; French 1.000; Latvian 1.000; Dutch 1.000; Portuguese 1.000; Slovenian 1.000; Swedish 1.000; Ukrainian 1.000; Danish 0.964; German 0.964; Irish 0.964; Croatian 0.964; Italian 0.964; Norwegian 0.964; Polish 0.964; Romanian 0.964; Turkish 0.964; Estonian 0.929; Hungarian 0.929; Lithuanian 0.929; Maltese 0.929; Bulgarian 0.893; Czech 0.893; Slovak 0.893;
+
+By tactic across all 26 languages: secrecy_request 1.0; gift_giving 0.99; meeting_request 0.99; photo_request 0.981; isolation 0.971; boundary_pushing 0.933; flattery 0.885;
+
+Overall exact-tactic recall 0.964 across the 728 cases, and **zero silent misses**: the system never returned an absence of risk on a case carrying a tactic. Where it erred it named a different tactic, which a reviewer sees and can correct.
+
+No confidence intervals are computed for these, and the reason is arithmetic rather than reticence: four observations per tactic per language will not support one. Treat them as point estimates on 28 cases.
+
+What does not exist is per-language **precision**. Every one of the 728 cases is a positive, so the set holds no per-language negatives from which a false-positive rate could be computed. That is the substantive remaining gap, and it is what would move a language to stable.
+
+**Corrected 18 August 2026.** An earlier version said twenty-six languages including English were covered, leaving six unevaluated. English is not in that matrix; it is measured separately. The correct split is twenty-seven measured and five unmeasured: Chinese, Japanese, Korean, Arabic and Russian.
+
+**Five of the thirty-two have no evaluation of their own.** Chinese, Japanese, Korean, Arabic and Russian carry culture-specific guidelines and run the same multilingual model, but their beta tier rests on inference rather than evidence of their own. Twenty-seven measured plus five unmeasured is thirty-two.
 
 **Detection nevertheless runs everywhere (clause P4.11).** There is no language in which detection is disabled, sampled, gated behind a flag, or run at reduced escalation. The performance tier describes what has been measured, not what is switched on, and we would not withdraw protection from a language in order to avoid declaring a tier for it.
 

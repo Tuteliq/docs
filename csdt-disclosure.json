@@ -171,7 +171,8 @@
         "reason": "Naming the specific encodings and obfuscations that currently defeat detection would be directly usable against children on customer platforms before integrations update.",
         "partialAnswer": "A deterministic normalisation pre-pass runs ahead of analysis, so text disguised by character substitution, hidden characters, or encoding is assessed as the message it carries rather than as an opaque token. The specific techniques it covers, and the ones that still defeat it, are the withheld part: publishing either is directly usable against children on customer platforms. Before 14 August 2026 no such pre-pass existed and encoded payloads reached analysis unresolved."
       },
-      "P2.6.5": "The rule applied to P2.0.1, stated once because two thresholds for one boolean would otherwise be invisible. P2.0.1 is true where at least one metric was measured on a corpus specific to that category, and false where the category was only exercised inside an aggregate with no category-specific figure of its own.\n\nBy that rule: grooming (P1.2) is true, with precision and recall on the 527-conversation corpus. Fraud (P1.9) is true on recall alone, measured on the COVA-X scam corpus, which is specific to that category; its precision is absent because that corpus carries no benign class. Recall without precision is not a complete per-category measurement, and the entry should be read as one metric rather than two.\n\nSextortion (P1.5) and coercive control (P1.10) are false. Both are exercised by the 500-case expert trajectory corpus, which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and no figure is attributable to either category alone. An earlier draft marked them measured, which read as stronger than the evidence supports."
+      "P2.6.5": "The rule applied to P2.0.1, stated once because two thresholds for one boolean would otherwise be invisible. P2.0.1 is true where at least one metric was measured on a corpus specific to that category, and false where the category was only exercised inside an aggregate with no category-specific figure of its own.\n\nBy that rule: grooming (P1.2) is true, with precision and recall on the 527-conversation corpus. Fraud (P1.9) is true on recall alone, measured on the COVA-X scam corpus, which is specific to that category; its precision is absent because that corpus carries no benign class. Recall without precision is not a complete per-category measurement, and the entry should be read as one metric rather than two.\n\nSextortion (P1.5) and coercive control (P1.10) are false. Both are exercised by the 500-case expert trajectory corpus, which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and no figure is attributable to either category alone. An earlier draft marked them measured, which read as stronger than the evidence supports.\n\nProtective and educational speech remains the hardest edge case. On a paired set, 3 of 5 pairs passed. Each pair puts a grooming utterance against a protective, educational or survivor utterance carrying the same surface language, and passing requires getting BOTH right. This is our weakest published result. The failing direction is the one that matters most to a deployment: legitimate support content read as grooming. A platform running us over helplines, survivor forums or sex education material should expect false positives of this kind and should configure human review accordingly.\n\nOn the adversarial side, a red-team set of 86 prompts testing whether the system can be argued out of a verdict or steered off task returned a hold rate of 0.977 (84 held, 2 failed).",
+      "P2.6.3": "Five of the thirty-two processed languages have no evaluation of their own: Chinese (zh), Japanese (ja), Korean (ko), Arabic (ar) and Russian (ru). Detection runs in all five (P4.11) and each carries culture-specific guidelines authored rather than translated, but their beta tier rests on inference from the twenty-six evaluated languages rather than on evidence of their own. Arabic is the one we would flag hardest, because right-to-left rendering and diglossia are not exercised anywhere in the evaluated set. Per-language recall for the other twenty-six is published at P4.10."
     },
     "P2.7": {
       "P2.7.1": false,
@@ -353,157 +354,313 @@
         "code": "es",
         "name": "Spanish",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "pt",
         "name": "Portuguese",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "uk",
         "name": "Ukrainian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "sv",
         "name": "Swedish",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "no",
         "name": "Norwegian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "da",
         "name": "Danish",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "fi",
         "name": "Finnish",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "de",
         "name": "German",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "fr",
         "name": "French",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "nl",
         "name": "Dutch",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "pl",
         "name": "Polish",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "it",
         "name": "Italian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "tr",
         "name": "Turkish",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "ro",
         "name": "Romanian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "el",
         "name": "Greek",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "cs",
         "name": "Czech",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.893
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "hu",
         "name": "Hungarian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.929
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "bg",
         "name": "Bulgarian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.893
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "hr",
         "name": "Croatian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "sk",
         "name": "Slovak",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.893
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "lt",
         "name": "Lithuanian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.929
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "lv",
         "name": "Latvian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "et",
         "name": "Estonian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.929
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "sl",
         "name": "Slovenian",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 1.0
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "mt",
         "name": "Maltese",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.929
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "ga",
         "name": "Irish",
         "P4.2": "beta",
-        "P4.3": true
+        "P4.3": true,
+        "P4.10": {
+          "recall": {
+            "value": 0.964
+          },
+          "corpusSize": 28
+        }
       },
       {
         "code": "zh",
@@ -536,7 +693,7 @@
         "P4.3": true
       }
     ],
-    "notes": "Thirty-two languages are processed, and detection runs in every one of them (P4.11). What differs between them is how much has been measured.\n\nTwenty-six of the thirty-two, English among them, are covered by a held-out multilingual evaluation of 728 expert-pattern cases conducted in language rather than by translation. That is 28 cases per language, across seven tactics, so four cases per tactic per language. The arithmetic is exact and checkable, and it is the reason no confidence intervals are computed for those languages: four observations per cell will not support one. That is what the beta tier means here.\n\nEnglish is additionally tiered stable because its precision and recall are separately measured and published on the 527-conversation corpus at P2.4.1. No other language has per-language precision and recall, which is the substantive gap and what would move any of them to stable.\n\nThe remaining six of the thirty-two have no evaluation of their own. Twenty-six plus six is thirty-two. They carry culture-specific guidelines authored per language, as all thirty-two do, and the same multilingual model runs on them, but their beta tier rests on inference from the twenty-six rather than on evidence. We state that rather than let a uniform tier imply otherwise, and the per-language list will be published so a reader can see which six.\n\nAll thirty-two are supported in the ordinary sense that we build, test and stand behind detection in them, and P4.11 records that detection is enabled in every one. What varies is how much has been measured, which is what P4.2 states.\n\nThe beta tier is a deliberate statement to customers that mistakes can happen and that per-language figures are not yet published. It is not a statement that a language is untested or unfit for production, and it is not grounds for a platform to disable detection in it. Doing so would leave children writing in that language with no automated protection at all, which is plainly worse than protection whose per-language error rate we have not yet quantified.",
+    "notes": "Thirty-two languages are processed, and detection runs in every one of them (P4.11). What differs between them is how much has been measured.\n\nCORRECTED 18 August 2026. An earlier version stated that twenty-six languages including English were covered by the multilingual evaluation, leaving six unevaluated. English is not in that matrix; it is measured separately on the corpus at P2.4.1. The correct split is twenty-seven measured (twenty-six in the matrix plus English) and five unmeasured, and the five are named below. The same earlier version also recorded that no language outside English had per-language figures. Per-language recall exists for all twenty-six and is now published at P4.10.\n\nTwenty-six languages are covered by a held-out multilingual evaluation of 728 expert-pattern cases conducted in language rather than by translation: 28 cases per language, across seven tactics, so four per tactic per language. Per-language exact-tactic recall ranges from 0.893 to 1.000, median 0.964, with ten languages at 1.000 and nineteen of twenty-six at 0.95 or above. Overall exact-tactic recall is 0.9643 across the 728 cases.\n\nAcross all 728 multilingual cases there were ZERO silent misses. The system never returned an absence of risk on a case carrying a tactic. Where it erred it named a different tactic, which a human reviewer sees and can correct; a silent miss is the failure a reviewer never sees at all.\n\nNo confidence intervals are computed for those languages, and the reason is arithmetic rather than reticence: four observations per tactic per language will not support one. The per-language figures at P4.10 are point estimates on 28 cases and should be read as such.\n\nPer-language PRECISION does not exist for any language except English. Every one of the 728 multilingual cases is a positive, so the set contains no per-language negatives from which a false-positive rate could be computed. That is the substantive remaining gap and what would move a language to stable.\n\nEnglish is tiered stable because both its precision and recall are measured and published on the corpus at P2.4.1.\n\nFive languages have no evaluation of their own: Chinese (zh), Japanese (ja), Korean (ko), Arabic (ar) and Russian (ru). They carry culture-specific guidelines authored per language, as all thirty-two do, and the same multilingual model runs on them, but their beta tier rests on inference rather than on evidence of their own. Twenty-seven measured plus five unmeasured is thirty-two.\n\nThe beta tier is a deliberate statement to customers that mistakes can happen and that per-language precision is not yet published. It is not a statement that a language is untested or unfit for production, and it is not grounds for a platform to disable detection in it. Doing so would leave children writing in that language with no automated protection at all, which is plainly worse than protection whose per-language error rate is partly quantified.",
     "P4.11": {
       "allLanguagesFullyEnabled": true,
       "statement": "Detection runs in all thirty-two listed languages. There is no language in which it is disabled, sampled, gated behind a flag, or run at reduced escalation, and no language whose detections are downgraded or suppressed before reaching the customer. The same model, the same tactics and the same thresholds apply throughout.\n\nThe performance tier at P4.2 describes what has been measured, not what is switched on. English is tiered stable because its precision and recall are published; the other thirty-one are tiered beta because theirs are not. None of that changes whether detection runs, and we would not withdraw protection from a language in order to avoid declaring a tier for it."
