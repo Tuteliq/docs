@@ -24,7 +24,7 @@ Our grooming detection shows **zero false positives across 450 benign hard-negat
 | Languages processed, with detection enabled in every one | 32 (English stable, 31 beta) |
 | False positives on 450 benign hard-negative turns | 0 (95% CI [0, 0.0085]) |
 | Per-tactic recall, seven grooming tactics | 0.913 to 1.00 |
-| Categories with published performance figures | 2 of 12 |
+| Categories with published performance figures | 4 of 12 |
 | Languages with measured per-language recall | 26 (plus English, measured separately) |
 | Languages with both precision and recall | 1 |
 | Silent misses across 728 multilingual cases | 0 |
@@ -57,7 +57,13 @@ A separate set of 27 benign control conversations exists and is not part of the 
 
 **Fraud and social engineering.** Recall 0.98 (147 of 150) on the COVA-X scam corpus, used with the authorisation of its authors. Precision is not reported for this category: the evaluated set contains scam conversations only, with no benign class, so there is no false-positive denominator.
 
-**Sextortion and coercive control are exercised but not separately measured.** They sit inside the same held-out expert evaluation (500 trajectories: 350 harmful, 150 benign hard negative), which spans grooming, sextortion, financial grooming, coercive control, image-based abuse and TFGBV, but the result is a macro across those harms and a macro is not a per-category precision and recall.
+**Sextortion and coercive control are now separately measured.** Both against the 150 benign hard-negative trajectories as a shared negative class, with zero false positives.
+
+Sextortion: 85 of 85 conversations detected, recall 1.000 (95% CI 0.957 to 1.000), precision 1.000 (95% CI 0.958 to 1.000). Coercive control: 50 of 50, recall 1.000 (95% CI 0.929 to 1.000), precision 1.000 (95% CI 0.930 to 1.000).
+
+Read the unit carefully. These are **conversation-level** figures, meaning the system flagged the conversation at all. That is a coarser task than the per-turn tactic labelling behind the grooming numbers above, and the two must not be compared or combined.
+
+**Corrected 18 August 2026.** Both were previously recorded as not measured, on the basis that no figure was attributable to either category alone. The held-out corpus carries a harm type per trajectory and the conversation-level verdicts were archived, so category-specific figures were always derivable and had simply never been aggregated.
 
 ### The public benchmark
 

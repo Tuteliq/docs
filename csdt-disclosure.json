@@ -84,18 +84,20 @@
         "P1.2": true,
         "P1.1": false,
         "P1.4": false,
-        "P1.5": false,
+        "P1.5": true,
         "P1.6": false,
         "P1.7": false,
         "P1.8": false,
         "P1.9": true,
-        "P1.10": false,
+        "P1.10": true,
         "P1.11": false,
         "P1.12": false,
         "P1.13": false
       },
       "P2.0.2": {
-        "P1.9": "Recall is measured on the COVA-X scam corpus (147 of 150 conversation-level). Precision is not computed: that corpus contains scam conversations only, with no benign class, so no false-positive denominator exists. Marked true under the rule stated at P2.6.5, on one metric rather than two."
+        "P1.9": "Recall is measured on the COVA-X scam corpus (147 of 150 conversation-level). Precision is not computed: that corpus contains scam conversations only, with no benign class, so no false-positive denominator exists. Marked true under the rule stated at P2.6.5, on one metric rather than two.",
+        "P1.5": "Sextortion: 85 of 85 conversations detected. Recall 1.000 (95% CI 0.957 to 1.000), precision 1.000 (95% CI 0.958 to 1.000). Measured at CONVERSATION level: did the system flag this conversation at all. This is a coarser task than the per-turn tactic labelling behind the grooming figures at P2.4.1, and the two must not be compared or combined. Negative class is the 150 benign hard-negative trajectories scored in the same pass, with zero false positives across all categories; 95% CI on the conversation-level false-positive rate [0, 0.0250].\n\nCORRECTED 18 August 2026: previously recorded as not measured, on the basis that no figure was attributable to this category alone. The held-out run carries harm_type per trajectory and the conversation-level verdicts were archived, so a category-specific figure was always derivable and had simply never been aggregated.",
+        "P1.10": "Coercive control: 50 of 50 conversations detected. Recall 1.000 (95% CI 0.929 to 1.000), precision 1.000 (95% CI 0.930 to 1.000). Measured at CONVERSATION level: did the system flag this conversation at all. This is a coarser task than the per-turn tactic labelling behind the grooming figures at P2.4.1, and the two must not be compared or combined. Negative class is the 150 benign hard-negative trajectories scored in the same pass, with zero false positives across all categories; 95% CI on the conversation-level false-positive rate [0, 0.0250].\n\nCORRECTED 18 August 2026: previously recorded as not measured, for the same reason and with the same correction as P1.5."
       }
     },
     "perCategory": {
