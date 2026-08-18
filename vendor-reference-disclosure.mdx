@@ -45,6 +45,8 @@ The positive class is 1,082 expert-annotated anchor turns drawn from 350 harmful
 
 Zero false positives across all seven tactics on those 450 turns, giving a 95% CI on the turn-level false-positive rate of [0, 0.0085]. Precision 1.00 (95% CI 0.996 to 1.0). Micro recall 0.968 (95% CI 0.955 to 0.977) across all 1,082 anchors.
 
+Macro F1 **0.987** across the seven tactics, which is the figure quoted on our model card and in external materials. Per tactic: flattery 1.000; photo_request 1.000; gift_giving 1.000; secrecy_request 0.994; meeting_request 0.988; isolation 0.975; boundary_pushing 0.955. F1 sits above recall on this set because precision is 1.000, so both are given rather than only the lower.
+
 Per-tactic recall with 95% intervals: flattery 1.00 [0.875, 1.0]; secrecy_request 0.989 [0.972, 0.996]; isolation 0.951 [0.910, 0.974]; boundary_pushing 0.913 [0.871, 0.943]; photo_request 1.00 [0.980, 1.0]; meeting_request 0.976 [0.877, 0.996]; gift_giving 1.00 [0.912, 1.0].
 
 The macro recall of 0.976 quoted elsewhere is the unweighted mean of those seven, so it weights flattery (27 anchors) equally with secrecy_request (362). Neither macro nor micro is a binomial proportion; the per-tactic intervals are the ones to use.
