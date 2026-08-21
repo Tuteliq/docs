@@ -141,6 +141,67 @@ How that re-adjudication was conducted, because it bears on the weight it carrie
 
 We record this because a withdrawn number that stays in circulation is worse than a bad number that is explained.
 
+## Determinism of the detection path
+
+Until 21 August 2026 our detection endpoints decoded with sampling enabled. The setting was
+inherited from a general-purpose client default written for prose generation. No detection
+endpoint ever overrode it, so the value was never a decision anyone made about
+classification, and it was unreachable through the intended parameter: a request for
+deterministic decoding was treated as absent and the default substituted. Detection now
+decodes deterministically.
+
+**What the variance was.** Ten identical calls per case, on the production service, across a
+fixed panel spanning the decision boundary:
+
+| Case type | Risk score across 10 identical calls | Routing |
+|---|---|---|
+| Adult-to-child benign, away from the boundary | 0.00 to 0.10 | stable across all 10 |
+| Third-party disclosure | single value | stable across all 10 |
+| Crisis, explicit presentation | single value | stable across all 10 |
+| Adolescent distress idiom, at the boundary | **0.00 to 0.95** | four of five routing values |
+| Peer conversation, at the boundary | 0.60 to 0.95 | escalated in 6 of 10 |
+| Crisis, understated presentation | 0.65 to 0.85 | escalated in 2 of 10 |
+
+Variance concentrated on cases near the decision boundary; cases away from it were stable
+across every repeat. That is the profile sampling predicts, and it is why the effect was
+invisible to every evaluation we had run: all of them were single runs.
+
+**What this means for a caller.** A retried request could previously return a different
+routing decision for identical input. No platform reported this to us, and we did not find
+it ourselves until we tested for it. Any figure we published before this date is a single
+draw from that distribution rather than a stable point estimate. That applies to our
+favourable figures as much as our unfavourable ones.
+
+**What determinism does not fix.** It removes the sampling component. It does not make
+output byte-identical, because the model is served behind infrastructure whose batching we
+do not control. We keep repeated-measures testing as a standing check rather than treating
+the matter as closed, and we will not publish a single-run figure as a point estimate again.
+
+**How the fix was validated.** As a two-by-two factorial over decoding mode and detection
+configuration, seven cases by fifteen repeats in each of four cells. We ran a factorial
+because our first comparison changed two things at once and could not attribute the result
+to either. It found a significant interaction: the configuration change was harmful under
+sampling and beneficial under deterministic decoding, so the two had to ship together or
+not at all. Per-case differences carry Fisher exact tests. The panel is seven fixed cases,
+so those tests support statements about those cases and not a generalisation to production
+traffic, and we do not make one.
+
+**A defect the same work exposed, now resolved.** The panel included crisis conversations
+written to require escalation. One class was under-routed: where the behaviour indicating
+acute risk was present but expressed in understated language, it escalated in 2 of 15
+repeats, while the same behaviour expressed explicitly escalated in 15 of 15. The detector
+was keying on explicit phrasing rather than on the underlying behaviour, which is the wrong
+way round, because understatement is common in the population this exists to protect. After
+the change the understated case escalates in 15 of 15. We report it because anyone
+assessing our recall should know it was measured on material that skews explicit.
+
+**What we changed about how we evaluate.** Comparisons between system versions previously
+reported routing decisions only. That is insufficient: a case can keep its routing while
+losing a harm category, which removes it from category-keyed customer policy rules and from
+escalation eligibility with nothing visible changing. We found one such case in this work.
+Version comparisons now diff categories as well as routing, and treat the loss of a
+safety-relevant category as a regression.
+
 ## Check it yourself
 
 The disclosure validates against the published schema with zero errors. You can reproduce that:
