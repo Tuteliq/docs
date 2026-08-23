@@ -127,7 +127,7 @@ What does not exist is per-language **precision**. Every one of the 728 cases is
 
 **Subgroup equity is unmeasured.** We have not measured differential performance across languages, dialects, demographics or content types. Differential false-positive rates across protected groups are a discrimination risk and a child-rights issue.
 
-**Known-material hash matching is not delivered.** We hold IWF membership, but the IWF Hash List cannot be sublicensed, so it can only be applied for a customer holding its own membership.
+**Known-material hash matching reaches IWF members only.** We hold IWF membership and hash matching runs in the request path, but the IWF Hash List cannot be sublicensed, so it is applied only for a customer that holds its own membership. We verify that membership out of band and resolve the entitlement server-side; a caller cannot assert it, because a caller that could would be able to obtain a licensed dataset it does not hold, or to switch matching off. Customers without their own membership receive compositional analysis only, and the response records that the check did not run rather than that the content was checked and cleared.
 
 ## One correction we made to ourselves
 
