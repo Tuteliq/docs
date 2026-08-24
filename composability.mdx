@@ -139,8 +139,19 @@ async def assess(content: str) -> dict:
 
 - **Cap the compound risk at 1.0** (`Math.min(scam.risk_score * modifier, 1.0)`) so amplification never produces an out-of-band value downstream consumers don't expect.
 - **The modifier is only meaningful when both endpoints actually `detect`** — if `vuln.detected === false`, treat the modifier as `1.0`.
-- **Cache the profile per-conversation, not per-message** — vulnerability is a property of the user, not the message. Refresh periodically or on user-context changes (e.g. a major life event surfaced in subsequent messages).
+- **Cache the profile per-conversation, not per-message** — a vulnerability read stays roughly stable across a single conversation, so re-running it on every message adds latency without changing the answer. This is guidance about *your* caching layer, not a Tuteliq-side store — see [Privacy and data handling](#privacy-and-data-handling) below. Refresh periodically or on context changes (e.g. a major life event surfaced in subsequent messages), and apply your own retention limits.
 - **Don't expose the raw modifier to end users.** It's an integrator-level signal designed for routing logic, not for display. Surface the resulting route and the human-readable rationale instead.
+
+## Privacy and data handling
+
+`detect_vulnerability_exploitation`, like every Tuteliq detection endpoint, is **stateless and server-to-server**:
+
+- **No persistent identifier.** No request or response field in this API — or anywhere in Tuteliq's detection surface — asks for or returns a `user_id`, `device_id`, or other end-user identifier. `vulnerability_profile` is computed fresh from the `content` (and optional `conversation_history`) submitted in that one call; it is not looked up against, or written to, a stored profile of any individual.
+- **No server-side profiling.** Tuteliq does not build, persist, or accumulate a vulnerability profile per user across calls. Each response reflects only what was in that request. If you want profile continuity across a conversation, that's the client-side caching described above — a decision (and a data-retention obligation) that belongs to you as the integrator, not something Tuteliq does on your behalf.
+- **Server-to-server only.** Detection runs on Tuteliq's infrastructure. SDK calls (`tuteliq.safety.vulnerabilityExploitation(...)`) are thin clients that call the hosted API — nothing in this composition pattern, or in any Tuteliq SDK, runs inference on the end user's device.
+- **The `age_group` / age fields elsewhere in the API are optional inputs, not requirements.** Detectors that accept an age or age-bracket field (e.g. `detect_grooming`'s `context.child_age`) work without it; supplying it sharpens the analysis but is never mandatory.
+
+If your own integration persists `vulnerability_profile` results (per the caching guidance above), that data lives in your systems under your own privacy and retention policies — Tuteliq's involvement ends at the response of each stateless call.
 
 ## Related
 
