@@ -10,13 +10,18 @@ Fast mode returns the conversation-level verdict without the per-message `messag
 
 Fast mode changes only how much detail comes back. The verdict itself, the risk level, the categories, and the recommended action are unchanged.
 
+<Tip>
+  **Recommended default for programmatic integrations.** The standard response format — markdown-formatted rationale, emoji severity headers, a full helpline block on every positive hit — is built for a human reading it, not for a pipeline branching on it. If your code keys logic on `risk_score` / `severity` / `recommended_action` and doesn't render the response for a person, default to `verdict_only: true` rather than reaching for it only when latency matters.
+</Tip>
+
 ## When to use it
 
+- **Programmatic/pipeline integrations.** Any caller keying decisions off `risk_score`, `severity`, or `recommended_action` rather than rendering the response for a human — this is the default you want, not just an optimization for high volume.
 - **Live chat screening.** Score every message as it is sent, with minimal latency, and act on the verdict.
 - **High-volume pipelines.** Reduce response size and processing time across large streams of messages.
 - **First pass of a two-pass flow.** Screen everything in fast mode, then re-run only the messages that flag through the standard endpoint to get the full per-message analysis for your moderators.
 
-Use standard mode when a human is going to review the case and needs the per-message trajectory and evidence.
+Use standard mode when a human is going to review the case and needs the per-message trajectory and evidence — the markdown, emoji, and helpline formatting are aimed at that reader.
 
 ## How to enable it
 
