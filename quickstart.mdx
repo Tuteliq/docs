@@ -88,6 +88,10 @@ keywords: [getting started, setup, first call, SDK]
     "credits_used": 1
   }
   ```
+
+  <Tip>
+    **Building a pipeline, not a UI?** The response above is designed to be read by a person — the full example includes fields like `rationale` meant for a moderator. If your code branches on `risk_score` / `severity` / `recommended_action` without rendering anything for a human, pass `options: { verdict_only: true }` (or `verdictOnly: true` in the SDKs) on any detection call. See [Fast mode](/fast-mode).
+  </Tip>
 </Step>
 
 <Step title="Try fraud detection">
@@ -171,6 +175,9 @@ keywords: [getting started, setup, first call, SDK]
 <CardGroup cols={2}>
   <Card title="Authentication" icon="key" href="/authentication">
     Learn about API key environments and authentication methods.
+  </Card>
+  <Card title="Fast mode" icon="bolt" href="/fast-mode">
+    The recommended default for programmatic callers — structured fields without the human-facing formatting.
   </Card>
   <Card title="Credits" icon="coins" href="/credits">
     Understand per-endpoint credit costs and usage tracking.
