@@ -552,6 +552,14 @@
   },
   "revisionHistory": [
     {
+      "date": "2026-09-08",
+      "clauses": [
+        "P2.4.3",
+        "P2.5.2"
+      ],
+      "change": "Two changes. First, the human-readable disclosure at docs.tuteliq.ai/vendor-reference-disclosure still described a single annotator, contradicting the 2026-08-21 correction recorded below; its wording is now aligned with P2.4.3 and P2.4.5. The machine-readable copy served at /.well-known/csdt-disclosure.json was also found to be a stale revision, missing P2.7.2 and P2.7.4 to P2.7.7 and this revision history, and has been resynchronised from the canonical copy published here. Second, a flag-blind check was added to the PAN-2012 section: a fixed keyword rule applied identically to flagged and unflagged negatives finds explicit sexual language in 40 percent of flagged against 7 percent of unflagged (Fisher exact, one sided, p = 0.030), corroborating without post-hoc judgement the existing statement that the PAN-2012 benign class is not benign. That check was run through the production API rather than the model artifact, on a fresh seeded balanced subset of 80 conversations, and is recorded as framing-dependent: recall ranged 0.625 to 0.825 and precision 0.545 to 0.579 according to whether participant age was supplied. No previously published figure changed."
+    },
+    {
       "date": "2026-08-21",
       "clauses": [
         "P2.4.5",
