@@ -21,6 +21,70 @@ endpoint). They are left as published rather than renumbered, so anything that
 already cites them still resolves.
 </Info>
 
+## v3.0.0 (24 September 2026)
+
+<Warning>
+**Breaking.** `is_bullying` has changed meaning. If you branch on it to decide
+whether to sanction the sender, read the first entry before upgrading.
+</Warning>
+
+### Changed: `is_bullying` reports whether bullying is present, not who did it
+
+`is_bullying` now answers one question: is there a bullying signal in this
+content. It is `true` for a child describing bullying being done to them,
+exactly as it is for the person doing it.
+
+Previously the field also encoded responsibility, so it returned `false`
+whenever the speaker was the person being bullied rather than the one bullying.
+That was at odds with how the field is defined, and with `speaker_role`, which
+is documented as never changing it.
+
+`speaker_role` is now the only field that separates the two, which is what it
+was built for: `enacting` is the person bullying, `experiencing` is the person
+being bullied, `reporting_other` is a bystander describing someone else.
+
+**What to do.** If you use `is_bullying` to route content to a human, nothing
+changes for you except that you will now see cases you were not seeing before.
+If you use it to decide who to sanction, add a `speaker_role` check, or you
+will act against the person who was harmed:
+
+```js
+// before
+if (res.is_bullying) sanction(res.sender_id);
+
+// after
+if (res.is_bullying && res.speaker_role === 'enacting') sanction(res.sender_id);
+if (res.is_bullying && res.speaker_role === 'experiencing') offerSupport(res.sender_id);
+```
+
+`severity`, `risk_score` and `recommended_action` are unchanged and were never
+affected by the old behaviour. `recommended_action` remains the field we
+recommend branching on for routing.
+
+### Changed: a bullying disclosure is described as the speaker's own
+
+Where a report of a specific, severe incident is surfaced for review and the
+speaker is the person affected, the rationale now says so, rather than
+describing it as a third-party report.
+
+### Changed: a grooming verdict names the behaviour behind it
+
+A `high` or `critical` grooming verdict that names no tactic is now returned as
+`medium` with `recommended_action: flag_for_review`, and `risk_score` is brought
+to the top of the medium band to match. The conversation still reaches a
+reviewer; what it no longer does is raise an escalation with nothing attached
+for that reviewer to check.
+
+Findings that name even one tactic are untouched. Two new fields,
+`verdict_capped` and `verdict_capped_reason`, report when this applied and why.
+
+### Changed: an age stated in conversation is taken into account
+
+Where a caller supplies a participant age and a participant states a different
+age in the conversation itself, the analysis now uses the conversation. The
+response reports this with `declared_age_overridden` and an explanation, so the
+disagreement is visible at your end rather than resolved silently.
+
 ## v2.4.0 (14 August 2026)
 
 ### Added: `csam_assessment.sources` reports which detection layers ran
