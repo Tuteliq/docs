@@ -12,7 +12,7 @@ Grooming is rarely a single message. It's a structured sequence of tactics appli
 
 This page is the deep-dive on what we detect and why each tactic matters.
 
-## The six tactics
+## The eight tactics
 
 Each tactic below maps to a `flags` value returned by `detect_grooming`. Multiple tactics often co-occur — that co-occurrence is itself a strong predictor and a moderator's most actionable signal.
 
@@ -24,8 +24,14 @@ Each tactic below maps to a `flags` value returned by `detect_grooming`. Multipl
 | `boundary_pushing` | Incremental escalation of intimacy, language, or requests beyond age-appropriate norms. Usually frames the target's discomfort as the problem. | *"It's normal to feel this way"*, *"don't be shy"*, *"you can trust me with anything"* | KOSA "desensitization"; NCMEC "boundary erosion" |
 | `photo_request` | Solicitation of personal images. Initial requests often appear innocent ("send me a picture of your outfit") before escalating. | *"Send me a picture of yourself"*, *"what are you wearing today"* | KOSA "image solicitation"; NCMEC / IWF "CSAM precursor"; UK Online Safety Act §66 |
 | `meeting_request` | Pressure to meet in person, often paired with secrecy and isolation tactics. The highest-severity tactic in the taxonomy because it converts online risk into physical-safety risk. | *"Let's meet up sometime"*, *"don't tell your mom"*, *"I can come pick you up"* | KOSA "in-person contact"; NCMEC "enticement"; UK Online Safety Act §66; US 18 U.S.C. §2422 (federal enticement statute) |
+| `gift_giving` | Offers of money, game currency, items or paid services to build obligation. Often framed as a favour with nothing expected in return. | *"I'll send you some Robux"*, *"don't worry about paying me back"* | Not separately categorised in KOSA or NCMEC schemas; reported within trust-building |
+| `reconnaissance` | Probing who supervises the target and when they are unobserved: oversight of their device or person, and windows when they are alone. Includes probes phrased as statements. | *"Do your parents check your messages?"*, *"how late are you allowed out?"*, *"bet nobody checks on you"* | Not separately categorised in KOSA or NCMEC schemas; reported within predator targeting |
 
-`meeting_request` is the newest tactic in the taxonomy (added in V3.15.0) — earlier versions of the detector subsumed it under `boundary_pushing`. We separated it because the legal and operational response to a meeting attempt is materially different from boundary pushing: most platforms route meeting indications to immediate human review and trigger external reporting workflows, not just internal moderation.
+`reconnaissance` is the newest tactic in the taxonomy (added in V3.1.0, 25 September 2026). It was already part of the published taxonomy, scored across a whole conversation. It is now also returned on the individual message that carries the probe, in any of the supported languages and in informal register.
+
+Two things about it are worth knowing before you switch on it. A question that is only useful if the answer is "yes, supervised" is a safeguarding check, not a probe, so a tutor or coach confirming a guardian will be present is deliberately **not** flagged. And a single `reconnaissance` flag is not a completed profiling pattern: accumulation across a conversation is a separate capability and is not scored yet, so do not read one flag as an arc, or the absence of flags as the absence of probing.
+
+`meeting_request` was the newest tactic before that (added in V3.15.0); earlier versions of the detector subsumed it under `boundary_pushing`. We separated it because the legal and operational response to a meeting attempt is materially different from boundary pushing: most platforms route meeting indications to immediate human review and trigger external reporting workflows, not just internal moderation.
 
 ## Why the sequence matters
 
@@ -61,9 +67,26 @@ A single isolated `flattery` flag from one message is rarely actionable on its o
 
 ## Conversation length
 
-`detect_grooming` accepts up to **50 turns** in a single call. Beyond that the engine returns a graceful `analysis_status: "engine_error"` envelope with `recommended_action: "flag_for_moderator"`. The error envelope is the correct response: a moderator must NOT treat an engine error as "no grooming detected".
+Two different limits apply, and it is worth keeping them apart.
 
-For conversations longer than ~30 turns, use chunked sliding windows of 10–15 turns and pass the `continuation_token` from each call back into the next so trajectory state is preserved across windows. See [Continuation tokens](/continuation-tokens).
+**The schema limit is 100 messages.** A call carrying more than that is rejected by
+request validation before any analysis runs, so it costs nothing and returns a
+validation error rather than a verdict.
+
+**The practical ceiling is around 50 turns.** Well inside the schema limit, long
+conversations start to strain the engine's output budget. When the engine cannot produce
+a verdict it returns a graceful envelope rather than a 500: `analysis_status:
+"engine_error"`, a zeroed `risk_score`, and a forced `recommended_action:
+"flag_for_review"`.
+
+That envelope is the correct response, and the zeroed score is not a verdict. A moderator
+must NOT read an engine error as "no grooming detected"; the forced
+`flag_for_review` exists precisely so the case cannot be silently passed.
+
+For conversations beyond roughly 30 turns, use chunked sliding windows of 10 to 15 turns
+and pass the `continuation_token` from each call back into the next, so trajectory state
+is preserved across windows without resending history. See
+[Continuation tokens](/continuation-tokens).
 
 ## Age signals strengthen the verdict
 
