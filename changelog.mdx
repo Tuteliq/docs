@@ -21,6 +21,32 @@ endpoint). They are left as published rather than renumbered, so anything that
 already cites them still resolves.
 </Info>
 
+## v3.1.0 (25 September 2026)
+
+### Added: `reconnaissance` is returned per message
+
+`POST /safety/grooming` now returns `reconnaissance` in `flags` on the individual
+message that carries a supervision or availability probe. It was already part of the
+published taxonomy, scored across a whole conversation; it is now also available at
+message level, in any supported language and in informal register. The published
+per-message taxonomy is therefore eight tactics rather than seven.
+
+Two properties to design against before you switch on it.
+
+**Safeguarding checks are deliberately not flagged.** A question that is only useful to
+the asker if the answer is "yes, supervised" is a safeguarding check, not a probe, so a
+tutor, coach or clinic confirming a guardian will be present does not produce this flag.
+That behaviour is intended; please do not report it as a miss.
+
+**One flag is not a pattern.** Accumulation across a conversation is a separate capability
+and is not scored yet. Do not read a single `reconnaissance` as a completed profiling arc,
+and do not read its absence across a conversation as the absence of probing.
+
+`flags` remains a closed vocabulary, so callers switching on it will now see one additional
+value. The published macro F1 of 0.987 was measured across the seven tactics that predate
+this change and `reconnaissance` carries no per-tactic figure in that evaluation; see the
+[vendor reference disclosure](/vendor-reference-disclosure).
+
 ## v3.0.0 (24 September 2026)
 
 <Warning>
