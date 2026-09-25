@@ -47,7 +47,7 @@
       ]
     }
   },
-  "openapi": "https://api.tuteliq.ai/docs/json",
+  "openapi": "openapi.json",
   "navigation": {
     "tabs": [
       {
@@ -155,7 +155,7 @@
       },
       {
         "tab": "API Reference",
-        "openapi": "https://api.tuteliq.ai/docs/json",
+        "openapi": "openapi.json",
         "groups": [
           {
             "group": "Overview",
