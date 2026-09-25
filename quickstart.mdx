@@ -89,6 +89,27 @@ keywords: [getting started, setup, first call, SDK]
   }
   ```
 
+  <Warning>
+    **`/safety/unsafe` is a starting point, not a complete safety layer.** It scores the KOSA
+    harm categories: self-harm, eating disorders, substance use, depression and anxiety
+    indicators, compulsive use, sexual content, violence and hate speech.
+
+    It does not score everything a child-safety layer needs. Peer harassment, exposure or
+    "fisha" accounts and image-based abuse of a named person are scored by
+    [`/safety/bullying`](/bullying-toxicity-detection); grooming trajectories by
+    `/safety/grooming`; extremist recruitment by `/safety/radicalisation`.
+
+    It also returns `unsafe: false` when the sender is *describing* a harm rather than being
+    subject to it: survivor testimony, a news article, a lesson, or a child relaying something
+    they saw elsewhere. That is deliberate, and it keeps protective speech out of your review
+    queue. It does mean a message another detector would flag can come back clear here.
+
+    **So `unsafe: false` means "no KOSA-category signal on this endpoint", not "this content is
+    safe."** Pair this endpoint with `/safety/bullying`, or call
+    [`/analyse/multi`](#analyze-multiple-risks-at-once) and let one request cover several
+    detectors.
+  </Warning>
+
   <Tip>
     **Building a pipeline, not a UI?** The response above is designed to be read by a person — the full example includes fields like `rationale` meant for a moderator. If your code branches on `risk_score` / `severity` / `recommended_action` without rendering anything for a human, pass `options: { verdict_only: true }` (or `verdictOnly: true` in the SDKs) on any detection call. See [Fast mode](/fast-mode).
   </Tip>
