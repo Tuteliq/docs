@@ -193,7 +193,6 @@
             "pages": [
               "POST /api/v1/safety/coercive-control",
               "POST /api/v1/safety/distress-signals",
-              "POST /api/v1/safety/emotional-distress",
               "POST /api/v1/safety/gambling-harm",
               "POST /api/v1/safety/radicalisation",
               "POST /api/v1/safety/tfgbv",
@@ -331,23 +330,18 @@
           {
             "group": "Other",
             "pages": [
-              "DELETE /api/v1/fraud/app-detection",
               "DELETE /mcp/",
               "GET /.well-known/oauth-authorization-server",
               "GET /.well-known/oauth-protected-resource",
               "GET /.well-known/oauth-protected-resource/mcp",
-              "GET /api/v1/fraud/app-detection",
               "GET /mcp/",
               "GET /mcp/sse",
               "GET /oauth/authorize",
-              "PATCH /api/v1/fraud/app-detection",
-              "POST /api/v1/fraud/app-detection",
               "POST /mcp/",
               "POST /mcp/messages",
               "POST /oauth/authorize",
               "POST /oauth/register",
-              "POST /oauth/token",
-              "PUT /api/v1/fraud/app-detection"
+              "POST /oauth/token"
             ]
           },
           {
