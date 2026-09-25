@@ -46,44 +46,109 @@ Get your API key from the [Tuteliq Dashboard](https://tuteliq.ai/dashboard).
 
 ### Successful response
 
-All detection endpoints return a consistent response shape:
+There are two response shapes, and which one you get depends on the endpoint family.
+Both carry `confidence`, `risk_score`, `rationale`, `recommended_action`, `language`,
+`language_status` and `credits_used`. They differ in how they name the verdict and how
+they express severity, so read this before writing a shared parser.
+
+<Warning>
+`severity` means different things in the two families. In the core safety family it is an
+enum; in the fraud and extended-harm family it is a number from 0 to 1, and the enum is
+called `level`. Branch on `recommended_action` and you sidestep the difference entirely.
+</Warning>
+
+**Core safety family** — `/safety/bullying`, `/safety/unsafe`, `/safety/grooming`.
+Each names its own verdict field and returns a flat category vocabulary.
 
 ```json
 {
-  "endpoint": "bullying",
-  "detected": true,
-  "severity": 0.78,
-  "confidence": 0.92,
+  "is_bullying": true,
+  "bullying_type": ["verbal_abuse", "exclusion"],
+  "severity": "high",
   "risk_score": 0.85,
-  "level": "high",
-  "categories": [
-    { "tag": "DIRECT_INSULT", "label": "Direct Insult", "confidence": 0.95 },
-    { "tag": "EXCLUSION", "label": "Social Exclusion", "confidence": 0.72 }
-  ],
-  "evidence": [
-    { "text": "nobody wants you here", "tactic": "EXCLUSION", "weight": 0.88 }
-  ],
-  "age_calibration": {
-    "applied": true,
-    "age_group": "10-12",
-    "multiplier": 1.3
-  },
-  "recommended_action": "flag_for_review",
+  "confidence": 0.92,
+  "speaker_role": "enacting",
   "rationale": "Direct insults combined with social exclusion targeting a 10-12 year old.",
-  "credits_used": 1,
-  "processing_time_ms": 387
+  "recommended_action": "flag_for_review",
+  "action_detail": "Route to a moderator. The exclusion pattern suggests a group dynamic worth reviewing beyond this single message.",
+  "language": "en",
+  "language_status": "stable",
+  "credits_used": 1
 }
 ```
 
+`/safety/unsafe` returns `unsafe` and `categories` in place of `is_bullying` and
+`bullying_type`. `/safety/grooming` returns `grooming_risk`, `flags` and a per-message
+`message_analysis` array; see [Grooming detection](/grooming-detection).
+
+**Fraud and extended-harm family** — `/fraud/*` and the extended `/safety/*` endpoints
+(`coercive-control`, `tfgbv`, `radicalisation`, `gambling-harm`,
+`vulnerability-exploitation`, `distress-signals`). These share one shape, identified by
+the `endpoint` field, and carry evidence excerpts.
+
+```json
+{
+  "endpoint": "romance-scam",
+  "detected": true,
+  "level": "high",
+  "severity": 0.78,
+  "confidence": 0.92,
+  "risk_score": 0.85,
+  "categories": [
+    { "tag": "URGENCY_FABRICATION", "label": "Fabricated Urgency", "confidence": 0.95 },
+    { "tag": "FINANCIAL_REQUEST", "label": "Financial Request", "confidence": 0.88 }
+  ],
+  "evidence": [
+    { "text": "I only need 4,000 to release it", "tactic": "FINANCIAL_REQUEST", "weight": 0.88 }
+  ],
+  "age_calibration": { "applied": true, "age_group": "10-12", "multiplier": 1.3 },
+  "recommended_action": "flag_for_review",
+  "rationale": "A financial request paired with fabricated urgency and an unverifiable absence.",
+  "credits_used": 1
+}
+```
+
+Whichever family you are in, `recommended_action` is the field to branch on. It is a
+stable enum, weakest to strongest: `none`, `monitor`, `flag_for_review`, `block`,
+`immediate_intervention`. Prefer it to the verdict boolean, which fires at any severity
+including low-severity cases you probably only want to log.
+
 ### Error response
+
+Every error uses the same envelope, and `request_id` is the value to quote in a support
+ticket:
+
+```json
+{
+  "error": {
+    "code": "AUTH_1001",
+    "message": "API key is required. Include it as a Bearer token in the Authorization header or in the x-api-key header.",
+    "request_id": "req_mu71meyo_ce663c02060d0914",
+    "retryable": false,
+    "status_url": "https://tuteliq.ai/status",
+    "documentation_url": "https://docs.tuteliq.ai/error-handling#AUTH_1001"
+  }
+}
+```
+
+Retryable errors add `retry_after_ms` alongside a `Retry-After` header, and add
+`degraded_components` when a dependency is the cause.
+
+Rate limit rejections carry an upgrade path instead, and are the one case that does not
+include `request_id`:
 
 ```json
 {
   "error": {
     "code": "RATE_LIMIT_EXCEEDED",
     "message": "You have exceeded your rate limit of 300 requests per minute.",
-    "request_id": "req_abc123",
     "suggestion": "Upgrade to Assure for 5,000 requests per minute.",
+    "details": {
+      "tier": "build",
+      "limit": 300,
+      "window": "1 minute",
+      "retry_after_seconds": 42
+    },
     "links": {
       "upgrade": "https://tuteliq.ai/dashboard/billing",
       "docs": "https://docs.tuteliq.ai/error-handling"
@@ -104,7 +169,7 @@ Pass a `context` object with any detection request to improve accuracy:
     "language": "en",
     "country": "GB",
     "platform": "Discord",
-    "conversation_history": [
+    "prior_messages": [
       { "role": "user", "text": "previous message" },
       { "role": "contact", "text": "response message" }
     ]
@@ -112,22 +177,47 @@ Pass a `context` object with any detection request to improve accuracy:
 }
 ```
 
+`language` and `platform` are accepted on every detection endpoint. The rest are accepted
+on most, and a few belong to one endpoint only. Where a field is not part of an
+endpoint's schema it is ignored rather than rejected, so passing the full object
+everywhere is safe.
+
 | Field | Type | Description |
 |-------|------|-------------|
-| `age_group` | string | `"under 10"`, `"10-12"`, `"13-15"`, `"16-17"`, or `"under 18"`. Triggers age-calibrated severity scoring. |
 | `language` | string | ISO 639-1 code (e.g., `"en"`, `"de"`, `"sv"`). Auto-detected if omitted. [32 languages supported](/languages). |
 | `platform` | string | Platform name (e.g., `"Discord"`, `"Roblox"`, `"WhatsApp"`). Adjusts for platform-specific norms. |
-| `conversation_history` | array | Prior messages for context-aware analysis. Each message needs `role` and `text`. |
+| `age_group` | string | `"under 10"`, `"10-12"`, `"13-15"`, `"16-17"`, or `"under 18"`. Triggers age-calibrated severity scoring. `ageGroup` is accepted as a camelCase alias. |
+| `prior_messages` | array | Prior turns of the conversation, oldest first. Each needs `role` and `text`, with an optional ISO 8601 `timestamp`. Request-scoped: nothing here is retained after the call. `conversation_history` is accepted as a legacy alias. |
+| `country` | string | ISO 3166-1 alpha-2 code (e.g., `"GB"`, `"US"`, `"SE"`). Enables geo-localised crisis helpline data. Falls back to the account's country if omitted. |
+| `conversation_type` | string | The setting the conversation was captured in. Honoured by `/safety/bullying`, `/safety/grooming`, `/safety/unsafe`, `/safety/distress-signals`, `/safety/radicalisation`, `/safety/tfgbv`, `/safety/gambling-harm`, `/safety/vulnerability-exploitation`, `/fraud/social-engineering`, `/fraud/romance-scam`, `/fraud/app-fraud` and `/fraud/mule-recruitment`. Not currently honoured by `/safety/coercive-control`, which applies its own cap for third-party reporters instead. **Where the harm is discussed rather than enacted** (`fraud_report`, `abuse_report`, `support_disclosure`, `helpline`, `clinical`, `investigative`, `legal`, `advisory`, `training`, `journalism`, `research`, `moderation_review`), urgent routing is capped at `flag_for_review`. **Where the harm would be enacted in this exchange** (`direct_message`, `group_chat`, `public_post`, `customer_service`, `gaming_chat`), nothing is capped. Severity, risk score, categories and evidence are never altered by this field, so the audit trail still shows what was actually found; `conversation_type_applied` comes back when the setting changed routing, so you can confirm it was honoured rather than assume. An unrecognised value behaves exactly like omitting the field. Set this from your own platform configuration, never from end-user input. |
 | `sender_trust` | string | `"verified"`, `"trusted"`, or `"unknown"`. Verified senders suppress authority impersonation false positives. |
 | `sender_name` | string | Sender identifier, used alongside `sender_trust` for impersonation scoring. |
-| `country` | string | ISO 3166-1 alpha-2 country code (e.g., `"GB"`, `"US"`, `"SE"`). Enables geo-localised crisis helpline data. Falls back to user profile country if omitted. |
+| `relationship` | string | `/safety/bullying` only. Relationship between the participants, e.g. `"classmates"`. |
+
+`/safety/grooming` does not take a flat `text` field and its context is different: pass
+`messages` with a `sender_role` per turn, and use `context.child_age` and
+`context.participant_age` rather than `age_group`. See [Grooming detection](/grooming-detection).
+
+### Carrying conversation state
+
+There are two ways to give a detector the conversation rather than a single message, and
+which you use depends on your call pattern.
+
+Pass `context.prior_messages` when you already hold the whole thread and want it seen in
+one call. Pass the `continuation_token` from the previous response when you are calling
+once per new message as it arrives: the token carries derived trajectory state without
+resending history, and without anything being stored server-side. See
+[Continuation tokens](/continuation-tokens).
 
 ## Options
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `include_evidence` | boolean | `true` | Include evidence excerpts with flagged phrases and weights |
 | `support_threshold` | string | `"high"` | Minimum severity to include crisis helplines. Values: `low`, `medium`, `high`, `critical`. Critical severity **always** includes support resources. |
+| `verdict_only` | boolean | `false` | Fast mode. Skips generating `action_detail`, the moderator-facing expansion of `recommended_action`. The verdict itself (`severity`, `risk_score`, categories, `recommended_action`) and `rationale` are unchanged. See [Fast mode](/fast-mode). |
+| `include_evidence` | boolean | `true` | Fraud and extended-harm endpoints. Include evidence excerpts with flagged phrases and weights. |
+| `flag_profanity` | boolean | `false` | `/safety/bullying` and `/safety/unsafe`. Adds a deterministic word-list `profanity` block. Never affects the verdict, and costs no extra credits. |
+| `flag_risk_terms` | boolean | `false` | `/safety/bullying` and `/safety/unsafe`. Adds a deterministic `risk_terms` block for bare drug and violence terms. Never affects the verdict. |
 
 ## Stateless by Design
 
