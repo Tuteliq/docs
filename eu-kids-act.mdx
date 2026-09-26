@@ -1,0 +1,62 @@
+---
+title: EU KIDS Act Coverage
+sidebarTitle: EU KIDS Act
+icon: scale-balanced
+description: What the proposed EU KIDS Act asks of platforms, and which Tuteliq capabilities address the age-assurance and minor-protection halves of it
+keywords: [EU KIDS Act, age assurance, age verification, minors, DSA, EU, regulation, compliance]
+---
+
+<Warning>
+  The **EU KIDS Act** (EU Keeping Internet Digital Spaces Accountable and Trustworthy) is a **European Commission proposal**, adopted on 17 September 2026. It is not in force. A proposal changes as it moves through the Parliament and the Council, so the obligations described here may not match what is eventually adopted, and the timetable is not ours to predict. This page describes which Tuteliq capabilities address the proposal as published. It is not a legal compliance determination, and no vendor can certify compliance with a regulation that is not yet law. Confirm your own obligations with counsel.
+</Warning>
+
+The proposal is published by the Commission at
+[digital-strategy.ec.europa.eu](https://digital-strategy.ec.europa.eu/en/library/proposal-eu-kids-act-eu-keeping-internet-digital-spaces-accountable-and-trustworthy).
+Read it there rather than relying on this summary.
+
+## What the proposal sets out
+
+As published, the proposal seeks to protect minors from risky digital services
+and AI systems, and it limits autonomous account creation on social media and
+video platforms by children below the age of **15**. The threshold is
+harmonised across member states rather than left to diverge nationally.
+
+That splits into two questions for a platform, and they are answered by
+different parts of this API.
+
+## Age assurance: is this user above the threshold
+
+An age floor is only as good as the assurance behind it. Tuteliq provides the
+detection half of that, not the legal determination:
+
+| Capability | What it gives you |
+|---|---|
+| [Document verification](/verification) | Identity document capture and parsing, including MRZ and PDF417, across 45 countries |
+| [Selfie and liveness](/verification) | Biometric matching against the document, with liveness to resist presentation attacks |
+| Age estimation | An estimated age range from a face image, where no document is available. Image only: we do not estimate age from voice |
+
+Which of those is sufficient evidence for a 15-year threshold is a question for
+your regulator and your counsel, not for us. Different member states have taken
+different positions on what counts as proportionate age assurance, and the
+proposal's own standard is one of the things that may change before adoption.
+
+## Minor protection: what happens to the minors who are on the service
+
+The under-15 provision does not remove the duty toward 15, 16 and 17 year olds
+who are lawfully on a platform, nor toward under-15s who reach it another way.
+The detection endpoints cover that half: grooming, bullying, self-harm and
+distress, CSAM and nudity screening, and synthetic media. The
+[KOSA coverage page](/kosa-compliance) has the harm-category mapping, which is
+drawn from a different statute but covers the same ground.
+
+## What this page does not claim
+
+- **Not a compliance determination.** We describe capabilities; your obligations
+  are yours to establish.
+- **Not certification.** No age-assurance scheme has certified this API against
+  the proposal, because the proposal is not law.
+- **Not a prediction.** We are not forecasting whether the proposal is adopted,
+  when, or in what form.
+
+Our own evidence, including where our detection is weakest, is in the
+[vendor reference disclosure](/vendor-reference-disclosure).
