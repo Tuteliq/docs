@@ -225,7 +225,7 @@ python validate_disclosure.py csdt-disclosure.json --schema disclosure.schema.js
 
 The validator computes the conformance level from the disclosure's own contents rather than trusting what it claims, and reports every item recorded as withheld or not measured.
 
-One thing to read carefully before using any figure here: every number was measured against the model artifact directly, not through the production API. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which these figures exercise. Treat them as an upper bound on what the deployed path delivers.
+One thing to read carefully before using any figure here: unless a passage says it was run through the production API, every number was measured against the model artifact directly. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which those figures exercise. Treat them as an upper bound on what the deployed path delivers.
 
 ## Related
 
