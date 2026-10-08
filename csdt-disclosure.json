@@ -6,7 +6,7 @@
   "P0.2.5": {
     "vendorName": "Tuteliq AB",
     "systemName": "Tuteliq Detection API",
-    "version": "API v2.4.0; detection model tuteliq-detect-24b-v6",
+    "version": "API v3.4.0; detection system tuteliq-detect-v4.20261007",
     "date": "2026-08-14",
     "publicUrl": "https://docs.tuteliq.ai/vendor-reference-disclosure",
     "contact": "research@tuteliq.ai"
@@ -18,8 +18,8 @@
     "dateCompleted": "2026-08-14",
     "dateOfNextReview": "2027-02-14",
     "detectionSystemVersions": [
-      "API v2.4.0",
-      "tuteliq-detect-24b-v6"
+      "API v3.4.0",
+      "tuteliq-detect-v4.20261007"
     ],
     "contact": "research@tuteliq.ai",
     "levelApplicable": false
@@ -138,7 +138,7 @@
             "independentLabelling": false
           },
           "P2.4.6": "self-conducted",
-          "P2.4.7": "tuteliq-detect-24b-v6, evaluated as the model artifact directly rather than through the production API. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which these figures exercise. A platform calling the API should treat them as an upper bound on what the deployed path delivers, not as a measurement of it. API v2.4.0 is listed in detectionSystemVersions as the version this disclosure describes; it is not the version these numbers were measured against.",
+          "P2.4.7": "tuteliq-detect-24b-v6, evaluated as the model artifact directly rather than through the production API. It is a different version from the detection system the API deploys, which is named in detectionSystemVersions and is reported by the API's health endpoint as detector_version. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which these figures exercise. A platform calling the API should treat them as an upper bound on what the deployed path delivers, not as a measurement of it. The API version and detection system listed in detectionSystemVersions are the version this disclosure describes; they are not the version these numbers were measured against.",
           "P2.4.8": "Every interval here is a Wilson interval computed from raw counts, and we invite the check: precision 1.000 CI [0.875, 1.000] is 0 false positives on 27 benign control conversations; recall 0.976 is 488 of 500; the message-level false-positive rate is 0 of 450 turns. The PAN-2012 figures below are 39/50 and 39/71.\n\nThe precision bound is wide because the conversation-level negative sample is small, 27 controls. That small negative sample is also why precision here is prevalence-sensitive to the point of being misleading if quoted alone; see P2.5.6, which gives the adjusted figures. An earlier draft reported CI [0.992, 1.000], which came from pairing the 488 trajectory-level positives against the 450 message-level negatives. That mixed units and materially overstated the precision of a conversation-level detector. It is corrected here.\n\nThe evaluation corpus is not openly downloadable, so a third party cannot reproduce these unaided. TUT-100 is obtainable under a gated access agreement. Inter-annotator agreement has never been measured (P2.4.3)."
         }
       }
@@ -178,16 +178,16 @@
     },
     "P2.7": {
       "P2.7.1": "Until 21 August 2026 the detection endpoints decoded with sampling enabled. The setting was inherited from a general-purpose client default written for prose generation; no detection endpoint overrode it, so the value was never a decision made about classification. It was also unreachable through the intended parameter: a request for deterministic decoding was treated as absent and the default substituted. Detection now decodes deterministically.",
-      "P2.7.2": "Ten identical calls per case on the production service, across a fixed panel spanning the decision boundary. Cases away from the boundary were stable across every repeat (adult-to-child benign 0.00-0.10; third-party disclosure and explicit-presentation crisis each a single value). Cases at the boundary were not: adolescent distress idiom spanned 0.00-0.95 and four of five routing values; peer conversation escalated in 6 of 10; understated-presentation crisis escalated in 2 of 10. Variance concentrated at the decision boundary, which is the profile sampling predicts, and is why the effect was invisible to every evaluation we had run: all were single runs.",
+      "P2.7.2": "Ten identical calls per case on the production service as it was in August 2026, across a fixed panel spanning the decision boundary. Cases away from the boundary were stable across every repeat (adult-to-child benign 0.00-0.10; third-party disclosure and explicit-presentation crisis each a single value). Cases at the boundary were not: adolescent distress idiom spanned 0.00-0.95 and four of five routing values; peer conversation escalated in 6 of 10; understated-presentation crisis escalated in 2 of 10. Variance concentrated at the decision boundary, which is the profile sampling predicts, and is why the effect was invisible to every evaluation we had run: all were single runs.",
       "P2.7.3": "A retried request could previously return a different routing decision for identical input. No platform reported this to us and we did not find it ourselves until we tested for it. Any figure published before this date is a single draw from that distribution rather than a stable point estimate. This applies to favourable figures as much as unfavourable ones.",
-      "P2.7.4": "Deterministic decoding removes the sampling component. It does not make output byte-identical: the model is served behind infrastructure whose batching we do not control. Repeated-measures testing is retained as a standing check rather than the matter being treated as closed, and single-run figures will not be published as point estimates.",
+      "P2.7.4": "Deterministic decoding removes the sampling component. It does not make output byte-identical: the model is served behind infrastructure whose batching we do not control. Repeated-measures testing is retained as a standing check rather than the matter being treated as closed, and single-run figures will not be published as point estimates. The figures in P2.7.2, P2.7.5 and P2.7.6 were measured in August 2026. The deployed detection system has changed since then, as the identifier in detectionSystemVersions records, and the panel has not yet been repeated on the system now deployed. Until it is, those figures describe the method and the defect it found, not the present system's repeatability.",
       "P2.7.5": "Validated as a two-by-two factorial over decoding mode and detection configuration, seven cases by fifteen repeats per cell, four cells. A factorial was used because a first comparison changed two things at once and could not attribute the result to either. It found a significant interaction: the configuration change was harmful under sampling and beneficial under deterministic decoding, so the two shipped together. Per-case differences carry Fisher exact tests. The panel is seven fixed cases, so those tests support statements about those cases and not a generalisation to production traffic, and none is made.",
       "P2.7.6": "A defect the same work exposed, now resolved. The panel included crisis conversations written to require escalation. Where the behaviour indicating acute risk was present but expressed in understated language, it escalated in 2 of 15 repeats, while the same behaviour expressed explicitly escalated in 15 of 15: the detector keyed on explicit phrasing rather than the underlying behaviour. After the change the understated case escalates in 15 of 15. Reported because anyone assessing our recall should know it was measured on material that skews explicit.",
       "P2.7.7": "Evaluation practice changed as a result. Version comparisons previously reported routing decisions only, which is insufficient: a case can keep its routing while losing a harm category, removing it from category-keyed customer policy rules and from escalation eligibility with nothing visible changing. One such case was found in this work. Version comparisons now diff categories as well as routing and treat the loss of a safety-relevant category as a regression."
     },
     "P2.8": {
       "P2.8.1": "Re-evaluated on each model iteration against the held-out sets. No fixed calendar drift-monitoring schedule is in place.",
-      "P2.8.2": "Model card published at https://huggingface.co/tuteliq/tuteliq-detect-24b-v6, covering nine evaluation suites over 2,400+ held-out cases. The card is publicly readable without registration; the model weights are gated and released only on approved request, because the model is proprietary. Datasets: TUT-100 and kids-online-slang (https://huggingface.co/datasets/tuteliq/kids-online-slang), each with a public card and data gated under an access agreement.",
+      "P2.8.2": "Model card published at https://huggingface.co/tuteliq/tuteliq-detect-24b-v6, covering nine evaluation suites over 2,400+ held-out cases. The card is publicly readable without registration; the model weights are gated and released only on approved request, because the model is proprietary. Datasets: TUT-100 and kids-online-slang (https://huggingface.co/datasets/tuteliq/kids-online-slang), each with a public card and data gated under an access agreement. The card describes tuteliq-detect-24b-v6, which is a different version from the deployed detection system named in detectionSystemVersions; the card is the reference for the harm taxonomy, its sources and the credits, and its evaluation figures are that version's.",
       "P2.8.3": "No real personal data, customer content, production traffic or real casework is used at any stage of training or evaluation, and no material depicting abuse is held at any point. Content is indicator-level only, with no explicit or graphic material.\n\nProvenance: the underlying material was supplied by external domain consultants in criminology, child psychology and linguistics, who also ran validation tests within their own domains against the taxonomy and detection behaviour, with findings acted on. The programme was led and the corpus validated by Dr Nicola Harding, Tuteliq's Chief Scientific Officer, a criminologist and Specialist Advisor to the UK Home Office. It is grounded in published frameworks in the grooming and child-sexual-exploitation literature. Expansion was AI-assisted under expert direction, with expert validation of the output. Where this corpus is described as synthetic, here and in the published model card, the term means the conversations were fabricated rather than collected from real people; it is neither unsupervised model output nor a claim that every row was hand-written.\n\nFabrication was a deliberate data-protection decision by the authoring experts rather than a convenience. They declined to work from real case material so that no victim's personal data could enter the corpus, be retained, or leak through the model. No row of training or evaluation data traces back to a real child.\n\nOne boundary, so the claim is not read wider than it holds: the expert-authored material is the English backbone. Multilingual coverage is derived from it by translation and in-language generation with native-speaker review, not authored independently per language. The no-real-data guarantee holds across both.",
       "P2.8.4": "Adversarial and red-team suites are run per iteration, including protective-speech and evasion sets.",
       "P2.8.5": "Model versions are tagged; the serving revision records the commit it was built from."
@@ -551,6 +551,32 @@
     "P4.6": "Coded language, slang, acronyms and emoji codes are a dedicated detection layer rather than a by-product of general moderation, and they are evaluated as such.\n\nEvidence, from the published model card. On a proprietary coded-language set of 60 cases: 39 of 39 coded-positive detections with zero false positives on 21 benign look-alikes. On a head-to-head of 25 coded-slang and emoji positives against 15 benign look-alikes, 72% recall against a 19% average across three leading general-purpose moderation systems, best alternative 44%, with zero false positives for every system tested.\n\nThe evaluation set is published as kids-online-slang at https://huggingface.co/datasets/tuteliq/kids-online-slang: 315 high-confidence test cases across 14 risk categories plus benign-lookalike controls, covering English, Spanish, Portuguese, French, German and Swedish. The card is public and the data is gated behind an access agreement and use-case review, because a published list of the terms children use to discuss risk is directly usable by the people those children are at risk from. An approved researcher can reproduce the figures above; a casual reader cannot lift the lexicon.\n\nNeither figure carries a confidence interval, and both come from sets we built and scored ourselves. The head-to-head in particular compares our system on our own benchmark, which is the weakest form of comparison and should be read as indicative rather than as an independent ranking. Coverage of the coded layer beyond those six languages is not separately measured."
   },
   "revisionHistory": [
+    {
+      "date": "2026-10-08",
+      "clauses": [
+        "P0.2.5",
+        "P2.4.7",
+        "P2.7.2",
+        "P2.7.4"
+      ],
+      "change": "The detection system identifier is tuteliq-detect-v4.20261007. P2.4.7 now refers to detectionSystemVersions for the deployed version and no longer repeats a dated identifier, which had fallen behind. P2.7.2 and P2.7.4 now state that the repeatability figures were measured in August 2026, that the deployed system has changed since, and that the panel has not yet been repeated on it. No figure changed."
+    },
+    {
+      "date": "2026-10-06",
+      "clauses": [
+        "P0.2.5"
+      ],
+      "change": "The detection system identifier is tuteliq-detect-v4.20261006. The date part of the identifier changes whenever anything that can alter a verdict changes. No clause answer changes."
+    },
+    {
+      "date": "2026-10-05",
+      "clauses": [
+        "P0.2.5",
+        "P2.4.7",
+        "P2.8.2"
+      ],
+      "change": "The deployed system is now named by its own identifier. The version field and detectionSystemVersions read API v3.4.0 and tuteliq-detect-v4.20261005, replacing API v2.4.0 and the name of a model version the API does not deploy. The identifier changes whenever anything that can alter a verdict changes, and the API's health endpoint reports it as detector_version. P2.4.7 and P2.8.2 now state that tuteliq-detect-24b-v6, the version the cited figures and the model card describe, is a different version from the deployed one. No figure changed: P2.5.2 still records tuteliq-detect-24b-v6 as the system those figures were measured on."
+    },
     {
       "date": "2026-09-08",
       "clauses": [

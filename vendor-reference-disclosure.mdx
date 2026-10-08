@@ -154,8 +154,8 @@ classification, and it was unreachable through the intended parameter: a request
 deterministic decoding was treated as absent and the default substituted. Detection now
 decodes deterministically.
 
-**What the variance was.** Ten identical calls per case, on the production service, across a
-fixed panel spanning the decision boundary:
+**What the variance was.** Ten identical calls per case, on the production service as it was
+in August 2026, across a fixed panel spanning the decision boundary:
 
 | Case type | Risk score across 10 identical calls | Routing |
 |---|---|---|
@@ -180,6 +180,12 @@ favourable figures as much as our unfavourable ones.
 output byte-identical, because the model is served behind infrastructure whose batching we
 do not control. We keep repeated-measures testing as a standing check rather than treating
 the matter as closed, and we will not publish a single-run figure as a point estimate again.
+
+**What has not been repeated yet.** The figures in this section were measured in August 2026.
+The deployed detection system has changed since then; its identifier is recorded in the
+machine-readable disclosure and reported by the API's health endpoint. The panel has not yet
+been repeated on the system now deployed. Until it is, read these figures as the method and
+the defect it found, not as the present system's repeatability.
 
 **How the fix was validated.** As a two-by-two factorial over decoding mode and detection
 configuration, seven cases by fifteen repeats in each of four cells. We ran a factorial
@@ -219,7 +225,7 @@ python validate_disclosure.py csdt-disclosure.json --schema disclosure.schema.js
 
 The validator computes the conformance level from the disclosure's own contents rather than trusting what it claims, and reports every item recorded as withheld or not measured.
 
-One thing to read carefully before using any figure here: every number was measured against the model artifact directly, not through the production API. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which these figures exercise. Treat them as an upper bound on what the deployed path delivers.
+One thing to read carefully before using any figure here: unless a passage says it was run through the production API, every number was measured against the model artifact directly. The API adds prompt construction, input normalisation and threshold handling on top of the model, none of which those figures exercise. Treat them as an upper bound on what the deployed path delivers.
 
 ## Related
 
@@ -237,5 +243,8 @@ This disclosure is reviewed at least annually and on material change to the dete
 
 | Date | Clause | Change |
 |---|---|---|
+| 2026-10-08 | P0.2.5, P2.4.7, P2.7.2, P2.7.4 | The detection system identifier is tuteliq-detect-v4.20261007. P2.4.7 now refers to detectionSystemVersions for the deployed version and no longer repeats a dated identifier, which had fallen behind. P2.7.2 and P2.7.4 now state that the repeatability figures were measured in August 2026, that the deployed system has changed since, and that the panel has not yet been repeated on it. No figure changed. |
+| 2026-10-06 | P0.2.5 | The detection system identifier is tuteliq-detect-v4.20261006. The date part of the identifier changes whenever anything that can alter a verdict changes. No clause answer changes. |
+| 2026-10-05 | P0.2.5, P2.4.7, P2.8.2 | The deployed system is now named by its own identifier. The version field and detectionSystemVersions read API v3.4.0 and tuteliq-detect-v4.20261005, replacing API v2.4.0 and the name of a model version the API does not deploy. The identifier changes whenever anything that can alter a verdict changes, and the API's health endpoint reports it as detector_version. P2.4.7 and P2.8.2 now state that tuteliq-detect-24b-v6, the version the cited figures and the model card describe, is a different version from the deployed one. No figure changed: P2.5.2 still records tuteliq-detect-24b-v6 as the system those figures were measured on. |
 | 2026-08-21 | P2.4.5, P2.4.3 | Labelling provenance corrected. Labels were applied by paid independent consultants in criminology, child psychology and linguistics, with the Chief Scientific Officer validating and signing off. The previous text stated she was the sole annotator and that the consultants did not label; that was incorrect. No inter-annotator agreement figure exists because annotator identity was not recorded per label, so the 15% double-coded overlap specified in our labelling protocol cannot be reconstructed. |
 
