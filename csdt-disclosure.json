@@ -6,7 +6,7 @@
   "P0.2.5": {
     "vendorName": "Tuteliq AB",
     "systemName": "Tuteliq Detection API",
-    "version": "API v3.4.0; detection system tuteliq-detect-v5.20261009",
+    "version": "API v3.4.0; detection system tuteliq-detect-v5.20261010",
     "date": "2026-08-14",
     "publicUrl": "https://docs.tuteliq.ai/vendor-reference-disclosure",
     "contact": "research@tuteliq.ai"
@@ -19,7 +19,7 @@
     "dateOfNextReview": "2027-02-14",
     "detectionSystemVersions": [
       "API v3.4.0",
-      "tuteliq-detect-v5.20261009"
+      "tuteliq-detect-v5.20261010"
     ],
     "contact": "research@tuteliq.ai",
     "levelApplicable": false
@@ -551,6 +551,13 @@
     "P4.6": "Coded language, slang, acronyms and emoji codes are a dedicated detection layer rather than a by-product of general moderation, and they are evaluated as such.\n\nEvidence, from the published model card. On a proprietary coded-language set of 60 cases: 39 of 39 coded-positive detections with zero false positives on 21 benign look-alikes. On a head-to-head of 25 coded-slang and emoji positives against 15 benign look-alikes, 72% recall against a 19% average across three leading general-purpose moderation systems, best alternative 44%, with zero false positives for every system tested.\n\nThe evaluation set is published as kids-online-slang at https://huggingface.co/datasets/tuteliq/kids-online-slang: 315 high-confidence test cases across 14 risk categories plus benign-lookalike controls, covering English, Spanish, Portuguese, French, German and Swedish. The card is public and the data is gated behind an access agreement and use-case review, because a published list of the terms children use to discuss risk is directly usable by the people those children are at risk from. An approved researcher can reproduce the figures above; a casual reader cannot lift the lexicon.\n\nNeither figure carries a confidence interval, and both come from sets we built and scored ourselves. The head-to-head in particular compares our system on our own benchmark, which is the weakest form of comparison and should be read as indicative rather than as an independent ranking. Coverage of the coded layer beyond those six languages is not separately measured."
   },
   "revisionHistory": [
+    {
+      "date": "2026-10-10",
+      "clauses": [
+        "P0.2.5"
+      ],
+      "change": "The detection system identifier is tuteliq-detect-v5.20261010. The date part of the identifier changes whenever anything that can alter a verdict changes. No clause answer changes."
+    },
     {
       "date": "2026-10-09",
       "clauses": [
