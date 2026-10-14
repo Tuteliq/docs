@@ -95,7 +95,7 @@
         "P1.13": false
       },
       "P2.0.2": {
-        "P1.9": "Recall is measured on the COVA-X scam corpus (147 of 150 conversation-level). Precision is not computed: that corpus contains scam conversations only, with no benign class, so no false-positive denominator exists. Marked true under the rule stated at P2.6.5, on one metric rather than two.",
+        "P1.9": "Recall is measured on the COVA-X scam corpus (Lochstampfor, C., & Roy, A. (2026). COVA-X. arXiv:2606.06879. https://arxiv.org/abs/2606.06879; terms of use at https://scamlingua.org/), 147 of 150 conversation-level. Precision is not computed: that corpus contains scam conversations only, with no benign class, so no false-positive denominator exists. Marked true under the rule stated at P2.6.5, on one metric rather than two.",
         "P1.5": "Sextortion: 85 of 85 conversations detected. Recall 1.000 (95% CI 0.957 to 1.000), precision 1.000 (95% CI 0.958 to 1.000). Measured at CONVERSATION level: did the system flag this conversation at all. This is a coarser task than the per-turn tactic labelling behind the grooming figures at P2.4.1, and the two must not be compared or combined. Negative class is the 150 benign hard-negative trajectories scored in the same pass, with zero false positives across all categories; 95% CI on the conversation-level false-positive rate [0, 0.0250].\n\nCORRECTED 18 August 2026: previously recorded as not measured, on the basis that no figure was attributable to this category alone. The held-out run carries harm_type per trajectory and the conversation-level verdicts were archived, so a category-specific figure was always derivable and had simply never been aggregated.",
         "P1.10": "Coercive control: 50 of 50 conversations detected. Recall 1.000 (95% CI 0.929 to 1.000), precision 1.000 (95% CI 0.930 to 1.000). Measured at CONVERSATION level: did the system flag this conversation at all. This is a coarser task than the per-turn tactic labelling behind the grooming figures at P2.4.1, and the two must not be compared or combined. Negative class is the 150 benign hard-negative trajectories scored in the same pass, with zero false positives across all categories; 95% CI on the conversation-level false-positive rate [0, 0.0250].\n\nCORRECTED 18 August 2026: previously recorded as not measured, for the same reason and with the same correction as P1.5."
       }
@@ -551,6 +551,13 @@
     "P4.6": "Coded language, slang, acronyms and emoji codes are a dedicated detection layer rather than a by-product of general moderation, and they are evaluated as such.\n\nEvidence, from the published model card. On a proprietary coded-language set of 60 cases: 39 of 39 coded-positive detections with zero false positives on 21 benign look-alikes. On a head-to-head of 25 coded-slang and emoji positives against 15 benign look-alikes, 72% recall against a 19% average across three leading general-purpose moderation systems, best alternative 44%, with zero false positives for every system tested.\n\nThe evaluation set is published as kids-online-slang at https://huggingface.co/datasets/tuteliq/kids-online-slang: 315 high-confidence test cases across 14 risk categories plus benign-lookalike controls, covering English, Spanish, Portuguese, French, German and Swedish. The card is public and the data is gated behind an access agreement and use-case review, because a published list of the terms children use to discuss risk is directly usable by the people those children are at risk from. An approved researcher can reproduce the figures above; a casual reader cannot lift the lexicon.\n\nNeither figure carries a confidence interval, and both come from sets we built and scored ourselves. The head-to-head in particular compares our system on our own benchmark, which is the weakest form of comparison and should be read as indicative rather than as an independent ranking. Coverage of the coded layer beyond those six languages is not separately measured."
   },
   "revisionHistory": [
+    {
+      "date": "2026-10-14",
+      "clauses": [
+        "P1.9"
+      ],
+      "change": "The COVA-X scam corpus is cited as its authors ask: Lochstampfor, C., & Roy, A. (2026). COVA-X. arXiv:2606.06879. https://arxiv.org/abs/2606.06879. Its terms of use are at https://scamlingua.org/. No clause answer changes."
+    },
     {
       "date": "2026-10-12",
       "clauses": [
