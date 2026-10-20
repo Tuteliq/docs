@@ -96,7 +96,7 @@ The same content carries different risk depending on the child's age. Tuteliq ad
 | **13–15** | Moderate sensitivity. Accounts for typical teen communication patterns while remaining alert to genuine risk. |
 | **16–17** | Adjusted sensitivity. Recognizes greater autonomy while maintaining protection against grooming, exploitation, and crisis signals. |
 
-You specify the `age_group` in your request context. If omitted, Tuteliq defaults to the most protective bracket.
+You specify the `age_group` in your request context. If omitted, Tuteliq does not assume the speaker is a child: it reads any sign of age from the content, and without one it does not apply child-specific thresholds.
 
 ### 5. Response generation
 
