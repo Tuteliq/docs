@@ -114,6 +114,17 @@ All Tuteliq API errors return a consistent JSON structure with a machine-readabl
 | `VRF_9008` | 403 | Age verification not available on your plan (requires Assure) |
 | `VRF_9009` | 403 | Identity verification not available on your plan (requires Assure) |
 
+### Verification allowance (VERIFY_110xx)
+
+On a plan with a monthly verification allowance, a new verification is checked against
+that allowance before any work starts. See
+[Verification plans with a monthly allowance](/verification#verification-plans-with-a-monthly-allowance).
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VERIFY_11014` | 402 | The monthly verification allowance, including any purchased verification packs, is used up. Not retryable until the next period starts or more verifications are bought. `details` carries `reason` (`verification_limit_reached`), `period`, `next_period_start`, `included_per_month` and `buy_credits_url`. |
+| `VERIFY_11015` | 503 | The allowance could not be checked. Temporary and retryable: the response carries `retryable: true`, `retry_after_ms` and a `Retry-After` header. No verification work was done. |
+
 ### WebSocket (WS_10xxx)
 
 | Code | HTTP | Description |
@@ -142,6 +153,8 @@ Not all errors should be retried. Here's a guide:
 | `VRF_9001`–`9006` | No | Fix the request (image quality, document type, selfie) |
 | `VRF_9007` | Yes | Retry once after a short delay |
 | `VRF_9008`, `VRF_9009` | No | Upgrade your plan |
+| `VERIFY_11014` | No | Buy more verifications, or wait for `next_period_start` |
+| `VERIFY_11015` | Yes | Wait for the `Retry-After` header value, then retry |
 
 ### Exponential backoff example
 

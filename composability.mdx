@@ -1,6 +1,6 @@
 ---
 title: Composable safety primitives
-description: How Tuteliq detectors enrich each other through cross_endpoint_modifier and vulnerability_profile.
+description: How Tuteliq detectors enrich each other through cross_endpoint_modifier and vulnerability_profile, and how a platform carries a signal such as minor_disclosure forward.
 section: Concepts
 ---
 
@@ -152,6 +152,65 @@ async def assess(content: str) -> dict:
 - **The `age_group` / age fields elsewhere in the API are optional inputs, not requirements.** Detectors that accept an age or age-bracket field (e.g. `detect_grooming`'s `context.child_age`) work without it; supplying it sharpens the analysis but is never mandatory.
 
 If your own integration persists `vulnerability_profile` results (per the caching guidance above), that data lives in your systems under your own privacy and retention policies — Tuteliq's involvement ends at the response of each stateless call.
+
+## Carrying a signal forward
+
+Some findings are about a person rather than a message, and stay true on that person's
+next request. Tuteliq does not keep such a finding against the user between calls (see
+[Stateless by Design](/api-reference/introduction#stateless-by-design)), so the platform
+carries the signal forward itself. The clearest case is
+[`minor_disclosure`](/api-reference/introduction#checking-for-a-minor-on-an-adult-platform):
+a speaker on an adult platform who says they are under 18.
+
+The pattern:
+
+1. **Store the suggestion on your side.** When a response carries `minor_disclosure`, save
+   `minor_disclosure.suggested_age_group` against that user in your own records.
+2. **Send it back as the declared age.** On that user's later requests, pass the stored
+   value as `context.age_group`. It is always a minor band (`under 18`, `under 13`, `13-15`
+   or `16-17`), so the detectors apply a minor's protections.
+3. **A declared child beats an adult setting.** With `conversation_type` `dating`,
+   `adult_community` or `workplace`, a declared minor age group means the adult audience is
+   not used for that request. You do not need to change your platform-wide setting.
+
+```ts
+const res = await fetch("https://api.tuteliq.ai/api/v1/fraud/romance-scam", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.TUTELIQ_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    text,
+    context: {
+      conversation_type: "dating",
+      age_group: user.suggestedAgeGroup ?? "18+",
+      minor_disclosure_check: true,
+    },
+  }),
+}).then((r) => r.json());
+
+if (res.minor_disclosure && !user.suggestedAgeGroup) {
+  // Kept in your own user store, under your own retention policy.
+  await users.update(user.id, {
+    suggestedAgeGroup: res.minor_disclosure.suggested_age_group,
+  });
+  await reviewQueue.add({ userId: user.id, reason: res.minor_disclosure.reason });
+}
+```
+
+Things to know:
+
+- **The check does not repeat.** Once a request declares a minor, it no longer declares an
+  adult, so `minor_disclosure_check` does not run and `minor_on_adult_platform_raised` is
+  not returned again. The declared age group is now the signal, and the account decision
+  (asking the user to verify their age again, for example) belongs to your own process.
+- **On `/safety/grooming`**, which takes ages rather than an age group, declare the user's
+  messages with a child `sender_role`, or pass their age, instead of `age_group`.
+- **Decide how long to keep it.** The stored value is your data, in your systems, under
+  your own retention and review rules. Tuteliq's involvement ends with each response.
+- **Let a person decide.** A finding is a reason to review an account, not proof of age.
+  Route it to a person before you restrict anyone.
 
 ## Related
 
