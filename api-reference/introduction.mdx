@@ -139,8 +139,8 @@ Romance scam also returns a descriptive field that changes nothing on its own:
 | `off_platform_request_reason` | string | Human-readable explanation, naming any second marker found. Present only when `off_platform_request` is `true`. |
 | `off_platform_markers` | string[] | The second markers found about the person asking to move: `scam_persona` (abroad or far away for work, military, an oil rig or a ship, a mission or contract), `early_love_bombing` (love or lifelong devotion declared while the two barely know each other), `avoids_video_or_meeting` (refuses, dodges or puts off a video call or a meeting), `discredits_platform` (the reason for moving runs down the platform or its safety). Present only when `off_platform_request` is `true`; empty when there is none. |
 
-Because Tuteliq stores nothing between calls, a platform that wants to know how often one
-account tries to move conversations elsewhere can count `off_platform_request` across that
+Tuteliq does not keep `off_platform_request` against an account, so a platform that wants
+to know how often one account tries to move conversations elsewhere can count `off_platform_request` across that
 account's conversations on its own side.
 
 The marks listed above are returned by the dedicated endpoints. `/analyse/multi` returns
@@ -368,8 +368,8 @@ declared no adult.
 }
 ```
 
-Tuteliq stores nothing about the user. To keep protecting them on later requests, your
-platform carries `suggested_age_group` forward; see
+Tuteliq does not keep `minor_disclosure` or the suggested age group against the user; your
+platform carries it forward to keep protecting them on later requests; see
 [Carrying a signal forward](/composability#carrying-a-signal-forward).
 
 <Note>

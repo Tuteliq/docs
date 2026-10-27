@@ -156,8 +156,9 @@ If your own integration persists `vulnerability_profile` results (per the cachin
 ## Carrying a signal forward
 
 Some findings are about a person rather than a message, and stay true on that person's
-next request. Tuteliq is stateless and stores nothing between calls, so the platform
-carries such a signal forward itself. The clearest case is
+next request. Tuteliq does not keep such a finding against the user between calls (see
+[Stateless by Design](/api-reference/introduction#stateless-by-design)), so the platform
+carries the signal forward itself. The clearest case is
 [`minor_disclosure`](/api-reference/introduction#checking-for-a-minor-on-an-adult-platform):
 a speaker on an adult platform who says they are under 18.
 

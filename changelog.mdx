@@ -46,7 +46,8 @@ now; the MCP tools do not expose it yet. See
 [Checking for a minor on an adult platform](/api-reference/introduction#checking-for-a-minor-on-an-adult-platform),
 and [Carrying a signal forward](/composability#carrying-a-signal-forward) for sending
 `suggested_age_group` back as `context.age_group` on that user's later requests. Tuteliq
-stays stateless and stores nothing about the user.
+does not keep `minor_disclosure` or the suggested age group against the user; your
+platform carries it forward.
 
 ### Changed: results with none of the harmful acts in the text
 
