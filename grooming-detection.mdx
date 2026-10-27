@@ -98,6 +98,13 @@ Pass age information when you have it:
 
 When two or more age signals are provided AND all are ≥18, the endpoint short-circuits with `grooming_risk: "none"` and `analysis_status: "out_of_scope_adults"`. This is a precision floor: adult-to-adult interactions with grooming-shaped content should be routed to `/safety/coercive-control` or `/safety/social-engineering`, not flagged as child grooming.
 
+If your platform suspects that some users get past its age verification, set
+`context.minor_disclosure_check: true`. With it on, a conversation in which a participant
+says they are under 18 (by giving an age, or in other words such as a school year) is
+analysed as a conversation with a minor instead of being treated as out of scope, and the
+response reports it in `minor_disclosure`. See
+[Checking for a minor on an adult platform](/api-reference/introduction#checking-for-a-minor-on-an-adult-platform).
+
 ## When not to use it
 
 `detect_grooming` is purpose-built for adult-to-minor patterns in 1:1 or small-group conversations. It is **not** the right endpoint for:

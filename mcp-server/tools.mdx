@@ -145,3 +145,10 @@ Detection tools share a common set:
 | `verdict_only` | boolean | No | Fast mode: verdict without the per-message breakdown |
 
 `verdict_only` is the right trade when screening a live stream: screen everything fast, then re-run only what flags in standard mode for the detail.
+
+<Note>
+  `context.conversation_type` is available on the detection and fraud tools and on
+  `analyse_multi`. `context.minor_disclosure_check`
+  ([checking for a minor on an adult platform](/api-reference/introduction#checking-for-a-minor-on-an-adult-platform))
+  is available on the REST API only for now; the MCP tools do not expose it yet.
+</Note>

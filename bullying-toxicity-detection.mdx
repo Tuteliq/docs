@@ -69,6 +69,12 @@ Each result returns a risk level, the categories present, a rationale that descr
 
 Bullying, like grooming, is often a pattern rather than a single message. Tuteliq analyses the conversation, so it can see escalation over time and coordinated behaviour across participants. For long conversations, pass the [continuation token](/continuation-tokens) from each call into the next to preserve trajectory awareness without resending history.
 
+A conversation submitted in one call is read whole, however many short messages it
+contains, and so is a chat pasted as plain lines with no speaker names. Tuteliq looks at
+what happened after somebody objected: carrying on at the other person's cost is sent for
+review (`continued_after_objection_raised`), while carrying on with an offer of help,
+company or concern is kept visible at `monitor` (`pressed_after_objection_watched`).
+
 ## Using it
 
 <CodeGroup>

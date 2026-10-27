@@ -113,6 +113,40 @@ stable enum, weakest to strongest: `none`, `monitor`, `flag_for_review`, `block`
 `immediate_intervention`. Prefer it to the verdict boolean, which fires at any severity
 including low-severity cases you probably only want to log.
 
+### Response marks
+
+When a step after the analysis changes a result, the response carries a mark that says so.
+Each mark is a boolean named for what happened (`..._raised`, `..._capped`, `..._watched`,
+`..._cleared`), with a `..._reason` string beside it that explains it in plain language. A
+mark is absent unless it applied, and `recommended_action` already includes its effect, so
+you never need to branch on a mark to route correctly. Marks are there so a reviewer can
+see why a result landed where it did.
+
+| Mark | Endpoints | What it means |
+|------|-----------|---------------|
+| `no_harmful_act_capped` | `/fraud/social-engineering`, `/fraud/app-fraud`, `/fraud/romance-scam`, `/fraud/mule-recruitment`, `/safety/gambling-harm` | A review that rested on the topic alone was brought down to `monitor`, because none of the acts the detector looks for is in the text: nothing asked of the reader, no pressure, secrecy or move somewhere private, no lure, and nobody telling of harm happening now. `detected`, the level and the categories are as the analysis gave them. Never applied when a minor is declared. |
+| `no_harmful_act_urgency_capped` | Same five endpoints | An urgent result with none of those acts in the text is brought down to `flag_for_review`, not to `block`, so a person still sees it before anything is withheld. It never goes lower than review. Never applied when a minor is declared. |
+| `pressed_after_objection_watched` | `/safety/bullying` | One person objected and the other carried on, but what they carried on with was offered for the other person (help, company or concern), not at their cost and not mutual. It is not sent for review; the action is set to `monitor` so it stays visible. |
+| `ordinary_hyperbole_capped` | `/safety/unsafe` | A review on compulsive use (alone, or with low mood) was lowered to `monitor` because the words exaggerate about an ordinary habit or an everyday pressure ("I'm addicted to this show", "exams are killing me") with no sign of real harm, distress or loss of control. Single messages only. Never applied for a declared minor, and never for substance use, self-harm or any other category. Categories, severity and score are unchanged, and it never clears to `none`. |
+| `minor_on_adult_platform_raised` | Every endpoint that supports `minor_disclosure_check` | A speaker said they are under 18 on a platform that declared `dating` or `adult_community`, and a quiet result was raised to `flag_for_review`. See [Checking for a minor on an adult platform](#checking-for-a-minor-on-an-adult-platform). |
+| `off_platform_raised` | `/fraud/romance-scam` | Somebody asks to move the conversation elsewhere **and** a second marker was found about the same person (see `off_platform_markers` below). A result below review is raised to `flag_for_review`, and a review is held there. Never raised higher, and never in a setting where harm is discussed. |
+
+Romance scam also returns a descriptive field that changes nothing on its own:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `off_platform_request` | boolean | `true` when somebody in the text asks, suggests or presses to continue the conversation somewhere else (another app, a phone number, an email address or another private channel); `false` when nobody does. On its own it never changes the action: people who get on often move. Absent when it could not be determined, and on a result lowered to nothing found. |
+| `off_platform_request_reason` | string | Human-readable explanation, naming any second marker found. Present only when `off_platform_request` is `true`. |
+| `off_platform_markers` | string[] | The second markers found about the person asking to move: `scam_persona` (abroad or far away for work, military, an oil rig or a ship, a mission or contract), `early_love_bombing` (love or lifelong devotion declared while the two barely know each other), `avoids_video_or_meeting` (refuses, dodges or puts off a video call or a meeting), `discredits_platform` (the reason for moving runs down the platform or its safety). Present only when `off_platform_request` is `true`; empty when there is none. |
+
+Because Tuteliq stores nothing between calls, a platform that wants to know how often one
+account tries to move conversations elsewhere can count `off_platform_request` across that
+account's conversations on its own side.
+
+The marks listed above are returned by the dedicated endpoints. `/analyse/multi` returns
+`minor_disclosure`, `minor_on_adult_platform_raised`, `pressed_after_objection_watched` and
+`ordinary_hyperbole_capped` in its per-detector results.
+
 ### Error response
 
 Every error uses the same envelope, and `request_id` is the value to quote in a support
@@ -189,7 +223,8 @@ everywhere is safe.
 | `age_group` | string | `"under 10"`, `"10-12"`, `"13-15"`, `"16-17"`, or `"under 18"`. Triggers age-calibrated severity scoring. `ageGroup` is accepted as a camelCase alias. |
 | `prior_messages` | array | Prior turns of the conversation, oldest first. Each needs `role` and `text`, with an optional ISO 8601 `timestamp`. Request-scoped: nothing here is retained after the call. `conversation_history` is accepted as a legacy alias. |
 | `country` | string | ISO 3166-1 alpha-2 code (e.g., `"GB"`, `"US"`, `"SE"`). Enables geo-localised crisis helpline data. Falls back to the account's country if omitted. |
-| `conversation_type` | string | The setting the conversation was captured in. Honoured by `/safety/bullying`, `/safety/grooming`, `/safety/unsafe`, `/safety/distress-signals`, `/safety/radicalisation`, `/safety/tfgbv`, `/safety/gambling-harm`, `/safety/vulnerability-exploitation`, `/fraud/social-engineering`, `/fraud/romance-scam`, `/fraud/app-fraud` and `/fraud/mule-recruitment`. Not currently honoured by `/safety/coercive-control`, which applies its own cap for third-party reporters instead. **Where the harm is discussed rather than enacted** (`fraud_report`, `abuse_report`, `support_disclosure`, `helpline`, `clinical`, `investigative`, `legal`, `advisory`, `training`, `journalism`, `research`, `moderation_review`), urgent routing is capped at `flag_for_review`. **Where the harm would be enacted in this exchange** (`direct_message`, `group_chat`, `public_post`, `customer_service`, `gaming_chat`), nothing is capped. Severity, risk score, categories and evidence are never altered by this field, so the audit trail still shows what was actually found; `conversation_type_applied` comes back when the setting changed routing, so you can confirm it was honoured rather than assume. An unrecognised value behaves exactly like omitting the field. Set this from your own platform configuration, never from end-user input. |
+| `conversation_type` | string | The setting the conversation was captured in, declared from your own platform configuration and never from end-user input. Honoured by every text detection endpoint: `/safety/bullying`, `/safety/grooming`, `/safety/unsafe`, `/safety/distress-signals`, `/safety/radicalisation`, `/safety/tfgbv`, `/safety/gambling-harm`, `/safety/coercive-control`, `/safety/vulnerability-exploitation`, `/fraud/social-engineering`, `/fraud/romance-scam`, `/fraud/app-fraud`, `/fraud/mule-recruitment` and `/analyse/multi`. Omit it and behaviour is unchanged; a value outside the supported list is rejected with a 400 that lists the supported values. See [Choosing a conversation setting](#choosing-a-conversation-setting) for what each setting does. |
+| `minor_disclosure_check` | boolean | Optional, off unless `true`. For platforms whose users are adults and which suspect some users get past their age verification. Runs only when the request declares an adult. See [Checking for a minor on an adult platform](#checking-for-a-minor-on-an-adult-platform). |
 | `sender_trust` | string | `"verified"`, `"trusted"`, or `"unknown"`. Verified senders suppress authority impersonation false positives. |
 | `sender_name` | string | Sender identifier, used alongside `sender_trust` for impersonation scoring. |
 | `relationship` | string | `/safety/bullying` only. Relationship between the participants, e.g. `"classmates"`. |
@@ -197,6 +232,150 @@ everywhere is safe.
 `/safety/grooming` does not take a flat `text` field and its context is different: pass
 `messages` with a `sender_role` per turn, and use `context.child_age` and
 `context.participant_age` rather than `age_group`. See [Grooming detection](/grooming-detection).
+
+### Choosing a conversation setting
+
+`context.conversation_type` tells the detectors where a conversation took place, so a
+fraud desk transcript is not read as the fraud itself and a dating chat between adults is
+not read as a chat with a child. Declare it from your platform configuration. You can also
+set an account-wide `default_conversation_type`; whenever a setting is in effect, the
+response names it in `conversation_type_in_effect` and says where it came from in
+`conversation_type_source` (`request` or `account_default`).
+
+| Group | Values | What it changes |
+|-------|--------|-----------------|
+| Where a person reports harm | `fraud_report`, `abuse_report`, `support_disclosure`, `helpline` | An urgent action is capped at `flag_for_review`, and `conversation_type_applied` comes back when that changed the action. A conversation in which the responsible party is already handling a person at risk, with nothing happening as the text is written, is kept at `monitor` and `protective_speech_capped` says so. Harm still going on is reported here, so it is still raised. |
+| Where harm is discussed rather than happening | `clinical`, `investigative`, `legal`, `advisory`, `training`, `journalism`, `research` | Everything in the row above. In addition, raises that apply whatever is happening are not applied, because the harm is the subject of the conversation rather than something being done in it. On gambling harm, mule recruitment and romance scam, a high score on a result that asks for nothing is brought into the low band (`risk_score_lowered`) instead of being raised to review. Harm happening now still reaches review. |
+| Moderation | `moderation_review` | An urgent action is capped at `flag_for_review`, as above. It is **not** a setting where harm is discussed: a moderator reviews content that may itself be the harm, so every raise still applies. |
+| A professional or a responsible adult | `healthcare`, `law_enforcement`, `education`, `family` | A responsible party already handling a person at risk, with nothing happening as the text is written, is kept at `monitor`. Urgent actions are not capped. In `education` and `family` this applies only when the speaker is not the person at risk: a young person speaking for themselves alerts as with no setting. |
+| A platform whose users are adults | `dating`, `adult_community`, `workplace` | See [Adult platforms](#adult-platforms) below. |
+| Ordinary settings | `direct_message`, `group_chat`, `public_post`, `customer_service`, `gaming_chat` | Nothing. They let you be precise rather than leave the field blank. |
+
+Three rules hold in every setting:
+
+- **Harm being done is never excused.** Harm done in the conversation, by anyone
+  including the responsible party, a person at risk with nobody acting, and anything acute
+  alert as they would with no setting.
+- **Harm happening now does not drop below review.** On social engineering, app fraud,
+  romance scam, mule recruitment, gambling harm and bullying, harm happening now to the
+  writer, or to a specific person the writer tells of, never ends below `flag_for_review`
+  because of a setting. `ongoing_harm_floor_applied` says when that held a result.
+- **A change is never silent.** When a setting changes a result, a response mark says so:
+  `conversation_type_applied`, `protective_speech_capped`, `risk_score_lowered` or
+  `ongoing_harm_floor_applied`, each with its reason where it has one.
+
+#### Adult platforms
+
+For an adult dating or social platform, declare `dating`. Use `adult_community` for an
+age-gated adult community, and `workplace` for a workplace tool.
+
+What `dating` and `adult_community` change:
+
+- A willing conversation between adults, with no sign that anyone is under 18 and nobody
+  pressured, is read as a conversation between adults. On `/safety/grooming` it is lowered
+  with `adult_exchange_capped`; on `/safety/unsafe` an ordinary remark about adult life that
+  shows no child is not sent for review (`no_child_shown_capped`).
+- With [`minor_disclosure_check`](#checking-for-a-minor-on-an-adult-platform) turned on, a
+  speaker who says they are under 18 raises a quiet result to `flag_for_review`.
+
+What they do not change:
+
+- No adult age is supplied to the detectors. Scams, coercion, threats, pressure and harm
+  happening now are read exactly as with no setting, and urgent actions are not capped.
+- A declared child beats the setting. A minor `age_group`, a child `sender_role` or a
+  `child_age` under 18 removes the adult audience from the request, and so does a speaker
+  stating an age under 18; `declared_age_overridden` tells you when that happened.
+
+`workplace` behaves the same way for reading adults as adults, but a minor found in a
+workplace conversation is reported without raising the result (see below).
+
+### Checking for a minor on an adult platform
+
+Some users get past age verification. Set `context.minor_disclosure_check` to `true` and
+Tuteliq also checks whether a speaker says they are under 18, on a request that declares
+an adult. It is off by default: omitted and `false` behave the same, and with it off
+nothing about a response changes.
+
+**When it runs.** Only when the request declares an adult and no child:
+
+- an adult `age_group`, such as `"18+"` or `"adult"`;
+- on `/safety/grooming`, `context.child_age` of 18 or over, or a `sender_age` of 18 or over
+  on every message;
+- or `conversation_type` `dating`, `adult_community` or `workplace`.
+
+**What it recognises.** A speaker who states an age under 18, or says so in other words:
+a school year, a parent's controls on their phone, a milestone such as being old enough to
+drive, or a description of their daily life that is only true of a child.
+
+**Where it is supported.** `/safety/bullying`, `/safety/grooming`, `/safety/unsafe`,
+`/safety/distress-signals`, `/safety/radicalisation`, `/safety/tfgbv`,
+`/safety/gambling-harm`, `/safety/coercive-control`, `/safety/vulnerability-exploitation`,
+`/fraud/social-engineering`, `/fraud/romance-scam`, `/fraud/app-fraud`,
+`/fraud/mule-recruitment` and `/analyse/multi`, where each detector's result carries the
+fields.
+
+**What a positive finding does.**
+
+1. The declared adult age and the adult-audience setting are not used for this request,
+   and `declared_age_overridden` is `true` with a `declared_age_overridden_reason`.
+2. `minor_disclosure` describes the finding (fields below).
+3. On `dating` or `adult_community`, a result that asked for `none` or `monitor` is raised
+   to `flag_for_review`, with the level at `medium` and the score in the review band, and
+   `minor_on_adult_platform_raised` is `true` with a reason naming the setting. A minor on
+   an adults-only platform is the incident in itself. It is never raised higher, and a
+   result already at review or above is left as it is.
+4. On `workplace`, or with an adult age group and no setting, the finding is reported but
+   nothing is raised. A 16- or 17-year-old can lawfully be at work, so a minor in a
+   workplace conversation is not by itself a breach of the platform's terms.
+
+**How this relates to `declared_age_overridden`.** A plainly stated minor age ("im 15")
+has always dropped a declared adult age, with or without this option, and
+`declared_age_overridden` reports it. With the option on, that case is also reported in
+`minor_disclosure` (with `evidence_type` `stated_age`) and raised on `dating` or
+`adult_community`, and minors who say it in other words are recognised as well.
+
+| `minor_disclosure` field | Type | Description |
+|-------|------|-------------|
+| `detected` | boolean | Always `true` when the object is present. |
+| `evidence_type` | string | What showed it: `stated_age`, `school_year`, `parental_control`, `age_milestone`, `life_stage` or `other`. |
+| `message_index` | integer | 0-based index into the turns read: `prior_messages` first, oldest first, and the submitted message last. On `/safety/grooming`, the index into `messages`. |
+| `suggested_age_group` | string | The value to send back as `context.age_group` on this user's later requests. Always a minor band: `under 18`, or `under 13`, `13-15` or `16-17` when the speaker stated an age. |
+| `reason` | string | Human-readable explanation. It never quotes the message. |
+
+`minor_disclosure` is absent when nothing was found, and never present on a request that
+declared no adult.
+
+```json
+{
+  "endpoint": "romance-scam",
+  "detected": false,
+  "level": "medium",
+  "risk_score": 0.55,
+  "recommended_action": "flag_for_review",
+  "declared_age_overridden": true,
+  "declared_age_overridden_reason": "The speaker says they are under 18, so the declared adult audience was not used.",
+  "minor_disclosure": {
+    "detected": true,
+    "evidence_type": "school_year",
+    "message_index": 2,
+    "suggested_age_group": "under 18",
+    "reason": "The speaker says in the latest message that they are under 18, by naming a school year that only children are in."
+  },
+  "minor_on_adult_platform_raised": true,
+  "minor_on_adult_platform_raised_reason": "The platform declared an adult audience (conversation_type \"dating\"), and the speaker says they are under 18: a minor on an adults-only platform. Sent for review so a person can check the account.",
+  "conversation_type_in_effect": "dating",
+  "conversation_type_source": "request"
+}
+```
+
+Tuteliq stores nothing about the user. To keep protecting them on later requests, your
+platform carries `suggested_age_group` forward; see
+[Carrying a signal forward](/composability#carrying-a-signal-forward).
+
+<Note>
+`minor_disclosure_check` is available on the REST API only for now. The MCP tools do not
+expose it yet.
+</Note>
 
 ### Carrying conversation state
 

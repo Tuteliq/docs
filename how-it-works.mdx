@@ -113,6 +113,8 @@ You can pass a `context` object with any detection request to improve accuracy:
 | `sender_trust` | `string` | `"verified"`, `"trusted"`, or `"unknown"`. Verified senders suppress impersonation flags. |
 | `sender_name` | `string` | Sender identifier (used with `sender_trust`). |
 | `country` | `string` | ISO 3166-1 alpha-2 code (e.g., `"GB"`, `"US"`, `"SE"`). Enables geo-localised crisis helpline data. Falls back to user profile country if omitted. |
+| `conversation_type` | `string` | The setting the conversation was captured in (for example `helpline`, `journalism`, `dating`). Declared from your platform configuration. See [Choosing a conversation setting](/api-reference/introduction#choosing-a-conversation-setting). |
+| `minor_disclosure_check` | `boolean` | Opt-in. On a request that declares an adult, also checks whether a speaker says they are under 18. See [Checking for a minor on an adult platform](/api-reference/introduction#checking-for-a-minor-on-an-adult-platform). |
 
 <Info>
 When `sender_trust` is `"verified"`, the API fully suppresses `AUTH_IMPERSONATION` — a verified sender cannot be impersonating an authority by definition. Routine urgency (schedules, deadlines) is also suppressed. Only genuinely malicious content (credential theft, phishing links, financial demands) will be flagged.

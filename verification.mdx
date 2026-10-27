@@ -357,6 +357,47 @@ if (identity.verified && !identity.is_minor) {
 }
 ```
 
+## Verification plans with a monthly allowance
+
+Some plans are sold as a monthly verification allowance, with verification packs you can
+buy on top. On these plans:
+
+- **The allowance is a hard limit.** Each month the included verifications are used
+  first, then purchased packs, oldest first. Packs carry over from month to month and do
+  not expire. Once both are used, new verifications are refused until the next period
+  starts or more are bought; nothing is billed as overage.
+- **The check happens when a verification starts**: when a cross-device session is
+  created, and on the direct submit routes. A refused request does no verification work
+  and is not counted. Sandbox keys count toward the allowance like any other key.
+- **The period is a calendar month** in the plan's timezone.
+- **Usage stays readable.** `GET` requests to `/api/v1/usage/*` are available on these
+  plans. `/api/v1/usage/monthly` adds a `verification` object for the current period:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `period` | string | The current period, as `YYYY-MM`. |
+| `usage_timezone` | string | The timezone the period is counted in. |
+| `next_period_start` | string | When the next period begins. |
+| `included_per_month` | number | Verifications included each month. |
+| `included_used` | number | Included verifications used this period. |
+| `pack_used` | number | Verifications taken from packs this period. |
+| `packs_remaining` | number | Verifications left across all purchased packs. |
+| `remaining` | number | Verifications left this period, included and packs together. |
+| `limit_reached` | boolean | `true` when nothing is left. |
+| `total` | number | Verifications completed this period. |
+| `in_progress` | number | Verifications started and not finished yet. They count against the allowance. |
+| `sandbox_count` | number | Verifications this period made with sandbox keys. |
+| `by_key` | object | Completed and sandbox counts per API key. |
+
+Endpoints outside verification and usage return `403` with `SUB_7006` on these plans.
+
+### Redirect URLs must use https
+
+The redirect URL a user returns to after a hosted verification is set in the dashboard,
+for the account or per API key. It must use `https`. If it does not, creating a
+verification session is refused with `VERIFY_11011` (403), and the message says which
+setting to update.
+
 ## Error handling
 
 Verification errors use the `VERIFY_11xxx` code range:
@@ -373,9 +414,11 @@ Verification errors use the `VERIFY_11xxx` code range:
 | `VERIFY_11008` `VERIFY_SESSION_INVALID_TOKEN` | 401 | Session token invalid — recreate the session, do not replay |
 | `VERIFY_11009` `VERIFY_SESSION_ALREADY_USED` | 409 | Session token already consumed |
 | `VERIFY_11010` `VERIFY_SESSION_WRONG_STATE` | 409 | Session not in the right state for this call |
-| `VERIFY_11011` `VERIFY_NOT_ENABLED` | 403 | Verification not provisioned for this account |
+| `VERIFY_11011` `VERIFY_NOT_ENABLED` | 403 | Verification not provisioned for this account, or the configured redirect URL does not use `https` |
 | `VERIFY_11012` `VERIFY_IDENTITY_NOT_ENABLED` | 403 | Identity mode requires the Assure plan or above |
 | `VERIFY_11013` `VERIFY_NO_COUNTRY_FOUND` | 400 | Country could not be inferred — pass `country_code` explicitly |
+| `VERIFY_11014` | 402 | The monthly verification allowance, including purchased packs, is used up. `details` gives `period`, `next_period_start` and `buy_credits_url`. See [above](#verification-plans-with-a-monthly-allowance) |
+| `VERIFY_11015` | 503 | The allowance could not be checked. Temporary: retry after the `Retry-After` interval |
 
 ```bash cURL example error response
 {
