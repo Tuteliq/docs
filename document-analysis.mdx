@@ -249,7 +249,7 @@ sha256:a1b2c3d4e5f6789...
 |-------|-------|
 | Max file size | 50 MB |
 | Max pages | 100 |
-| Supported formats | PDF only (`application/pdf`) |
+| Supported formats | PDF, PNG, JPEG and WebP, identified by the file's content rather than its declared type |
 | Min text per page | 20 characters (pages below this are skipped) |
 | Concurrency | 3 pages analyzed simultaneously |
 
@@ -264,5 +264,5 @@ Document analysis is available on **Build** and above.
 | `ANALYSIS_6010` | PDF extraction failed (corrupt or password-protected file) |
 | `ANALYSIS_6011` | Document exceeds 100-page limit |
 | `FILE_MISSING` | No file uploaded |
-| `FILE_INVALID_TYPE` | Non-PDF file uploaded |
+| `FILE_INVALID_TYPE` | The file is not a PDF, PNG, JPEG or WebP, whatever its declared type |
 | `FILE_TOO_LARGE` | File exceeds 50 MB |
