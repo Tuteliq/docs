@@ -113,6 +113,20 @@ stable enum, weakest to strongest: `none`, `monitor`, `flag_for_review`, `block`
 `immediate_intervention`. Prefer it to the verdict boolean, which fires at any severity
 including low-severity cases you probably only want to log.
 
+Take automated action at `flag_for_review` and above. `monitor` means keep the content
+visible and do nothing yet. It is common on ordinary conversations, especially on the fraud
+and coercive control routes, so an integration that acts on anything other than `none` will
+act on many harmless conversations.
+
+<Note>
+**A retried request can return a different result.** The analysis reads meaning, not
+keywords, and on a case close to a decision boundary the same input can come back one
+routing step apart on a repeat call. Cases clearly on one side are stable, and results
+measured across many cases are stable. Act on the first answer you receive; a retry is not
+a second opinion, and taking the stronger or weaker of two calls skews your results in that
+direction.
+</Note>
+
 ### Response marks
 
 When a step after the analysis changes a result, the response carries a mark that says so.
