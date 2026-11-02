@@ -71,6 +71,7 @@ A completed, successful age-mode session has this shape:
 {
   "session_id": "string",
   "status": "string (one of: pending, in_progress, completed, failed, expired, cancelled)",
+  "verification_mode": "string (full or liveness_only)",
   "result": {
     "status": "string (one of: verified, failed, needs_review)",
     "age": 0,
@@ -637,6 +638,13 @@ curl https://api.tuteliq.ai/api/v1/verify/session/$SESSION_ID \
   -H "Authorization: Bearer $TUTELIQ_API_KEY"
 ```
 </CodeGroup>
+
+`verification_mode` reports the check that was actually performed, not the mode requested
+when the session was created: `full` is a document and a live face, `liveness_only` is a
+live face alone. It appears once the session has a result. A session created as
+liveness-only that falls back to a document check reports `full`, because a document was
+checked. The `verification.completed`
+webhook carries the same field in `data.verification`.
 
 ## Step 4: Read the final result
 
