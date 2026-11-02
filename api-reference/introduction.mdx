@@ -113,18 +113,31 @@ stable enum, weakest to strongest: `none`, `monitor`, `flag_for_review`, `block`
 `immediate_intervention`. Prefer it to the verdict boolean, which fires at any severity
 including low-severity cases you probably only want to log.
 
-Take automated action at `flag_for_review` and above. `monitor` means keep the content
-visible and do nothing yet. It is common on ordinary conversations, especially on the fraud
-and coercive control routes, so an integration that acts on anything other than `none` will
-act on many harmless conversations.
+Map each action to a tier, and take nothing below `flag_for_review` as grounds to act:
+
+| `recommended_action` | What to do |
+|---|---|
+| `none` | Nothing. |
+| `monitor` | Keep the content visible and log the result. No human and no action are needed. On grooming the log is what lets a pattern across a conversation be seen, so keep it. |
+| `flag_for_review` | Route to a moderator. This is the human review tier, not automated enforcement. |
+| `block` | Withhold or limit the content pending review. This is the tier for automated action. |
+| `immediate_intervention` | Crisis path: preserve evidence and follow your reporting procedure. |
+
+`monitor` is common on ordinary conversations, especially on the fraud and coercive control
+routes, so an integration that acts on anything other than `none` acts on many harmless
+conversations.
 
 <Note>
-**A retried request can return a different result.** The analysis reads meaning, not
-keywords, and on a case close to a decision boundary the same input can come back one
-routing step apart on a repeat call. Cases clearly on one side are stable, and results
-measured across many cases are stable. Act on the first answer you receive; a retry is not
-a second opinion, and taking the stronger or weaker of two calls skews your results in that
-direction.
+**Repeating a request that already succeeded can return a different result.** This is
+about calling again after a `200`. Retrying after an error or a timeout (a `429` or a `5xx`)
+is normal and safe, as [Error handling](/error-handling) describes.
+
+The analysis reads meaning, not keywords, and on a case close to a decision boundary the
+same input can come back one routing step apart. Cases clearly on one side are stable, and
+results measured across many cases are stable. There is no need to repeat a successful
+call, and each repeat is billed as a new request. If you do repeat one, keep the stronger
+of the two results: a first answer is not guaranteed to be the safest, and on the child
+safety routes a stronger result should never be discarded.
 </Note>
 
 ### Response marks
