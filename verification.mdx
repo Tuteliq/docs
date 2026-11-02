@@ -404,7 +404,7 @@ Verification errors use the `VERIFY_11xxx` code range:
 
 | Code | HTTP | Description |
 |------|------|-------------|
-| `VERIFY_11001` `VERIFY_OCR_FAILED` | 500 | OCR could not extract text from the document — retake under better lighting / less glare |
+| `VERIFY_11001` `VERIFY_OCR_FAILED` | 500 | Reserved; not currently returned. An unreadable document comes back as a result with `failure_reasons` |
 | `VERIFY_11002` `VERIFY_NO_DOB_FOUND` | 400 | Date of birth could not be extracted — try a clearer page / different document |
 | `VERIFY_11003` `VERIFY_FACE_NOT_DETECTED` | 400 | No face detected in the selfie or document portrait |
 | `VERIFY_11004` `VERIFY_FACE_MISMATCH` | 400 | Selfie does not match the document portrait |
@@ -416,7 +416,7 @@ Verification errors use the `VERIFY_11xxx` code range:
 | `VERIFY_11010` `VERIFY_SESSION_WRONG_STATE` | 400 | Session not in the right state for this call |
 | `VERIFY_11011` `VERIFY_NOT_ENABLED` | 403 | Verification not provisioned for this account, or the configured redirect URL does not use `https` |
 | `VERIFY_11012` `VERIFY_IDENTITY_NOT_ENABLED` | 403 | Identity mode requires the Assure plan or above |
-| `VERIFY_11013` `VERIFY_NO_COUNTRY_FOUND` | 400 | Country could not be inferred — pass `country_code` explicitly |
+| `VERIFY_11013` `VERIFY_NO_COUNTRY_FOUND` | 400 | Reserved; not currently returned |
 | `VERIFY_11014` | 402 | The monthly verification allowance, including purchased packs, is used up. `details` gives `period`, `next_period_start` and `buy_credits_url`. See [above](#verification-plans-with-a-monthly-allowance) |
 | `VERIFY_11015` | 503 | The allowance could not be checked. Temporary: retry after the `Retry-After` interval |
 

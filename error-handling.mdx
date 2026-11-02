@@ -106,7 +106,7 @@ Age and identity verification return codes in the `VERIFY_11xxx` range. They are
 
 | Code | HTTP | Description |
 |------|------|-------------|
-| `VERIFY_11001` | 500 | Text could not be read from the document image. Retake the photo in good light, in focus, with the text clearly visible. |
+| `VERIFY_11001` | 500 | Reserved; the API does not currently return it. A document that cannot be read comes back as a verification result with `failure_reasons`, not as an error. |
 | `VERIFY_11002` | 400 | No date of birth could be read from the document. Use a document that shows the date of birth clearly. |
 | `VERIFY_11003` | 400 | No face was found in the selfie or the document portrait. |
 | `VERIFY_11004` | 400 | The face on the document does not match the selfie. |
@@ -118,7 +118,7 @@ Age and identity verification return codes in the `VERIFY_11xxx` range. They are
 | `VERIFY_11010` | 400 | The session is not in the right state for this call, for example already submitted or cancelled. |
 | `VERIFY_11011` | 403 | Verification is not enabled for your account, or the configured verification redirect URL does not use `https`. |
 | `VERIFY_11012` | 403 | Identity verification requires the Assure plan or above. |
-| `VERIFY_11013` | 400 | The country could not be read from the document. |
+| `VERIFY_11013` | 400 | Reserved; the API does not currently return it. |
 
 ### Verification allowance (VERIFY_110xx)
 
@@ -156,7 +156,7 @@ Not all errors should be retried. Here's a guide:
 | `NF_*` | No | Check the endpoint URL or resource ID |
 | `ANALYSIS_6001`, `6006`, `6007` | Yes | Retry once after a short delay |
 | `SUB_7005` | No | Purchase more credits |
-| `VERIFY_11001`–`11005`, `VERIFY_11013` | No | Retake the photo or use a clearer document; retrying the same images gives the same result |
+| `VERIFY_11002`–`11005` | No | Retake the photo or use a clearer document; retrying the same images gives the same result |
 | `VERIFY_11006`–`11010` | No | Create a new verification session |
 | `VERIFY_11011`, `VERIFY_11012` | No | Enable verification or fix the redirect URL in the dashboard, or upgrade your plan |
 | `VERIFY_11014` | No | Buy more verifications, or wait for `next_period_start` |

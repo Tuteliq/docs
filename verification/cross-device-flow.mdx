@@ -736,11 +736,12 @@ import express from "express";
 const app = express();
 const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY! });
 
-// Step 1: client asks for a session
+// Step 1: the signed-in page asks for a session
 app.post("/verify/start", async (req, res) => {
   const session = await tuteliq.createVerificationSession({ mode: "age" });
-  // Keep the link between the session and your user on your side
-  await saveVerificationSession(req.user.id, session.session_id);
+  // Key the record by the session ID, not by the user: a retry or a second tab
+  // creates a new session and must not overwrite the first one.
+  await saveVerificationSession(session.session_id, req.user.id);
   res.json({
     sessionId: session.session_id,
     url: session.mobile_url,
@@ -748,21 +749,30 @@ app.post("/verify/start", async (req, res) => {
   });
 });
 
-// Step 2 + 3: client opens the URL (webview, QR, redirect)
-//             and subscribes to SSE on session.session_id
+// Step 2 + 3: the page shows the URL (QR code or link) and keeps the session ID
+//             it was given, listening on SSE or polling the route below.
 
-// Step 4: webhook OR the return page reads the result.
-// The return address is set in the dashboard; Tuteliq adds age_verified=true, not the session ID.
-app.get("/verify/done", async (req, res) => {
-  const sessionId = await loadVerificationSession(req.user.id);
-  const result = await tuteliq.getVerificationSession(sessionId);
+// Step 4: the page that started the session asks for the result by its own session ID.
+// It is the signed-in device, so req.user is set; the phone may not be signed in at all.
+app.get("/verify/status/:sessionId", async (req, res) => {
+  const owner = await loadVerificationSessionOwner(req.params.sessionId);
+  if (owner !== req.user.id) return res.sendStatus(404);
 
-  if (result.status === "completed" && result.result?.is_minor === false) {
-    // Allow the user into the age-gated area
-    res.redirect("/welcome");
-  } else {
-    res.redirect("/verify-failed");
+  const result = await tuteliq.getVerificationSession(req.params.sessionId);
+  if (result.status !== "completed" && result.status !== "failed") {
+    return res.json({ done: false });
   }
+  const allowed = result.status === "completed" && result.result?.is_minor === false;
+  if (allowed) await markAgeVerified(req.user.id);
+  res.json({ done: true, allowed });
+});
+
+// The return address set in the dashboard is where the phone lands when it finishes.
+// It carries age_verified=true but no session ID, and the phone may have no session on
+// your site, so this page decides nothing: it tells the person to go back to the
+// device they started on, where the route above has the result.
+app.get("/verify/done", (_req, res) => {
+  res.send("Done. You can return to the page where you started.");
 });
 
 app.listen(3000);
