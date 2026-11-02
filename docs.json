@@ -62,7 +62,14 @@
               "authentication",
               "how-it-works",
               "comparison",
-              "benchmarks",
+              {
+                "group": "Benchmarks",
+                "pages": [
+                  "benchmarks",
+                  "benchmarks/scamlingua",
+                  "benchmarks/sito"
+                ]
+              },
               "gaming-chat-moderation",
               "ai-agents",
               "credits",
