@@ -413,7 +413,7 @@ Verification errors use the `VERIFY_11xxx` code range:
 | `VERIFY_11007` `VERIFY_SESSION_EXPIRED` | 410 | Session past TTL — recreate the session |
 | `VERIFY_11008` `VERIFY_SESSION_INVALID_TOKEN` | 401 | Session token invalid — recreate the session, do not replay |
 | `VERIFY_11009` `VERIFY_SESSION_ALREADY_USED` | 409 | Session token already consumed |
-| `VERIFY_11010` `VERIFY_SESSION_WRONG_STATE` | 409 | Session not in the right state for this call |
+| `VERIFY_11010` `VERIFY_SESSION_WRONG_STATE` | 400 | Session not in the right state for this call |
 | `VERIFY_11011` `VERIFY_NOT_ENABLED` | 403 | Verification not provisioned for this account, or the configured redirect URL does not use `https` |
 | `VERIFY_11012` `VERIFY_IDENTITY_NOT_ENABLED` | 403 | Identity mode requires the Assure plan or above |
 | `VERIFY_11013` `VERIFY_NO_COUNTRY_FOUND` | 400 | Country could not be inferred — pass `country_code` explicitly |

@@ -100,19 +100,25 @@ All Tuteliq API errors return a consistent JSON structure with a machine-readabl
 | `GDPR_8009` | 400 | Invalid consent type |
 | `GDPR_8010` | 403 | Required consent not granted |
 
-### Verification (VRF_9xxx)
+### Verification (VERIFY_11xxx)
+
+Age and identity verification return codes in the `VERIFY_11xxx` range. They are also listed, with guidance, on [Age and identity verification](/verification).
 
 | Code | HTTP | Description |
 |------|------|-------------|
-| `VRF_9001` | 400 | Document image is required |
-| `VRF_9002` | 400 | Document image is unreadable or too low quality |
-| `VRF_9003` | 400 | Unsupported document type |
-| `VRF_9004` | 400 | Selfie image is required for liveness check |
-| `VRF_9005` | 400 | Face not detected in selfie |
-| `VRF_9006` | 400 | Liveness check failed — possible spoofing detected |
-| `VRF_9007` | 500 | Verification service error |
-| `VRF_9008` | 403 | Age verification not available on your plan (requires Assure) |
-| `VRF_9009` | 403 | Identity verification not available on your plan (requires Assure) |
+| `VERIFY_11001` | 500 | Text could not be read from the document image. Retake the photo in good light, in focus, with the text clearly visible. |
+| `VERIFY_11002` | 400 | No date of birth could be read from the document. Use a document that shows the date of birth clearly. |
+| `VERIFY_11003` | 400 | No face was found in the selfie or the document portrait. |
+| `VERIFY_11004` | 400 | The face on the document does not match the selfie. |
+| `VERIFY_11005` | 400 | The liveness check failed. Take a live photo, not a screenshot or a photo of a photo. |
+| `VERIFY_11006` | 404 | Verification session not found. |
+| `VERIFY_11007` | 410 | Verification session expired. Create a new session. |
+| `VERIFY_11008` | 401 | Invalid session token. Create a new session; do not replay the token. |
+| `VERIFY_11009` | 409 | The verification session has already been used. |
+| `VERIFY_11010` | 400 | The session is not in the right state for this call, for example already submitted or cancelled. |
+| `VERIFY_11011` | 403 | Verification is not enabled for your account, or the configured verification redirect URL does not use `https`. |
+| `VERIFY_11012` | 403 | Identity verification requires the Assure plan or above. |
+| `VERIFY_11013` | 400 | The country could not be read from the document. |
 
 ### Verification allowance (VERIFY_110xx)
 
@@ -150,9 +156,9 @@ Not all errors should be retried. Here's a guide:
 | `NF_*` | No | Check the endpoint URL or resource ID |
 | `ANALYSIS_6001`, `6006`, `6007` | Yes | Retry once after a short delay |
 | `SUB_7005` | No | Purchase more credits |
-| `VRF_9001`–`9006` | No | Fix the request (image quality, document type, selfie) |
-| `VRF_9007` | Yes | Retry once after a short delay |
-| `VRF_9008`, `VRF_9009` | No | Upgrade your plan |
+| `VERIFY_11001`–`11005`, `VERIFY_11013` | No | Retake the photo or use a clearer document; retrying the same images gives the same result |
+| `VERIFY_11006`–`11010` | No | Create a new verification session |
+| `VERIFY_11011`, `VERIFY_11012` | No | Enable verification or fix the redirect URL in the dashboard, or upgrade your plan |
 | `VERIFY_11014` | No | Buy more verifications, or wait for `next_period_start` |
 | `VERIFY_11015` | Yes | Wait for the `Retry-After` header value, then retry |
 

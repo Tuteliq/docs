@@ -225,13 +225,11 @@ const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY });
 const session = await tuteliq.createVerificationSession({
   mode: "age",                    // "age" or "identity"
   document_type: "passport",      // optional hint
-  external_id: "user-12345",      // optional; lets you correlate to your own user
-  redirect_url: "https://yourapp.com/verify/done",  // optional; user returns here after completion
 });
 
 console.log(session.session_id);  // "sess_a1b2c3d4..."
-console.log(session.url);         // mobile-ready URL with one-time token
-console.log(session.expires_at);  // ISO 8601, typically 15 minutes from creation
+console.log(session.mobile_url);  // mobile-ready URL with a single-use token
+console.log(session.expires_at);  // Unix millisecond timestamp, 30 minutes from creation
 ```
 
 ```python Python
@@ -242,8 +240,6 @@ client = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
 session = client.create_verification_session(
     mode="age",                       # "age" or "identity"
     document_type="passport",         # optional
-    external_id="user-12345",         # optional
-    redirect_url="https://yourapp.com/verify/done",  # optional
 )
 
 print(session.session_id)
@@ -257,8 +253,7 @@ curl -X POST https://api.tuteliq.ai/api/v1/verify/session \
   -H "Content-Type: application/json" \
   -d '{
     "mode": "age",
-    "document_type": "passport",
-    "external_id": "user-12345"
+    "document_type": "passport"
   }'
 ```
 </CodeGroup>
@@ -274,7 +269,15 @@ curl -X POST https://api.tuteliq.ai/api/v1/verify/session \
 }
 ```
 
-`expires_at` is a Unix millisecond timestamp; sessions are valid for 15 minutes after creation. The `mobile_url` is single-use and tied to the session. Tokens are revoked the moment the session completes, fails, or expires.
+`expires_at` is a Unix millisecond timestamp; sessions are valid for 30 minutes after creation. The `mobile_url` is single-use and tied to the session. Tokens are revoked the moment the session completes, fails, or expires.
+
+The request body accepts `mode` and `document_type` only. Keep the link between a session and your own user on your side: store the `session_id` you get back against your user before you hand out the `mobile_url`.
+
+### Where the user returns after verification
+
+The return address is not set per request. Set it in the dashboard, under the verification settings, for your account or for an individual API key (a key without its own value uses the account's). There is one address for age verification and one for identity verification, and it must use `https`; otherwise session creation is refused with `VERIFY_11011`.
+
+When an address is set, the hosted page shows the user a **Return to** link to it once they have submitted. Tuteliq adds `age_verified=true` (age mode) or `identity_verified=true` (identity mode) to the address so your page can check the session right away. The session ID is not added: look the session up from what you stored when you created it. The link means the user finished the steps, not that they passed; always read the result from your server.
 
 ### Modes and tier availability
 
@@ -541,11 +544,11 @@ import QRCode from "qrcode";
 const session = await tuteliq.createVerificationSession({ mode: "age" });
 
 // Render the QR code in your UI
-const qrSvg = await QRCode.toString(session.url, { type: "svg" });
+const qrSvg = await QRCode.toString(session.mobile_url, { type: "svg" });
 res.send(`
   <h1>Scan this code with your phone</h1>
   ${qrSvg}
-  <p>Session expires in 15 minutes.</p>
+  <p>Session expires in 30 minutes.</p>
 `);
 
 // In parallel, subscribe to SSE so the desktop UI updates the moment
@@ -561,14 +564,16 @@ Best for low-friction onboarding flows where the user is already on mobile in yo
 ```typescript Node
 const session = await tuteliq.createVerificationSession({
   mode: "age",
-  redirect_url: "https://yourapp.com/verify/complete?session_id=" + sessionId,
 });
 
-res.redirect(session.url);
-// After completion, Tuteliq redirects the user to redirect_url
+// Remember which session belongs to this user before sending them away
+await saveVerificationSession(req.user.id, session.session_id);
+
+res.redirect(session.mobile_url);
+// After submitting, the user taps "Return to" and lands on the address set in the dashboard
 ```
 
-The user is sent away to Tuteliq's capture UI; on completion, they're redirected back to your `redirect_url`. Your `redirect_url` handler then calls your backend to read the result.
+The user is sent away to Tuteliq's capture UI; once they have submitted, the page shows a link back to the return address set in the dashboard (see [Where the user returns after verification](#where-the-user-returns-after-verification)). Your return page looks up the session you stored for that user and reads the result from your backend.
 
 ## Step 3: Watch status updates
 
@@ -677,11 +682,11 @@ Compared with age mode, identity mode returns the full `full_name` and `date_of_
 
 | Status | Meaning | What to do |
 |---|---|---|
-| `pending` | Session created, user has not opened the URL yet | Wait. The session is valid for 15 minutes. |
+| `pending` | Session created, user has not opened the URL yet | Wait. The session is valid for 30 minutes. |
 | `in_progress` | User has opened the URL and is mid-capture | Show "verification in progress" to the user. Optionally use the `progress` SSE event to display step-by-step UI. |
 | `completed` | Verification finished, result available | Read the result and gate access accordingly. |
 | `failed` | Verification ran but the user failed (bad liveness, document mismatch, etc.) | Read `failure_reasons` array for the specific issue. Offer the user to retry with a fresh session. |
-| `expired` | 15 minutes elapsed without the user finishing | Create a new session and try again. |
+| `expired` | 30 minutes elapsed without the user finishing | Create a new session and try again. |
 | `cancelled` | Your server called `DELETE /api/v1/verify/session/:id`, or the user closed the mobile UI | Optionally create a new session. |
 
 ## Common pitfalls
@@ -709,7 +714,7 @@ Only the API key that created a session can call `GET /api/v1/verify/session/:id
 
 ### Session expiry
 
-Sessions expire 15 minutes after creation. If the user is slow, give them a fresh session rather than extending the old one; the expiry is a security feature, not a quota.
+Sessions expire 30 minutes after creation. If the user is slow, give them a fresh session rather than extending the old one; the expiry is a security feature, not a quota.
 
 ### Zero retention
 
@@ -733,14 +738,12 @@ const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY! });
 
 // Step 1: client asks for a session
 app.post("/verify/start", async (req, res) => {
-  const session = await tuteliq.createVerificationSession({
-    mode: "age",
-    external_id: req.body.userId,
-    redirect_url: `https://yourapp.com/verify/done?user=${req.body.userId}`,
-  });
+  const session = await tuteliq.createVerificationSession({ mode: "age" });
+  // Keep the link between the session and your user on your side
+  await saveVerificationSession(req.user.id, session.session_id);
   res.json({
     sessionId: session.session_id,
-    url: session.url,
+    url: session.mobile_url,
     expiresAt: session.expires_at,
   });
 });
@@ -748,9 +751,10 @@ app.post("/verify/start", async (req, res) => {
 // Step 2 + 3: client opens the URL (webview, QR, redirect)
 //             and subscribes to SSE on session.session_id
 
-// Step 4: webhook OR redirect handler reads the result
+// Step 4: webhook OR the return page reads the result.
+// The return address is set in the dashboard; Tuteliq adds age_verified=true, not the session ID.
 app.get("/verify/done", async (req, res) => {
-  const sessionId = req.query.session_id as string;
+  const sessionId = await loadVerificationSession(req.user.id);
   const result = await tuteliq.getVerificationSession(sessionId);
 
   if (result.status === "completed" && result.result?.is_minor === false) {
