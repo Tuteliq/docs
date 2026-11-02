@@ -1,0 +1,115 @@
+---
+title: ScamLingua independent evaluation (Phase 1)
+description: An unpaid, independent evaluation by Carl Lochstampfor (ScamLingua) of five Tuteliq text detections on synthetic English conversations, with its strengths, weaknesses and limits, and links to the original reports.
+keywords: [independent evaluation, ScamLingua, romance scam detection, social engineering detection, coercive control detection, bullying detection, self-harm detection]
+---
+
+# ScamLingua independent evaluation (Phase 1)
+
+In October 2026, Carl Lochstampfor of ScamLingua tested five of Tuteliq's text detections from the outside, using test conversations that he wrote and that Tuteliq had not seen. This page explains in plain words what was tested and what was found, including where Tuteliq fell short. For the full figures, read the original reports.
+
+<Note>
+**Correction issued on October 28, 2026.** After the reports were published, ScamLingua issued an erratum that corrects the social engineering figures. Use the corrected figures in the erratum. See [The social engineering correction](#the-social-engineering-correction) below.
+</Note>
+
+## The original reports
+
+- [Evaluations page on scamlingua.org](https://scamlingua.org/#evaluations)
+- [Public summary](https://scamlingua.org/reports/Tuteliq_Evaluation_Summary_Public_Final_2026-10-26_v1.0.pdf) (PDF, 8 pages, version 1.0, October 26, 2026)
+- [Full report](https://scamlingua.org/reports/Tuteliq_Evaluation_Report_Full_Final_2026-10-26_v1.0.pdf) (PDF, 36 pages, version 1.0, October 26, 2026)
+- [Erratum v1.1](https://scamlingua.org/reports/Tuteliq_Phase1_Erratum_v1.1_2026-10-28.pdf) (PDF, 1 page, October 28, 2026)
+
+## Who ran it
+
+- **Lead evaluator:** Carl Lochstampfor, an undergraduate student in cybersecurity at Old Dominion University. ScamLingua is his research project on detecting scams and online harm in conversations.
+- **Second evaluator:** Dr. Ayan Roy of Christopher Newport University, who checked a sample of the test labels "blind", meaning without seeing which answer was intended.
+- **Independence:** Carl Lochstampfor designed, ran and scored the evaluation. Tuteliq gave access to its evaluation harness (the tool Tuteliq uses to run outside evaluators' test sets through its API) and reviewed the reports for factual accuracy only. Tuteliq had no role in the test design, the scoring or the conclusions, and did not see any test conversation before the test sets were fixed.
+- **Funding:** the reports state that the evaluation was unpaid, and that Tuteliq has not paid for it or for any of its content.
+- **What it is not:** the reports state that this is not an accreditation, certification or audit of Tuteliq.
+
+### How this relates to COVA-X
+
+COVA-X is a separate ScamLingua dataset of synthetic scam conversations. This evaluation did **not** use COVA-X. Its test conversations were written new for this evaluation, across five harm categories. The reports describe the evaluation as building on earlier work auditing and refining the COVA and COVA-X datasets.
+
+## What was tested
+
+This was a **black-box** evaluation: it tested how Tuteliq behaves from the outside, with no access to how it works inside. The version tested was detector `tuteliq-detect-v5.20261015`, on October 19, 2026.
+
+Five of Tuteliq's text detections were tested on 1,344 synthetic test cases, mostly whole conversations plus some single messages:
+
+- Romance scams
+- Social engineering
+- Coercive control
+- Bullying
+- Self-harm and emotional distress
+
+**Not tested:** grooming, money-mule recruitment and Tuteliq's other detections; languages other than English; and images, audio and video. No result here covers them. No child sexual abuse material was used under any circumstances.
+
+### How the test conversations were made
+
+All conversations are **synthetic**: text-message exchanges written by an AI language model running on the evaluator's own computers. No real person's messages were used. Each harmful pattern is based on published research or official guidance.
+
+Each category includes plainly harmful conversations, harmful conversations written to hide or disguise the harm, ordinary harmless conversations, and harmless conversations built to look suspicious. Before testing, each set was checked and read by hand, then "frozen": every file was fingerprinted so that any later change would show.
+
+### What was measured
+
+The reports focus on two things for each category:
+
+- **Detection:** how many of the harmful conversations Tuteliq caught.
+- **False alarms:** how many of the harmless conversations Tuteliq wrongly flagged.
+
+## What the evaluation found
+
+The reports describe the results as:
+
+> "Results for Tuteliq (detector version tuteliq-detect-v5.20261015, tested October 19, 2026) from an independent evaluation by Carl Lochstampfor on synthetic conversations. Tuteliq reviewed the report for factual accuracy only; the scoring and conclusions are the author's."
+
+**Strengths**
+
+- Romance scams, coercive control and self-harm were the strongest categories, with high detection and few false alarms.
+- Detection held up on conversations written to hide or disguise the harm. As the report puts it: "Probes designed by the evaluator; evasion in real conversations may differ."
+
+**Weaknesses**
+
+- Social engineering was the weakest category, with the lowest detection and the most false alarms.
+- Bullying was also detected less often than the strongest categories.
+
+The reports give the figures behind each finding, results for each type of scam or harm, and five recommendations to Tuteliq. See the [full report](https://scamlingua.org/reports/Tuteliq_Evaluation_Report_Full_Final_2026-10-26_v1.0.pdf) and the [erratum](https://scamlingua.org/reports/Tuteliq_Phase1_Erratum_v1.1_2026-10-28.pdf).
+
+## Limits of this evaluation
+
+The reports list these limits. The results describe this detector version on these synthetic conversations, not performance on real platform traffic.
+
+- **Synthetic data.** All conversations come from one AI model. Real conversations are messier and more varied.
+- **Short conversations.** The test conversations are much shorter than real romance scams, which can run for weeks.
+- **Small subgroups.** Each category has a few hundred conversations, so results for smaller groups within a category are less certain.
+- **Ages not stated.** The conversations do not say how old the speakers are, so the results describe detection in general, not for children specifically.
+- **English text only.** Other languages, other harm categories, images, audio and video were not tested.
+- **Real platforms have less harm.** About half the test conversations were harmful. On real platforms, harm is rare, so a larger share of flags would be false alarms than this test mix suggests.
+- **No compliance assessment.** The evaluation does not assess or validate regulatory compliance by Tuteliq or any platform.
+- **Future retests need new data.** After the evaluation, Tuteliq was given permission to use the test conversations for internal testing. The report says any future independent retest of Tuteliq should therefore use new, unseen conversations.
+
+## The social engineering correction
+
+On October 28, 2026, ScamLingua published an erratum (version 1.1). A label review of the social engineering category found that a few conversations labelled harmless contained requests that harmless conversations were designed not to include. These should have been labelled social engineering, and the erratum gives corrected figures for that category.
+
+The erratum states that all other categories and figures are unchanged, that social engineering remains the weakest category, and that the reports' conclusions and recommendations stand.
+
+## How to quote these results
+
+The reports set rules for quoting their figures. In short:
+
+- Always include the standard qualifier given in the reports' claims register.
+- Quote a category's detection rate only together with that category's false alarm rate.
+- Do not combine the categories into one overall detection or accuracy rate.
+- Do not make claims about real platform traffic, other languages, images, audio or video, or Tuteliq's other detections.
+- Do not describe the evaluation as a certification, accreditation, audit or compliance assessment.
+- Do not quote the strengths without the weaknesses.
+
+Use the corrected social engineering figures from the erratum. The full rules are in the claims register at the end of each report.
+
+## Related
+
+- [Benchmarks and accuracy](/benchmarks)
+- [SITO research paper](/benchmarks/sito)
+- [Bullying and toxicity detection](/bullying-toxicity-detection)

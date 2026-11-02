@@ -1,0 +1,110 @@
+---
+title: SITO research paper
+description: A research paper by Andrii Tuzhykov that tested six Tuteliq detections on synthetic cases in English, Ukrainian and mixed Ukrainian, measuring both missed harm and false flags, with links to the paper and data.
+keywords: [SITO benchmark, independent evaluation, false positives, Ukrainian content moderation, Surzhyk, fraud detection, money mule detection, gambling harm detection]
+---
+
+# SITO research paper
+
+SITO is a test set, and a research paper about it, that measures two ways a safety system can fail: **missing harm**, and **flagging harmless messages**. The paper used it to test six of Tuteliq's detections in English, Ukrainian and mixed Ukrainian. This page explains in plain words what was tested and what was found, including where Tuteliq fell short. For the full figures, read the paper.
+
+The name stands for "Synthetic Independent Text-safety benchmark with Overflagging tests". *Sito* is Ukrainian for "sieve".
+
+## The original paper
+
+- [SITO on arXiv](https://arxiv.org/abs/2610.27178) (arXiv:2610.27178, version 1, October 19, 2026)
+- [Paper as PDF](https://arxiv.org/pdf/2610.27178)
+- [SITO data and code on Hugging Face](https://huggingface.co/datasets/Improve-IT-Solutions/SITO) (access on request)
+
+arXiv is a public archive where researchers share research papers.
+
+## Who ran it and who paid
+
+- **Author:** Andrii Tuzhykov, AI/ML consultant and PhD researcher at the State Institution South Ukrainian National Pedagogical University named after K. D. Ushynsky.
+- **Commissioned and funded by:** ImproveIT Solutions.
+
+<Warning>
+**Tuteliq arranged this study.** The paper's competing-interests statement says that ImproveIT Solutions was engaged for the study by Tuteliq AB, the company behind Tuteliq. Tuteliq gave free access to its production API, an API key and its evaluation harness (the tool Tuteliq uses to run outside evaluators' test sets through its API). The paper states that Tuteliq saw the manuscript only to correct factual errors and had no editorial control, that the design, analysis and conclusions are the author's, and that the author received no payment from Tuteliq. This is the sense in which the paper calls the study independent.
+</Warning>
+
+## What was tested
+
+The paper tested the Tuteliq release `tuteliq-detect-v5.20261011`, not the separately published v6 model. Its results hold for that release, not for v6 or later releases.
+
+Six detections were tested:
+
+- **Authorised push-payment fraud** (app fraud): scams where the victim is persuaded to send the money themselves.
+- **Money-mule recruitment:** recruiting people to move money through their own accounts.
+- **Social engineering:** manipulating someone into giving up information or access.
+- **Romance scams**
+- **Gambling harm**
+- **Bullying**
+
+### The test cases
+
+SITO has 2,332 synthetic cases, about half harmful and half harmless, in English, Ukrainian and mixed language. The mixed-language cases cover:
+
+- **Surzhyk:** a mixed variety of Ukrainian and Russian.
+- **Ukrainian–Russian** and **Ukrainian–English** switching within a conversation.
+- **Ukrainian written in the Latin alphabet.**
+
+All cases were written by AI models, contain no personal data, and were written for this study. None comes from Tuteliq's data. The cases were checked by a separate AI model and reviewed by the author.
+
+**What counts as harmful depends on who is speaking.** A message is harmful when it is the harmful act itself, when a victim describes harm that is happening now, or when someone else reports harm that is happening now. A message is harmless when a victim describes something that is already over, when it warns or educates, or when it is ordinary communication.
+
+**The harmless cases are deliberately hard.** Most share the topic and wording of the harmful ones, such as a bank's genuine warning, a real job offer, a friendly bet between adults, or banter between friends. Some are copies of a harmful case with every harmful element removed, so that only small changes separate harmful from harmless.
+
+### What was measured
+
+For each detection, the paper measures:
+
+- **Missed harm:** how many harmful cases Tuteliq did not flag.
+- **False flags:** how many harmless cases Tuteliq wrongly flagged.
+
+## What the paper found
+
+**Strengths**
+
+- False flags were rare on English text, even though the harmless cases were built to resemble harm.
+- Educational and protective texts, accounts of past incidents and unrelated everyday messages were never flagged.
+- Ukrainian and mixed-language input was detected at least as often as English. The paper notes that this is a better result than Tuteliq's documentation promises.
+
+**Weaknesses**
+
+- Overall, the paper concludes that Tuteliq errs towards missing harm rather than flagging harmless text.
+- On English text, app fraud, romance scams and gambling harm had the lowest detection of the six categories.
+- On English text, social engineering had the most false flags of the six categories.
+- Text written originally in Ukrainian had more false flags than English. The paper says this more likely comes from how those test cases were written than from the language itself, but cannot tell for certain.
+
+The paper also reports which kinds of messages were missed more often, how results varied between repeated runs, and whether results depend on which AI wrote the test text. For these findings and all figures, see the [paper](https://arxiv.org/abs/2610.27178).
+
+## What this means at real-world scale
+
+On a test set that is about half harmful, a low false-flag rate looks very good. On a real platform, harmful messages are rare, so even a small false-flag rate can mean that many of the flags a moderator sees are wrong. The paper notes that its harmless cases were built to resemble harm, so its results are a pessimistic reading for ordinary traffic, and an optimistic one for platforms whose traffic is mostly about money, dating or games.
+
+## Limits of the study
+
+The paper lists these limits:
+
+- **Synthetic data only.** All cases were written by AI models. A planned set of human-written cases was not produced, so the paper says its headline results may be optimistic for human-written text.
+- **One human reviewer.** No second human reviewer was available.
+- **One system, no comparison.** Only Tuteliq was tested, on text only. The figures say nothing about other vendors, though the released sets can be run against any other system.
+- **Ranges may be too narrow.** The paper's uncertainty ranges treat every case as independent, but some cases are built from others.
+
+## What the paper recommends to platforms
+
+1. Measure false flags on a sample of your own traffic, because no test set can tell you how many flags will be correct on your platform.
+2. Check how messages from victims and bystanders are handled on your platform.
+3. Do not assume a single check is final, because some borderline decisions change between identical runs.
+4. Record the system version with every decision, because new releases come out often.
+
+## Data and code
+
+The paper releases the test sets, the generation instructions, the raw generated text, the review decisions and the code on [Hugging Face](https://huggingface.co/datasets/Improve-IT-Solutions/SITO), under the Creative Commons Attribution 4.0 licence, with access granted on request. ImproveIT Solutions holds the rights. The paper asks that the sets be used for evaluation and not for training. Tuteliq's individual responses are not released, because they are Tuteliq's confidential information.
+
+## Related
+
+- [Benchmarks and accuracy](/benchmarks)
+- [ScamLingua independent evaluation (Phase 1)](/benchmarks/scamlingua)
+- [Languages](/languages)
+- [Bullying and toxicity detection](/bullying-toxicity-detection)
