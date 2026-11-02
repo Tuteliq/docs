@@ -50,12 +50,35 @@ as the other detectors already do.
 `FILE_INVALID_TYPE` whatever it is labelled. A supported file labelled as another type, or
 sent as `application/octet-stream`, is analysed as what it is.
 
+The error codes change for two kinds of upload:
+
+| Upload | Before | Now |
+|---|---|---|
+| Labelled as a PDF or an image, but the content is none of the supported types | Accepted, then `ANALYSIS_6010` or an analysis of unreadable content | `FILE_INVALID_TYPE` |
+| A supported image labelled as a PDF | `ANALYSIS_6010` | Analysed as the image |
+
+A file whose content is a PDF but which is corrupt or password-protected still returns
+`ANALYSIS_6010`, as before.
+
+### Changed: `/safety/unsafe` category names
+
+Some results on `/safety/unsafe` could report a category under an internal name. Every
+category now uses its published name. If your code or a policy rule matches categories,
+update these names; policy rule `categories` conditions match the same strings the response
+returns.
+
+| Old name | Published name |
+|---|---|
+| `substance` | `substance_use` |
+| `suicide_encouragement` | `self_harm` |
+| `sextortion`, `sexualization`, `image_based_abuse`, `photo_request`, `grooming` | `sexual_exploitation` |
+| `secrecy_request`, `meeting_request` | `risky_behavior` |
+| `fraud` | `illegal_activity` |
+
 ### Fixed
 
 - Policy rules with a minimum risk score now match results from `/safety/unsafe` and
   `/safety/bullying` that meet it.
-- On `/safety/unsafe`, every category is now reported with its published name
-  (for example `substance_use` and `sexual_exploitation`).
 - On `/analyse/multi`, a declared age now reaches the unsafe result, as on `/safety/unsafe`.
 
 ## 27 October 2026

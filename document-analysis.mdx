@@ -248,9 +248,9 @@ sha256:a1b2c3d4e5f6789...
 | Limit | Value |
 |-------|-------|
 | Max file size | 50 MB |
-| Max pages | 100 |
+| Max pages | 100 (an image counts as one page) |
 | Supported formats | PDF, PNG, JPEG and WebP, identified by the file's content rather than its declared type |
-| Min text per page | 20 characters (pages below this are skipped) |
+| Min text per page | 20 characters; a page below this is skipped. An image is one page, so an image with less readable text than this is skipped and the response reports no pages analysed |
 | Concurrency | 3 pages analyzed simultaneously |
 
 ## Tier access
@@ -261,7 +261,7 @@ Document analysis is available on **Build** and above.
 
 | Code | Description |
 |------|-------------|
-| `ANALYSIS_6010` | PDF extraction failed (corrupt or password-protected file) |
+| `ANALYSIS_6010` | Text extraction failed: a corrupt or password-protected PDF, or an image no text could be read from |
 | `ANALYSIS_6011` | Document exceeds 100-page limit |
 | `FILE_MISSING` | No file uploaded |
 | `FILE_INVALID_TYPE` | The file is not a PDF, PNG, JPEG or WebP, whatever its declared type |

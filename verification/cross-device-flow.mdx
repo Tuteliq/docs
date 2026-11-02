@@ -639,9 +639,11 @@ curl https://api.tuteliq.ai/api/v1/verify/session/$SESSION_ID \
 ```
 </CodeGroup>
 
-`verification_mode` says which check the result rests on: `full` is a document and a live
-face, `liveness_only` is a live face alone. It appears once the session has a result. A
-liveness-only session that falls back to a document reports `full`. The `verification.completed`
+`verification_mode` reports the check that was actually performed, not the mode requested
+when the session was created: `full` is a document and a live face, `liveness_only` is a
+live face alone. It appears once the session has a result. A session created as
+liveness-only that falls back to a document check reports `full`, because a document was
+checked. The `verification.completed`
 webhook carries the same field in `data.verification`.
 
 ## Step 4: Read the final result
