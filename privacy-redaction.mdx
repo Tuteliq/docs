@@ -1,0 +1,50 @@
+---
+title: "Redactyl: Privacy-First Redaction"
+sidebarTitle: Redactyl
+icon: user-shield
+description: Redactyl is Tuteliq's proprietary redaction engine. It removes personal data from anything Tuteliq has to keep, inside Tuteliq's own infrastructure, with no third party involved.
+keywords: [privacy, redaction, PII, personal data, GDPR, data minimisation, Redactyl]
+---
+
+## Privacy first, by design
+
+Tuteliq does not store your users' content. Messages, images, audio and documents are analysed and discarded. Where Tuteliq has to keep some text of its own, such as the summary of an incident written after a detection, that text is redacted **before** it is written anywhere.
+
+**Redactyl** is the engine that does this. It is built and owned by Tuteliq, and it runs entirely inside Tuteliq's infrastructure:
+
+- **No third party sees the text.** Redaction makes no call to any external service or language model.
+- **Deterministic.** The same input always gives the same output, so a result can be reproduced and audited.
+- **Nothing kept.** Redactyl returns redacted text and a count per type. The values it removed are never stored or logged.
+
+## What Redactyl finds
+
+Redactyl combines two layers.
+
+**Identifiers, checked by their own rules.** Phone numbers, email addresses, links, social handles, IP addresses, payment card numbers, IBANs and national ID numbers are recognised by their structure and, where the format has one, their check digit. For internal storage Redactyl also removes values *shaped* like a card, IBAN or ID number whose check digit fails, so a mistyped real number never gets through.
+
+**Names and places, read in context.** A proprietary multilingual model, trained by Tuteliq, finds people's names, places, street addresses, schools and organisations in all [32 supported languages](/languages). It reads the sentence, not a list: "Rose" can be a person or a flower, and "Paris" a city or a name.
+
+## Readable after redaction
+
+Each value becomes a typed placeholder, such as `[PERSON_1]`, `[SCHOOL_1]` or `[PHONE_1]`. Within one conversation the same value always gets the same placeholder, so a moderator can still follow who said what to whom without ever seeing the personal data.
+
+```text
+Before:  Hi, I'm Emma from Northfield School, text me on 07700 900123
+After:   Hi, I'm [PERSON_1] from [SCHOOL_1], text me on [PHONE_1]
+```
+
+## Where Tuteliq uses it
+
+Every summary, stored detection result and error report Tuteliq writes passes through Redactyl first. Contact details and identifiers are removed from all of them today. Name, place, school and organisation coverage from the model is rolling out across the same storage paths.
+
+## Redactyl for your own systems
+
+<Info>
+**Early access for existing customers.** Redactyl can also run on your own data: redact chat logs before they reach your moderators, your analytics or your support tools, with the same engine Tuteliq uses internally. If you are an existing customer and want to use Redactyl in your own solutions, contact us at [support@tuteliq.ai](mailto:support@tuteliq.ai).
+</Info>
+
+## Related
+
+- [GDPR](/gdpr)
+- [Incident logging](/incident-logging)
+- [Trust](/trust)

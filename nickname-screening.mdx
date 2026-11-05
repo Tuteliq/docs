@@ -1,0 +1,99 @@
+---
+title: Nickname Screening
+sidebarTitle: Nickname Screening
+icon: signature
+description: Read a display name, handle or clan tag in its language and setting, and get a signal, a reason a moderator can act on, and a recommendation. Nothing is stored.
+keywords: [nickname, display name, username, handle, clan tag, impersonation, moderation]
+---
+
+## What it does
+
+`POST /api/v1/safety/nickname` reads a name the way a moderator would: part by part, in its language and in the setting where it is shown. It returns a **signal about the name, not a verdict on the person**, the categories it fell in, a short reason, and a recommendation. Your platform decides what to do.
+
+A name is judged by what it says, not by a word list. The same letters can be a surname, a year, a place or a team, and a name the reading cannot place returns `none` rather than a guess.
+
+## Request
+
+```bash
+curl -X POST https://api.tuteliq.ai/api/v1/safety/nickname \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Support_Team_Official",
+    "strictness": "balanced",
+    "context": {
+      "language": "en",
+      "age_group": "13-15",
+      "conversation_type": "gaming_chat",
+      "platform_reserved": ["Support", "Moderator"]
+    }
+  }'
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | yes | The name as the player typed it, 1 to 64 characters. |
+| `strictness` | no | `cautious`, `balanced` (default) or `strict`: how readily a doubtful reading is acted on. A clear concern is acted on at every level. |
+| `context.language` | no | Two-letter language code of the name. |
+| `context.age_group` | no | Age or age group of the account holder. |
+| `context.conversation_type` | no | The setting the name is shown in, for example `gaming_chat`. |
+| `context.platform_reserved` | no | Up to 20 names your platform uses for staff or support, so a copy of one can be told from the real thing. |
+
+## Response
+
+```json
+{
+  "signal": "review",
+  "categories": ["impersonation_of_staff_or_support"],
+  "parts": [
+    { "text": "Support", "reading": "concerning", "category": "impersonation_of_staff_or_support" },
+    { "text": "Team", "reading": "ordinary", "category": null },
+    { "text": "Official", "reading": "concerning", "category": "impersonation_of_staff_or_support" }
+  ],
+  "rationale": "The name presents itself as the platform's own support staff.",
+  "recommendation": "ask_to_rename",
+  "recommendation_detail": "Ask the player to choose another name before it is shown to others.",
+  "confidence": 0.9,
+  "language": "en",
+  "strictness": "balanced",
+  "reading_complete": true,
+  "credits_used": 1
+}
+```
+
+### Signals and recommendations
+
+| `signal` | Meaning |
+|---|---|
+| `none` | Nothing of concern was read in the name. |
+| `low` | Something is worth noting, not acting on. |
+| `review` | The name falls in one or more categories below. |
+
+`recommendation` is one of `allow`, `allow_and_watch`, `ask_to_rename` or `hold_for_review`. It is never an emergency action: a name alone cannot carry that.
+
+### Categories
+
+`categories` comes from a closed list and is empty unless the signal is `review`:
+
+- `self_harm_promotion`
+- `impersonation_of_staff_or_support`
+- `hate_or_extremist_reference`
+- `sexualised`
+- `seeks_older_contact`
+- `harassment_of_named_person`
+- `contact_detail_or_off_platform_lure`
+- `age_disclosure`
+
+The `rationale` is written for a moderator and never reproduces a slur.
+
+## When the reading does not finish
+
+If the reading cannot complete, the answer is `signal: "none"` with `reading_complete: false` and `confidence: 0`. That means nothing was analysed, not that nothing was found, so retry. An incomplete reading is **not charged** (`credits_used: 0`).
+
+## Privacy
+
+A name is user content like any other, so **nothing is stored**: no incident record, no webhook, no counter and no log line is made from it. The only record of the call is the usage entry every request writes.
+
+## Pricing
+
+One credit per completed reading. See [Credits](/credits).

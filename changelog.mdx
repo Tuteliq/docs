@@ -21,7 +21,26 @@ endpoint). They are left as published rather than renumbered, so anything that
 already cites them still resolves.
 </Info>
 
-## 2 November 2026
+## 5 November 2026
+
+### Added: nickname screening
+
+`POST /api/v1/safety/nickname` reads a display name, handle or clan tag in its language and
+setting and returns a signal (`none`, `low` or `review`), the categories it fell in, a reason a
+moderator can act on, and a recommendation: `allow`, `allow_and_watch`, `ask_to_rename` or
+`hold_for_review`. Pass the names your own staff use in `context.platform_reserved` so a copy of
+one can be told from the real thing. Nothing is stored, and a reading that does not finish is not
+charged. See [Nickname Screening](/nickname-screening).
+
+### Added: Redactyl, privacy-first redaction
+
+Everything Tuteliq has to keep, such as incident summaries, stored detection results and error
+reports, is now redacted by Redactyl, Tuteliq's own redaction engine, before it is written. It runs
+inside Tuteliq's infrastructure with no third party involved and replaces each value with a
+consistent typed placeholder. Existing customers can request early access to use Redactyl on their
+own data. See [Redactyl](/privacy-redaction).
+
+
 
 ### Added: policy rules apply on `/analyse/multi`
 
