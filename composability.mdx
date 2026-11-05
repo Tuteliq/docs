@@ -68,7 +68,7 @@ The intended pattern is: run `detect_vulnerability_exploitation` in parallel wit
 ```ts
 import Tuteliq from "@tuteliq/sdk";
 
-const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_KEY });
+const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY });
 
 // Run both endpoints in parallel (they fan out server-side too)
 const [scam, vuln] = await Promise.all([
@@ -102,7 +102,7 @@ In Python:
 import asyncio
 from tuteliq import Tuteliq
 
-tuteliq = Tuteliq(api_key=os.environ["TUTELIQ_KEY"])
+tuteliq = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
 
 async def assess(content: str) -> dict:
     scam, vuln = await asyncio.gather(
