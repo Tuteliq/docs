@@ -178,6 +178,7 @@ For asynchronous applications, use the `AsyncTuteliq` client. It exposes the sam
 
 ```python
 import asyncio
+import os
 from tuteliq import AsyncTuteliq
 
 client = AsyncTuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
@@ -219,6 +220,9 @@ except TuteliqError as e:
 ## Configuration options
 
 ```python
+import os
+from tuteliq import Tuteliq 
+
 client = Tuteliq(
     api_key=os.environ["TUTELIQ_API_KEY"],
     base_url="https://api.tuteliq.ai",  # default
