@@ -9,12 +9,15 @@ keywords: [getting started, setup, first call, SDK]
 <Steps>
 
 <Step title="Get your API key">
-  Sign up and create an API key from the [Tuteliq Dashboard](https://tuteliq.ai/dashboard). Each key is scoped to an environment (production, staging, or development) which determines your rate limits and tier.
+  Sign up and create an API key from the [Tuteliq Dashboard](https://tuteliq.ai/dashboard). Each key is linked to an environment (production, staging, or development) which determines your rate limits and tier.
 
   <Warning>Store your API key securely. It is displayed only once at creation time and is hashed server-side.</Warning>
 </Step>
 
 <Step title="Install the SDK">
+
+Pick the one that matches the language your app is written in.
+
   <CodeGroup>
     ```bash npm
     npm install @tuteliq/sdk
@@ -48,6 +51,7 @@ keywords: [getting started, setup, first call, SDK]
     console.log(result.credits_used); // 1
     ```
     ```python Python
+    import os
     from tuteliq import Tuteliq
 
     client = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
