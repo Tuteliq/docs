@@ -190,12 +190,12 @@ Every identity verification runs **all** of these checks automatically:
 
 | Check | What it does |
 |-------|-------------|
-| **Document OCR** | Multilingual text extraction (Tesseract sidecar with multi-pass MRZ-tolerance pipeline) |
-| **MRZ validation** | ICAO 9303 TD1/TD2/TD3 check-digit validation via `mrz` + `mrz-fast` libraries |
+| **Document OCR** | Multilingual text extraction on our own infrastructure, tolerant of hard-to-read machine-readable zones |
+| **MRZ validation** | ICAO 9303 TD1/TD2/TD3 check-digit validation |
 | **Document number validation** | Algorithmic check-digit verification for 45 countries (personnummer, CPF, Aadhaar, CURP, BSN, NIF, NINO, etc.) |
-| **Face detection + matching** | `@vladmandic/face-api` model in dedicated sidecar; vector-distance match between document portrait and selfie |
-| **Liveness** | Multi-signal: landmark motion, blink, texture/moiré, depth cues, cross-frame consistency, single-use cryptographic challenge token |
-| **Synthetic / deepfake detection** | CLIP-based classifier (`deep-image-analysis` sidecar) on the selfie |
+| **Face detection + matching** | Our own face models compare the document portrait with the selfie |
+| **Liveness** | Several independent checks for a live person, plus a single-use cryptographic challenge token |
+| **Synthetic / deepfake detection** | Our own classifier checks the selfie for signs of generation |
 | **Document expiry** | Checks expiry from labels and MRZ |
 | **Country resolution** | Inferred from MRZ issuing state, OCR text, or explicit `country_code` parameter |
 

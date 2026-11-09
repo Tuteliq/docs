@@ -59,7 +59,7 @@ Tuteliq compares the document's country of origin against the geographic origin 
 
 ### 6. Age consistency (document vs. selfie)
 
-When both a document and selfie are provided, Tuteliq compares the age calculated from the document's DOB against the age estimated from the selfie by AgeNet, our own model. A discrepancy greater than 10 years is flagged.
+When both a document and selfie are provided, Tuteliq compares the age calculated from the document's date of birth against the age our own model estimates from the selfie. A large discrepancy is flagged.
 
 | Scenario | Signal |
 |----------|--------|
@@ -68,7 +68,7 @@ When both a document and selfie are provided, Tuteliq compares the age calculate
 
 ### 7. OCR confidence gating
 
-When OCR confidence falls below 60%, all extracted data is flagged as potentially unreliable. This prevents the system from making verification decisions based on garbage OCR output from blurry, damaged, or deliberately obscured documents.
+When the document text cannot be read with enough confidence, all extracted data is flagged as potentially unreliable. This prevents the system from making verification decisions based on garbage OCR output from blurry, damaged, or deliberately obscured documents.
 
 ---
 

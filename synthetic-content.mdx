@@ -8,17 +8,17 @@ keywords: [synthetic content, deepfake, AI-generated, voice cloning, CSAM, GenAI
 
 Tuteliq detects AI-generated and synthetic content across all four modalities — text, image, audio, and video. Each endpoint classifies content using the standardized taxonomy from the [Child Protection Blueprint](https://protectingchildrenonline.org): `confirmed_synthetic`, `suspected_synthetic`, `unknown`, or `confirmed_authentic`.
 
-For images and video, Tuteliq goes far beyond a single model call. The **multi-signal forensic pipeline** runs up to 6 independent analysis engines in parallel — vision forensics, EXIF metadata, pixel statistics, C2PA Content Credentials, watermark detection, and perceptual hashing — then aggregates them into a weighted ensemble assessment. Any single engine can fail without degrading the result.
+For images and video, Tuteliq goes far beyond a single model call. Several independent forensic checks run on every file, including our own forensic vision models, file metadata, C2PA Content Credentials, watermark detection and perceptual hashing, and their findings are combined into one assessment. Each check is independent, so one failing does not take the result down with it.
 
 <CardGroup cols={3}>
-  <Card title="6-Signal Image Pipeline" icon="microscope">
-    Our own forensic vision models, EXIF metadata, pixel statistics, C2PA Content Credentials, frequency-domain watermark analysis, and perceptual hash matching — all in parallel.
+  <Card title="Multi-Signal Image Forensics" icon="microscope">
+    Our own forensic vision models, file metadata, C2PA Content Credentials, watermark analysis and perceptual hash matching, run independently.
   </Card>
   <Card title="Temporal + Lip-Sync Video" icon="video">
-    Frame-by-frame face identity tracking, landmark stability analysis, and audio-visual lip-sync correlation to catch deepfakes that single-frame analysis misses.
+    Face identity tracking across frames and audio-visual lip-sync analysis, to catch deepfakes that single-frame analysis misses.
   </Card>
   <Card title="Spectral Audio Forensics" icon="waveform-lines">
-    Mel spectrogram analysis on our own EU-hosted vision models, plus quantitative audio statistics (dynamic range, silence ratio, flat factor) to detect synthetic speech beyond transcript analysis.
+    Spectral analysis on our own EU-hosted models, plus measured audio statistics, to detect synthetic speech beyond what the transcript shows.
   </Card>
 </CardGroup>
 
@@ -65,10 +65,10 @@ been reported, hashed or catalogued.
 
 | Signal | What it does |
 |---|---|
-| **Age estimation** | Our own convolutional pipeline with multi-face detection. Applies a conservative ±3 year buffer biased toward the younger estimate. |
-| **Anatomical detection** | Our own ONNX model covering 18 body-part classes with severity levels. Anatomical findings override abstract scoring. |
-| **Skin exposure analysis** | HSV segmentation with body-zone distribution and intimate-region concentration detection. |
-| **Benign context recognition** | Recognises bath, beach and pool settings, with age-tiered thresholds: under-6 requires 90% NSFW confidence, while 13-17 requires only 30%. |
+| **Age estimation** | Our own models estimate the age of every face in the image, leaning toward the younger estimate when unsure. |
+| **Anatomical detection** | Our own model detects exposed body regions and how severe the exposure is. |
+| **Skin exposure analysis** | Measures how much skin is exposed and where on the body. |
+| **Benign context recognition** | Recognises everyday settings such as bath, beach and pool, and weighs them against the estimated age, so a family holiday photo is not treated like exploitative material. |
 
 Every one of these runs on models we train and host ourselves. No image is sent to
 a third-party vision API, and no image is retained once the request completes.
@@ -194,7 +194,7 @@ Content-Type: application/json
 
 ## Image Detection
 
-Analyzes uploaded images for AI-generation artifacts using a **6-signal forensic pipeline** — running vision analysis, EXIF metadata extraction, pixel statistics, C2PA Content Credentials, watermark detection, and perceptual hashing in parallel.
+Analyzes uploaded images for signs of AI generation with several independent forensic checks: our own forensic vision models, file metadata, C2PA Content Credentials, watermark detection and perceptual hashing.
 
 ```
 POST /api/v1/safety/synthetic-content/image
@@ -207,23 +207,18 @@ Content-Type: multipart/form-data
   <Step title="Upload">
     Send an image as `multipart/form-data`. Supported formats: **JPEG, PNG, WebP, GIF**. Max file size: **10MB**.
   </Step>
-  <Step title="Multi-Signal Forensic Analysis">
-    Six independent analysis engines run in parallel, each fault-isolated so failures in one don't affect others:
+  <Step title="Independent forensic checks">
+    Each check runs on its own, so a failure in one does not affect the others:
 
-    1. **Forensic vision models (ours)** — Purpose-trained models we run on our own infrastructure inspect pixel-level artifacts (face consistency, skin texture, hand anomalies, background coherence, lighting mismatches). No third-party vision API is involved.
-    2. **EXIF Metadata** — Checks for AI generator signatures in EXIF tags, XMP data, and PNG text chunks. Flags suspicious absence of camera metadata.
-    3. **Pixel Statistics** — Shannon entropy, edge density (Laplacian convolution), and channel uniformity analysis
-    4. **C2PA Content Credentials** — Detects and validates C2PA manifests from DALL-E, Adobe Firefly, Google Imagen, and other tools
-    5. **Watermark Detection** — Frequency-domain analysis for invisible watermarks (SynthID, Stable Diffusion DWT/DCT)
-    6. **Perceptual Hashing** — DCT-based pHash compared against a database of known synthetic content via Hamming distance
+    1. **Forensic vision models (ours)**: purpose-trained models we run on our own infrastructure look for generation artifacts in faces, skin, hands, backgrounds and lighting. No third-party vision API is involved.
+    2. **File metadata**: looks for AI generator signatures in the file's metadata, and for camera data that a photograph would normally carry.
+    3. **Image statistics**: statistical properties that generated images tend to share.
+    4. **C2PA Content Credentials**: detects and validates Content Credentials from AI image tools.
+    5. **Watermark detection**: looks for the invisible watermarks some AI tools embed.
+    6. **Perceptual hashing**: compares the image against known synthetic images.
   </Step>
-  <Step title="Signal Aggregation">
-    All signals are combined into a weighted ensemble: vision (30%), metadata (15%), pixel statistics (15%), C2PA provenance (15%), watermarks (10%), perceptual hash (15%). The aggregated forensic summary is fed to the classifier.
-  </Step>
-  <Step title="Classification with Overrides">
-    The classifier produces a final verdict. Two signals can override the classifier with definitive results:
-    - **C2PA declares AI generation** → forced to `confirmed_synthetic` with confidence ≥ 0.95
-    - **Perceptual hash matches known synthetic** → forced to `confirmed_synthetic` with confidence ≥ 0.90
+  <Step title="Classification">
+    The findings are combined into one classification. Two findings are treated as definitive: Content Credentials declaring AI generation, and a match against a known synthetic image. Either one makes the result `confirmed_synthetic`.
   </Step>
 </Steps>
 
@@ -256,9 +251,9 @@ Content-Type: multipart/form-data
     { "text": "Uniform skin texture and symmetrical facial features", "tactic": "AI_GENERATION_ARTIFACT_DETECTION", "weight": 0.9 }
   ],
   "recommended_action": "flag_for_review",
-  "rationale": "Multi-signal forensic analysis: forensic vision models detected artifacts, EXIF metadata lacks camera model, C2PA manifest confirms AI generation by DALL-E 3.",
+  "rationale": "Forensic analysis found generation artifacts, the file carries no camera data, and its Content Credentials declare AI generation.",
   "input_type": "image",
-  "vision": {
+  "semantic_analysis": {
     "is_likely_synthetic": true,
     "synthetic_confidence": 0.95,
     "artifacts": [
@@ -302,32 +297,24 @@ Content-Type: multipart/form-data
 
 **Credits:** 8 (5 base + 3 vision)
 
-### Forensic Signal Sources
-
-| Signal | Weight | What It Checks |
-|---|---|---|
-| **Forensic vision models (ours)** | 30% | Face consistency, skin texture, hand anomalies, background coherence, lighting, hair rendering, text/symbols, resolution, AI model signatures |
-| **EXIF Metadata** | 15% | Camera model, GPS, AI generator names in EXIF/XMP, PNG tEXt chunks (Stable Diffusion parameters), suspicious absence of camera data |
-| **Pixel Statistics** | 15% | Shannon entropy, Laplacian edge density, channel uniformity — GAN images have distinctive statistical signatures |
-| **C2PA Provenance** | 15% | Content Credentials manifests from DALL-E, Firefly, Imagen. **Definitive** when present — overrides classifier. |
-| **Watermark** | 10% | High-frequency energy analysis, periodic pattern detection at known watermark frequencies, LSB distribution, corner entropy |
-| **Perceptual Hash** | 15% | DCT-based 64-bit pHash compared against known-synthetic database. Hamming distance ≤ 10 = match. **Definitive** when matched. |
-
 ### New Response Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `metadata_analysis` | object | EXIF/metadata extraction results — format, dimensions, camera presence, GPS, AI generator detection |
 | `provenance` | object | C2PA Content Credentials — present only when a C2PA manifest is found |
-| `forensic_signals` | object | Multi-signal ensemble summary — signal counts per source and combined confidence boost |
-| `perceptual_hash` | string | 64-bit DCT-based perceptual hash of the image |
-| `known_synthetic_match` | object | Present only when the perceptual hash matches a known synthetic image — includes distance and category |
+| `semantic_analysis` | object | What our forensic vision models saw: whether the image looks generated, how confident they are, and the artifacts found |
+| `forensic_signals` | object | Summary of the forensic findings: how many, from which kind of check, and their combined effect |
+| `perceptual_hash` | string | Perceptual hash of the image, for matching against hash lists you hold |
+| `known_synthetic_match` | object | Present only when the image matches a known synthetic image: distance and category |
+| `screenshot_detection` | object | Present when the image looks like a screenshot: `is_screenshot` and `confidence` |
+| `csam_assessment` | object | The child safety assessment described above, when it ran |
 
 ---
 
 ## Audio Detection
 
-Analyzes uploaded audio using **dual-signal forensics**: transcript-based text analysis plus spectral analysis, with the mel spectrogram assessed by our own EU-hosted vision models alongside quantitative audio statistics for synthetic speech indicators.
+Analyzes uploaded audio with two independent signals: what is said (from a transcript) and how it sounds (spectral analysis on our own EU-hosted models, plus measured audio statistics).
 
 ```
 POST /api/v1/safety/synthetic-content/audio
@@ -340,21 +327,12 @@ Content-Type: multipart/form-data
   <Step title="Upload">
     Send an audio file as `multipart/form-data`. Supported formats: **MP3, WAV, M4A, OGG, FLAC, WebM**. Max file size: **25MB**.
   </Step>
-  <Step title="Parallel Analysis">
-    Two analysis tracks run simultaneously:
-    1. **Transcription** — Audio is transcribed using Whisper (EU-hosted, GDPR-compliant)
-    2. **Spectral Analysis** — FFmpeg generates a mel spectrogram image and extracts audio statistics (RMS, dynamic range, silence ratio, flat factor, DC offset)
-  </Step>
-  <Step title="Spectrogram Vision Analysis">
-    The mel spectrogram is analyzed by a dedicated forensic prompt checking for:
-    - Frequency band uniformity (TTS hallmark)
-    - Harmonic structure anomalies
-    - Missing breath noise and background ambience
-    - Onset/offset patterns, formant transitions
-    - Pitch contour regularity, aliasing artifacts
+  <Step title="Two independent signals">
+    1. **Transcription**: the audio is transcribed on our own EU-hosted infrastructure.
+    2. **Spectral analysis**: our own models examine how the audio sounds, looking for the regularities and missing natural detail that synthetic speech tends to show, alongside measured audio statistics.
   </Step>
   <Step title="Synthetic Classification">
-    Transcript, spectral signals, and spectrogram analysis are combined for final classification. Even audio with no speech can be flagged if spectral analysis detects synthetic patterns.
+    Both signals are combined into one classification. Audio with no speech can still be flagged when the spectral analysis finds synthetic patterns.
   </Step>
 </Steps>
 
@@ -395,16 +373,17 @@ Content-Type: multipart/form-data
     ]
   },
   "audio_stats": {
-    "rms_mean": -18.5,
+    "rms_level": -18.5,
     "rms_peak": -6.2,
+    "dc_offset": 0.0001,
     "dynamic_range": 12.3,
     "silence_ratio": 0.05,
-    "flat_factor": 0.002,
-    "dc_offset": 0.0001
+    "peak_count": 3,
+    "flat_factor": 0.002
   },
   "spectral_signals": [
-    "low_dynamic_range: 12.3 dB suggests compressed/synthetic audio",
-    "low_silence_ratio: 0.05 — natural speech typically has more pauses"
+    "Unusually narrow dynamic range for natural speech",
+    "Fewer pauses than natural speech usually has"
   ],
   "processing_time_ms": 4200,
   "language": "en",
@@ -419,8 +398,8 @@ Content-Type: multipart/form-data
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `audio_stats` | object | Quantitative audio statistics — RMS mean/peak, dynamic range, silence ratio, flat factor, DC offset |
-| `spectral_signals` | array | Human-readable spectral analysis indicators (e.g., low dynamic range, frequency uniformity) |
+| `audio_stats` | object | Measured audio statistics: `rms_level`, `rms_peak`, `dc_offset`, `dynamic_range`, `silence_ratio`, `peak_count`, `flat_factor` |
+| `spectral_signals` | array | Plain-language spectral findings |
 
 <Info>
 If the audio contains no intelligible speech but spectral analysis detects synthetic patterns, the endpoint returns `classification: "suspected_synthetic"` with spectral signals. If neither speech nor spectral anomalies are found, it returns `classification: "unknown"`.
@@ -430,7 +409,7 @@ If the audio contains no intelligible speech but spectral analysis detects synth
 
 ## Video Detection
 
-Analyzes uploaded video with a **multi-layer forensic pipeline** — per-frame vision analysis, temporal face consistency tracking, audio-visual lip-sync correlation, spectral audio forensics, and transcription.
+Analyzes uploaded video with several independent signals: per-frame forensic analysis, face identity tracking across frames, audio-visual lip-sync analysis, spectral audio analysis and transcription.
 
 ```
 POST /api/v1/safety/synthetic-content/video
@@ -443,20 +422,18 @@ Content-Type: multipart/form-data
   <Step title="Upload">
     Send a video file as `multipart/form-data`. Supported formats: **MP4, WebM, QuickTime, AVI**. Max file size: **100MB**.
   </Step>
-  <Step title="Frame + Audio Extraction">
-    Frames are extracted at even intervals using FFmpeg (default: 6 frames, max: 20). Audio is extracted as a separate track in parallel.
+  <Step title="Frames and audio">
+    Frames are sampled at even intervals (default: 6 frames, max: 20), and the audio track is separated out.
   </Step>
-  <Step title="Parallel Multi-Signal Analysis">
-    Five analysis tracks run simultaneously via fault-isolated `Promise.allSettled`:
-
-    1. **Per-Frame Vision** — Each frame analyzed for AI artifacts (face consistency, skin texture, background coherence) in concurrent batches of 3
-    2. **Temporal Consistency** — face-api.js detects faces across all frames, computes Euclidean distance between face descriptors (real < 0.4, deepfake > 0.6), and measures landmark stability via eye-to-nose ratio variance
-    3. **Lip-Sync Correlation** — Mouth openness (from 68-point face landmarks) correlated against frame-aligned audio energy (via FFmpeg). Pearson correlation > 0.5 = real speech, < 0.3 = lip-sync deepfake
-    4. **Spectral Audio Analysis** — Mel spectrogram + audio statistics (same as audio endpoint)
-    5. **Transcription** — Whisper transcription of the audio track
+  <Step title="Independent signals">
+    1. **Per-frame forensics**: each frame is checked for generation artifacts.
+    2. **Face identity across frames**: whether the same face stays the same person, with stable features, from frame to frame.
+    3. **Lip-sync**: whether mouth movement matches the speech in the audio.
+    4. **Spectral audio analysis**: as on the audio endpoint.
+    5. **Transcription** of the audio track.
   </Step>
-  <Step title="Signal Aggregation + Classification">
-    All signals are aggregated via weighted ensemble and fed to the classifier. Temporal anomalies and lip-sync mismatches provide strong deepfake indicators that single-frame analysis cannot detect.
+  <Step title="Classification">
+    The findings are combined into one classification. Identity drift and lip-sync mismatches are strong deepfake indicators that single-frame analysis cannot see.
   </Step>
 </Steps>
 
@@ -487,7 +464,7 @@ Content-Type: multipart/form-data
     { "tag": "AI_MANIPULATED_MEDIA", "label": "AI-Manipulated Media", "confidence": 0.8 }
   ],
   "recommended_action": "escalate",
-  "rationale": "Temporal analysis detected face identity drift across 3 frame pairs. Lip-sync correlation (0.21) is well below the 0.3 threshold for authentic speech.",
+  "rationale": "The face changes identity between frames, and mouth movement does not match the speech.",
   "input_type": "video",
   "video": {
     "duration_seconds": 12.5,
@@ -495,28 +472,19 @@ Content-Type: multipart/form-data
     "has_audio": true
   },
   "temporal_consistency": {
+    "score": 0.51,
+    "identity_consistency": 0.42,
+    "landmark_stability": 0.65,
     "frames_with_faces": 6,
-    "total_frames": 6,
-    "identity_consistency_score": 0.42,
-    "landmark_stability_score": 0.65,
-    "temporal_consistency_score": 0.51,
-    "anomalous_frame_pairs": [
+    "anomalous_pairs": [
       { "frame_a": 1, "frame_b": 2, "distance": 0.72 },
       { "frame_a": 3, "frame_b": 4, "distance": 0.68 }
-    ],
-    "signals": [
-      "identity_drift: 2 frame pairs show face identity changes (max distance: 0.720)",
-      "low_identity_consistency: face identity varies significantly across frames (score: 0.42)"
     ]
   },
   "lip_sync": {
     "correlation": 0.21,
     "has_silent_mouth_movement": false,
-    "has_voice_without_movement": true,
-    "signals": [
-      "poor_lip_sync: mouth-audio correlation is 0.21 (threshold: 0.3)",
-      "voice_without_movement: audio present in 4/6 frames without mouth movement"
-    ]
+    "has_voice_without_movement": true
   },
   "transcription": {
     "text": "Speech content from the video.",
@@ -524,9 +492,12 @@ Content-Type: multipart/form-data
     "duration": 12.5
   },
   "audio_stats": {
-    "rms_mean": -20.1,
+    "rms_level": -20.1,
+    "rms_peak": -8.4,
+    "dc_offset": 0.0002,
     "dynamic_range": 15.8,
     "silence_ratio": 0.12,
+    "peak_count": 5,
     "flat_factor": 0.001
   },
   "processing_time_ms": 15000,
@@ -543,28 +514,12 @@ For example, 6 frames with audio = 5 + 18 + 2 = **25 credits**.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `temporal_consistency` | object | Face identity tracking across frames — consistency scores, landmark stability, anomalous frame pairs |
-| `lip_sync` | object | Audio-visual lip-sync correlation — Pearson coefficient, silent mouth movement detection, voice-without-movement detection |
+| `temporal_consistency` | object | Face identity across frames: overall `score`, `identity_consistency`, `landmark_stability`, `frames_with_faces`, and the `anomalous_pairs` of frames where the face changed |
+| `lip_sync` | object | Lip-sync: `correlation` between mouth movement and speech, `has_silent_mouth_movement`, `has_voice_without_movement` |
+| `forensic_signals` | object | Summary of the forensic findings, as on the image endpoint |
+| `drift_signature` | string | The pattern of identity drift across the video, when one was found |
 | `audio_stats` | object | Quantitative audio statistics from spectral analysis |
 | `spectral_signals` | array | Spectral analysis indicators (when detected) |
-
-### Temporal Consistency Signals
-
-| Signal | Meaning |
-|---|---|
-| `identity_drift` | Face descriptors differ significantly between consecutive frames — classic deepfake artifact |
-| `low_identity_consistency` | Average face identity distance is high across all frames |
-| `unstable_landmarks` | Facial geometry (eye-to-nose ratio) varies abnormally between frames |
-| `consistent_face` | Face identity and geometry are stable — reduces synthetic confidence |
-
-### Lip-Sync Signals
-
-| Signal | Meaning |
-|---|---|
-| `poor_lip_sync` | Mouth movement and audio energy have low correlation (< 0.3) |
-| `good_lip_sync` | Strong correlation (> 0.5) between mouth and audio — authentic indicator |
-| `silent_mouth_movement` | Mouth opens in > 30% of frames without corresponding audio |
-| `voice_without_movement` | Audio present in > 30% of frames without mouth movement |
 
 <Info>
 If the video has no audio track, the `transcription`, `lip_sync`, `audio_stats`, and `spectral_signals` fields are omitted and no transcription credits are charged.

@@ -789,7 +789,7 @@ All per-endpoint credit costs have been revised to reflect processing complexity
 ### Age & Identity Verification Improvements
 - **Liveness-only mode** now charged at 10 credits (reduced from full verification cost)
 - **Passport number validation** — passport document numbers are no longer incorrectly validated against national ID formats (e.g., Swedish personnummer)
-- **Vision AI OCR fallback** — when Tesseract OCR fails, document fields (name, DOB, document number) are extracted via vision AI and the confidence score reflects the extraction quality
+- **OCR fallback** for document fields when the primary text extraction fails
   <br />*Withdrawn 2 July 2026. No verification image reaches a model. See v1.13.0.*
 - **i18n for camera overlay** — all liveness challenge text (instructions, blink/smile prompts) now translates correctly when switching languages
 
@@ -798,25 +798,13 @@ All per-endpoint credit costs have been revised to reflect processing complexity
 ## v1.6.0 — April 2026
 
 ### Multi-Signal Forensic Synthetic Content Detection
-The synthetic content detection pipeline has been completely rebuilt into a **multi-signal forensic system** that runs up to 6 independent analysis engines in parallel for images and 5 for video — replacing the previous single-model approach.
+Synthetic content detection was rebuilt around several independent forensic checks for images and video, replacing the previous single-model approach.
 
-**Image Detection — 6-Signal Pipeline:**
-- **EXIF Metadata Extraction** — Detects AI generator signatures in EXIF tags, XMP data, and PNG tEXt chunks (Stable Diffusion parameters). Flags suspicious absence of camera metadata (no camera model + no GPS + high resolution).
-- **Pixel Statistics** — Shannon entropy, Laplacian edge density, and channel uniformity analysis. GAN images produce distinctive statistical signatures.
-- **C2PA Content Credentials** — Detects and validates C2PA manifests from DALL-E 3, Adobe Firefly, Google Imagen. When C2PA declares AI generation, the result is forced to `confirmed_synthetic` with confidence ≥ 0.95.
-- **Invisible Watermark Detection** — High-frequency energy analysis, periodic pattern detection at known watermark frequencies, LSB distribution analysis, and corner entropy checks.
-- **Perceptual Hashing (pHash)** — DCT-based 64-bit perceptual hash compared against a Redis-backed database of known synthetic content via Hamming distance. Matches force `confirmed_synthetic`.
-- **Weighted Signal Aggregation** — All signals aggregated into a weighted ensemble (vision 30%, metadata 15%, pixel stats 15%, C2PA 15%, watermarks 10%, pHash 15%) with fault isolation via `Promise.allSettled`.
+**Image detection:** file metadata, image statistics, C2PA Content Credentials, invisible watermark detection and perceptual-hash matching against known synthetic images, alongside our own forensic vision models. Content Credentials declaring AI generation, or a match against a known synthetic image, make the result `confirmed_synthetic`. Each check is independent, so one failing does not take the result down.
 
-**Audio Detection — Spectral Forensics:**
-- **Mel Spectrogram Analysis** — FFmpeg generates a mel spectrogram image, analyzed by a dedicated vision prompt for frequency band uniformity, harmonic anomalies, missing breath noise, onset/offset patterns, and aliasing artifacts.
-- **Quantitative Audio Statistics** — RMS mean/peak, dynamic range, silence ratio, flat factor, and DC offset extracted via FFmpeg `astats` filter.
-- Spectral analysis runs in parallel with transcription. Even speech-free audio can be flagged if spectral patterns indicate synthesis.
+**Audio detection:** spectral analysis of how the audio sounds, with measured audio statistics, alongside the transcript. Audio with no speech can still be flagged when the spectral analysis finds synthetic patterns.
 
-**Video Detection — Temporal + Lip-Sync:**
-- **Temporal Consistency Analysis** — face-api.js tracks face identity across frames via 128-dimensional descriptor Euclidean distance. Real faces: < 0.4, deepfakes: spikes > 0.6. Landmark stability measured via eye-to-nose ratio variance.
-- **Lip-Sync Correlation** — Mouth openness from 68-point face landmarks correlated against frame-aligned audio energy. Pearson correlation > 0.5 = authentic, < 0.3 = deepfake. Detects silent mouth movement and voice-without-movement.
-- All 5 video analysis tracks (per-frame vision, temporal consistency, lip-sync, spectral, transcription) run via fault-isolated `Promise.allSettled`.
+**Video detection:** face identity tracking across frames and lip-sync analysis, alongside per-frame forensics, spectral audio analysis and transcription. Silent mouth movement and voice without movement are detected.
 
 **Account-Level Profiling:**
 - **`GET /v1/safety/synthetic-content/profile/:customer_id`** — 30-day rolling window with synthetic count, account score, trend detection (`increasing`/`stable`/`decreasing`), and category distribution.
