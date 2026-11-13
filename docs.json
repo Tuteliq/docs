@@ -219,6 +219,12 @@
             ]
           },
           {
+            "group": "Privacy",
+            "pages": [
+              "POST /api/v1/privacy/redact"
+            ]
+          },
+          {
             "group": "Analysis",
             "pages": [
               "POST /api/v1/analysis/emotions"
