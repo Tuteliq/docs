@@ -2,49 +2,246 @@
 title: "Redactyl: Privacy-First Redaction"
 sidebarTitle: Redactyl
 icon: user-shield
-description: Redactyl is Tuteliq's proprietary redaction engine. It removes personal data from anything Tuteliq has to keep, inside Tuteliq's own infrastructure, with no third party involved.
-keywords: [privacy, redaction, PII, personal data, GDPR, data minimisation, Redactyl]
+description: Redactyl is Tuteliq's own redaction engine. It removes personal data from text and conversations, inside Tuteliq's infrastructure, with no third-party service or large language model involved. Use it on your own data with one API call.
+keywords: [privacy, redaction, PII, personal data, anonymisation, GDPR, data minimisation, Redactyl]
 ---
 
 ## Privacy first, by design
 
 Tuteliq does not store your users' content. Messages, images, audio and documents are analysed and discarded. Where Tuteliq has to keep some text of its own, such as the summary of an incident written after a detection, that text is redacted **before** it is written anywhere.
 
-**Redactyl** is the engine that does this. It is built and owned by Tuteliq, and it runs entirely inside Tuteliq's infrastructure:
+**Redactyl** is the engine that does this, and you can call it on your own data: redact chat logs before they reach your moderators, your analytics, your support tools or a training set.
 
-- **No third party sees the text.** Redaction makes no call to any external service or language model.
+- **No third party sees the text.** Redaction makes no call to any external service or large language model. It runs entirely inside Tuteliq's infrastructure, using Tuteliq's own model and rules.
 - **Deterministic.** The same input always gives the same output, so a result can be reproduced and audited.
-- **Nothing kept.** Redactyl returns redacted text and a count per type. The values it removed are never stored or logged.
+- **Nothing kept.** The endpoint returns the redacted text and a count per type. The text you send and the values removed are never stored or logged.
 
-## What Redactyl finds
+## What Redactyl removes
 
-Redactyl combines two layers.
+Redactyl finds 23 types of personal data by default.
 
-**Identifiers, checked by their own rules.** Phone numbers, email addresses, links, social handles, IP addresses, payment card numbers, IBANs and national ID numbers are recognised by their structure and, where the format has one, their check digit. For internal storage Redactyl also removes values *shaped* like a card, IBAN or ID number whose check digit fails, so a mistyped real number never gets through.
+**Identifiers, recognised by their own rules.** Some formats carry a check digit or checksum, and Redactyl verifies it, so an order number is not mistaken for a card number. The others are recognised by their structure, and the ones that look like any other number (an account number, a passport number) only when a label such as "account number" or "passport no." comes just before them.
 
-**Names and places, read in context.** A proprietary multilingual model, trained by Tuteliq, finds people's names, places, street addresses, schools and organisations in all [32 supported languages](/languages). It reads the sentence, not a list: "Rose" can be a person or a flower, and "Paris" a city or a name.
+| Type | Examples | How it is recognised |
+|------|----------|----------------------|
+| `CARD` | Payment card numbers | Check digit |
+| `IBAN` | International bank account numbers | Checksum |
+| `ID` | National identity numbers | Check digit, where the national format has one |
+| `HEALTH_ID` | NHS numbers; other health service and medical record numbers | Check digit and label for NHS numbers, label for the rest |
+| `DEVICE_ID` | IMEI numbers; MAC addresses and UUIDs | Check digit and label for IMEI, structure for the rest |
+| `CRYPTO_WALLET` | Cryptocurrency wallet addresses | Checksum, where the address format has one |
+| `PHONE` | Phone numbers in national and international formats | Structure |
+| `EMAIL` | Email addresses | Structure |
+| `URL` | Links | Structure |
+| `HANDLE` | Social media handles | Structure |
+| `IP` | IP addresses | Structure |
+| `POSTAL_CODE` | Postcodes and ZIP codes | Structure |
+| `COORDINATES` | GPS coordinates | Structure |
+| `TAX_ID` | VAT numbers; other tax numbers | Structure for VAT numbers, label for the rest |
+| `BIRTH_DATE` | Dates of birth | A valid date next to words such as "born" or "date of birth" |
+| `CARD` (details) | Card expiry dates and security codes | Label |
+| `BANK_ACCOUNT` | Account numbers, sort codes, routing numbers and BIC codes | Label |
+| `PASSPORT` | Passport numbers | Label |
+| `DRIVERS_LICENSE` | Driving licence numbers | Label |
+
+A value recognised by structure or label alone has no check to confirm it, so an unusual format can be missed and a look-alike can be removed.
+
+**Names and places, read in context.** A proprietary multilingual model, trained by Tuteliq, finds names and places in all [32 supported languages](/languages). It reads the sentence, not a list: "Rose" can be a person or a flower, and "Paris" a city or a name.
+
+| Type | Examples |
+|------|----------|
+| `PERSON` | People's names and nicknames |
+| `LOCATION` | Towns, cities, regions and named places |
+| `ADDRESS` | Street addresses |
+| `SCHOOL` | Schools, colleges and universities |
+| `ORGANIZATION` | Clubs, teams, businesses and other organisations |
 
 ## Readable after redaction
 
-Each value becomes a typed placeholder, such as `[PERSON_1]`, `[SCHOOL_1]` or `[PHONE_1]`. Within one conversation the same value always gets the same placeholder, so a moderator can still follow who said what to whom without ever seeing the personal data.
+Each value becomes a typed placeholder, such as `[PERSON_1]`, `[SCHOOL_1]` or `[PHONE_1]`. Within one call the same value always gets the same placeholder, so a moderator can still follow who said what to whom without seeing the personal data.
+
+Numbering is per call and follows the order values first appear: the first person found is `[PERSON_1]`, the next `[PERSON_2]`. A conversation redacted in two calls, or with its messages in a different order, can number the same person differently, so send a conversation in one call, in order, when you need its placeholders to line up.
 
 ```text
-Before:  Hi, I'm Emma from Northfield School, text me on 07700 900123
-After:   Hi, I'm [PERSON_1] from [SCHOOL_1], text me on [PHONE_1]
+Before:  Hi, I'm Emma from Northfield School. Text me on 07700 900123 or emma.w@example.com
+After:   Hi, I'm [PERSON_1] from [SCHOOL_1]. Text me on [PHONE_1] or [EMAIL_1]
 ```
 
-## Where Tuteliq uses it
+## Safety signals are kept
 
-Every summary, stored detection result and error report Tuteliq writes passes through Redactyl first. Contact details and identifiers are removed from all of them today. Name, place, school and organisation coverage from the model is rolling out across the same storage paths.
+By default Redactyl removes what identifies a person and keeps what a safety review needs. A child's age, school year, "my parents are away", or a mention of the park after school stay in the text, because they are often the very details that show a child is at risk. Removing them would hide the risk from the people reviewing it.
 
-## Redactyl for your own systems
+If you share text outside safety review, for example in analytics or a dataset, you can remove those details too with [strict anonymisation](#strict-anonymisation).
 
-<Info>
-**Early access for existing customers.** Redactyl can also run on your own data: redact chat logs before they reach your moderators, your analytics or your support tools, with the same engine Tuteliq uses internally. If you are an existing customer and want to use Redactyl in your own solutions, contact us at [support@tuteliq.ai](mailto:support@tuteliq.ai).
-</Info>
+## Use Redactyl on your own data
+
+```bash
+curl -X POST https://api.tuteliq.ai/api/v1/privacy/redact \
+  -H "Authorization: Bearer $TUTELIQ_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hi, I'\''m Emma from Northfield School. Text me on 07700 900123 or emma.w@example.com"
+  }'
+```
+
+```json
+{
+  "text": "Hi, I'm [PERSON_1] from [SCHOOL_1]. Text me on [PHONE_1] or [EMAIL_1]",
+  "counts": {
+    "PERSON": 1, "LOCATION": 0, "ADDRESS": 0, "SCHOOL": 1, "ORGANIZATION": 0,
+    "PHONE": 1, "EMAIL": 1, "URL": 0, "HANDLE": 0, "IP": 0, "CARD": 0, "IBAN": 0, "ID": 0,
+    "POSTAL_CODE": 0, "DEVICE_ID": 0, "COORDINATES": 0, "CRYPTO_WALLET": 0, "BANK_ACCOUNT": 0,
+    "TAX_ID": 0, "PASSPORT": 0, "DRIVERS_LICENSE": 0, "HEALTH_ID": 0, "BIRTH_DATE": 0,
+    "AGE": 0, "GRADE_LEVEL": 0, "GUARDIAN_STATUS": 0, "GENDER": 0, "NATIONALITY": 0,
+    "LANDMARK": 0, "HEALTH": 0
+  },
+  "entities_total": 4,
+  "mode": "protective",
+  "strict_anonymisation": false,
+  "model_applied": true,
+  "credits_used": 1
+}
+```
+
+`counts` always lists every type, including the strict-only ones, with zero for the types not found.
+
+### A whole conversation
+
+Send `messages` instead of `text` to redact the messages of one conversation together. The same person or value gets the same placeholder in every message.
+
+```json
+{
+  "messages": [
+    "hey I'm Leo, add me on snap @leo_k22",
+    "ok Leo, I live on 14 Elm Road, Bolton",
+    "cool, Leo here again lol"
+  ]
+}
+```
+
+```json
+{
+  "messages": [
+    "hey I'm [PERSON_1], add me on snap [HANDLE_1]",
+    "ok [PERSON_1], I live on [ADDRESS_1], [LOCATION_1]",
+    "cool, [PERSON_1] here again lol"
+  ],
+  "counts": {
+    "PERSON": 3, "LOCATION": 1, "ADDRESS": 1, "SCHOOL": 0, "ORGANIZATION": 0,
+    "PHONE": 0, "EMAIL": 0, "URL": 0, "HANDLE": 1, "IP": 0, "CARD": 0, "IBAN": 0, "ID": 0,
+    "POSTAL_CODE": 0, "DEVICE_ID": 0, "COORDINATES": 0, "CRYPTO_WALLET": 0, "BANK_ACCOUNT": 0,
+    "TAX_ID": 0, "PASSPORT": 0, "DRIVERS_LICENSE": 0, "HEALTH_ID": 0, "BIRTH_DATE": 0,
+    "AGE": 0, "GRADE_LEVEL": 0, "GUARDIAN_STATUS": 0, "GENDER": 0, "NATIONALITY": 0,
+    "LANDMARK": 0, "HEALTH": 0
+  },
+  "entities_total": 6,
+  "mode": "protective",
+  "strict_anonymisation": false,
+  "model_applied": true,
+  "credits_used": 1
+}
+```
+
+`counts` here counts every replaced occurrence, so `PERSON` is 3 for one person named three times.
+
+### Request fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `text` | string | One text to redact, up to 10,000 characters. Send this or `messages`. |
+| `messages` | string[] | The messages of one conversation, in order: 1 to 100 messages of up to 10,000 characters each. A number in the list is read as text. |
+| `language` | string | Two-letter language code, when you know it. A hint only: an unrecognised code is not refused, and the language is detected from the text. |
+| `mode` | string | `protective` (default) or `precise`. See [Modes](#modes). |
+| `strict_anonymisation` | boolean | Off unless `true`. Recognises English phrasing only. See [Strict anonymisation](#strict-anonymisation). |
+
+Send exactly one of `text` or `messages`.
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `text` or `messages` | string or string[] | The redacted input, in the same shape you sent. |
+| `counts` | object | Replaced occurrences per type. |
+| `entities_total` | number | Total replaced occurrences. |
+| `mode` | string | The mode used. |
+| `strict_anonymisation` | boolean | Whether strict anonymisation ran. It does not mean anything was found: check the strict types in `counts`. |
+| `model_applied` | boolean | `true` when full name and place recognition ran. See [When `model_applied` is false](#when-model_applied-is-false). |
+| `credits_used` | number | Credits charged for the call. |
+
+### Modes
+
+Both modes remove every type above in the same way. They differ only on two kinds of near miss, which are usually a mistyped real number:
+
+- a number shaped like a card, IBAN or national ID number whose check digit fails;
+- a phone number one digit longer or shorter than its format allows.
+
+| Mode | Behaviour |
+|------|-----------|
+| `protective` (default) | Removes those near misses too, so a slightly mistyped real number never gets through. |
+| `precise` | Leaves them, so order numbers and other look-alikes stay readable. |
+
+Every other type, including `TAX_ID`, `PASSPORT` and `HEALTH_ID`, is the same in both modes.
+
+### Strict anonymisation
+
+Set `strict_anonymisation: true` to also remove the details a safety review would keep:
+
+| Type | Examples |
+|------|----------|
+| `AGE` | "I'm 13", "13 years old" |
+| `GRADE_LEVEL` | "year 8", "7th grade" |
+| `GUARDIAN_STATUS` | "home alone", "my parents are away" |
+| `GENDER` | Gender and sex, when said about a person |
+| `NATIONALITY` | Nationality or ethnicity, when said about a person |
+| `LANDMARK` | Everyday places such as "behind the gym" or "the park near my house" |
+| `HEALTH` | Conditions, diagnoses and medication, when said about a person |
+
+```text
+Before:  I'm 13 and in year 8, my mum works nights so I'm home alone
+After:   I'm [AGE_1] and in [GRADE_LEVEL_1], my mum works nights so I'm [GUARDIAN_STATUS_1]
+```
+
+<Warning>
+Strict anonymisation removes the details that show a child is at risk. Use it only for text that has already been through safety analysis and is being shared for another purpose. Never redact text this way before analysing it.
+</Warning>
+
+<Warning>
+**English only.** The strict-only types above are recognised in English phrasing today. In text in any other language they are **not** removed, even with `strict_anonymisation: true` in the request and the response. The default types are removed in every supported language as usual. Before sharing non-English text as anonymised, check that it does not carry these details.
+</Warning>
+
+### When `model_applied` is false
+
+Name and place recognition has two layers. When `model_applied` is `false`, only the first ran, because the second could not be loaded:
+
+- The call still succeeds with `200` and costs 1 credit.
+- Every identifier type is removed as usual.
+- Names, places, addresses, schools and organisations are still found, but fewer of them: those written without a clear cue, such as a bare name, can be missed.
+
+Treat that result as possibly under-redacted. Before it reaches people or a dataset, retry the call, or hold the text until a call returns `model_applied: true`.
+
+### Credits
+
+Each call costs **1 credit**, whatever the length of the text or conversation and whichever options you choose. Calls with a [sandbox key](/api-reference/introduction#sandbox-mode) are not charged. See [Pricing & Credits](/credits).
+
+### Errors
+
+Every invalid request is refused with `400` and error code `VAL_3001`, before anything is redacted or charged:
+
+- both `text` and `messages`, or neither;
+- a `text` with nothing but spaces;
+- a `text`, or any message, over 10,000 characters;
+- an empty `messages` list, or more than 100 messages;
+- a `mode` other than `protective` or `precise`.
+
+Error messages never quote your input. Rate limits and running out of credits behave as on every endpoint: see [Rate limits](/api-reference/introduction#rate-limits) and [Error handling](/error-handling).
+
+## Where Tuteliq uses it internally
+
+Every summary, stored detection result and error report Tuteliq writes passes through Redactyl first. Contact details and identifiers are removed from all of them today. Name, place, school and organisation coverage is rolling out across the same storage paths.
 
 ## Related
 
 - [GDPR](/gdpr)
 - [Incident logging](/incident-logging)
+- [Pricing & Credits](/credits)
 - [Trust](/trust)

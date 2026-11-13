@@ -74,6 +74,12 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint combination costs 1 credit, with a minimum of 10 credits to cover extraction overhead. See [Document Analysis](/document-analysis#credit-pricing) for detailed examples.
 
+### Privacy
+
+| Endpoint | Credits | Notes |
+|----------|---------|-------|
+| `POST /privacy/redact` | 1 | Flat: one credit a call, whatever the length of the text or conversation. No SDK method yet; call the REST endpoint. See [Redactyl](/privacy-redaction). |
+
 ### Media Analysis
 
 | Endpoint | Credits | Notes |
