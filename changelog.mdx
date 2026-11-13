@@ -21,6 +21,18 @@ endpoint). They are left as published rather than renumbered, so anything that
 already cites them still resolves.
 </Info>
 
+## 13 November 2026
+
+### Added: the Redactyl redaction endpoint
+
+`POST /api/v1/privacy/redact` removes personal data from a text or from every message of one
+conversation, replacing each value with a typed placeholder that stays the same across the
+conversation. It finds 23 types by default, from names, schools and addresses to card, bank,
+passport, tax and health numbers, device identifiers, wallet addresses and dates of birth. Safety
+signals such as a child's age or school year are kept by default; set `strict_anonymisation` to
+remove them as well for text shared after analysis. It runs inside Tuteliq's infrastructure with
+no language model, stores nothing, and costs 1 credit a call. See [Redactyl](/privacy-redaction).
+
 ## 5 November 2026
 
 ### Added: nickname screening
