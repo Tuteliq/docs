@@ -106,7 +106,8 @@ A completed, successful age-mode session has this shape:
     "face_match": {
       "matched": true,
       "distance": 0.0,
-      "confidence": 0.0
+      "confidence": 0.0,
+      "match_score": 0.0
     },
     "liveness": {
       "valid": true,
@@ -676,7 +677,8 @@ Identity mode (Assure plan and above) returns the same outer envelope as age mod
     "face_match": {
       "matched": true,
       "distance": 0.0,
-      "confidence": 0.0
+      "confidence": 0.0,
+      "match_score": 0.0
     },
     "credits_used": 0
   },
@@ -685,7 +687,7 @@ Identity mode (Assure plan and above) returns the same outer envelope as age mod
 }
 ```
 
-Compared with age mode, identity mode returns the full `full_name` and `date_of_birth` PII required for KYC, plus a `face_match` score, but does not include the document-validation sub-checks block.
+Compared with age mode, identity mode returns the full `full_name` and `date_of_birth` PII required for KYC, plus a `face_match` score (`match_score`, 0 to 1, reading 0.5 at the match decision), but does not include the document-validation sub-checks block.
 
 ## Status states
 

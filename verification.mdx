@@ -243,7 +243,7 @@ Pass `passport=@passport.jpg` instead of `id_front`/`id_back` when verifying a p
   },
   "mrz_valid": true,
   "liveness": { "valid": true, "reason": "string" },
-  "face_match": { "matched": true, "distance": 0.0, "confidence": 0.0 },
+  "face_match": { "matched": true, "distance": 0.0, "confidence": 0.0, "match_score": 0.0 },
   "credits_used": 0
 }
 ```
@@ -275,7 +275,7 @@ All identity fields are `null` when not extractable (e.g. `height_cm` for nation
 | `national_id` | object \| null | Country-specific personal/national ID (see below) |
 | `mrz_valid` | boolean \| null | ICAO 9303 check digits all passed (null if no MRZ on the document) |
 | `liveness` | object | `{ valid: boolean, reason?: string }` |
-| `face_match` | object \| null | `{ matched: boolean, distance: number, confidence: number }` |
+| `face_match` | object \| null | `{ matched: boolean, distance: number, confidence: number, match_score: number }`. `match_score` (0 to 1) shows how strongly the selfie matches the document photo: 0.5 at the match decision, high for a clear match, near 0 for different people. `confidence` is 1 minus `distance` and reads only about 0.55 on a clear match, so prefer `match_score`. |
 | `credits_used` | integer | Credits consumed |
 
 ### `national_id` object
