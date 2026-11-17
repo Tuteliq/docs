@@ -6,7 +6,7 @@ description: 7 cross-referencing layers, deterministic document validation, MRZ 
 keywords: [fraud prevention, document forgery, cross-referencing, tampering detection, MRZ validation, document validation]
 ---
 
-Tuteliq's fraud prevention doesn't rely on a single signal. Every verification runs **7 independent cross-referencing layers** that compare data from different sources on the same document. A forger must defeat all layers simultaneously — editing one field on the front of a document will be caught by mismatches against the MRZ, barcode, back side, or declared metadata.
+Tuteliq's fraud prevention doesn't rely on a single signal. Every verification runs **7 independent cross-referencing layers** that compare data from different sources on the same document. A forger must defeat all layers simultaneously: editing one field on the front of a document will be caught by mismatches against the MRZ, barcode, back side, or declared metadata.
 
 ## Cross-referencing layers
 
@@ -16,9 +16,9 @@ When a document contains a Machine Readable Zone (passports, many ID cards), Tut
 
 | Compared field | How it catches forgery |
 |---------------|----------------------|
-| **Date of birth** | MRZ says 1990-06-15 but printed DOB reads 1995-06-15 — front-side text was edited |
-| **Name** | MRZ shows SMITH but printed name shows JONES — name was changed on the visible side |
-| **Document number** | MRZ number doesn't match the printed number — number was altered |
+| **Date of birth** | MRZ says 1990-06-15 but printed DOB reads 1995-06-15; front-side text was edited |
+| **Name** | MRZ shows SMITH but printed name shows JONES; name was changed on the visible side |
+| **Document number** | MRZ number doesn't match the printed number; number was altered |
 
 This is the **highest-value fraud signal** because the MRZ is protected by ICAO check digits that are difficult to recalculate correctly without specialized knowledge.
 
@@ -28,8 +28,8 @@ For US and Canadian driver's licenses, the PDF417 barcode on the back encodes al
 
 | Compared field | How it catches forgery |
 |---------------|----------------------|
-| **Date of birth** | Barcode says 1985-03-20 but front OCR reads 1990-06-15 — front was edited, back barcode wasn't |
-| **Name** | Barcode says JOHNSON but front says SMITH — front name was changed |
+| **Date of birth** | Barcode says 1985-03-20 but front OCR reads 1990-06-15; front was edited, back barcode wasn't |
+| **Name** | Barcode says JOHNSON but front says SMITH; front name was changed |
 
 ### 3. Document front vs. back
 
@@ -37,8 +37,8 @@ When both sides of a document are provided, Tuteliq extracts name and DOB from e
 
 | Signal | What it catches |
 |--------|----------------|
-| **Name mismatch** | Front says JOHN SMITH, back says JANE DOE — mismatched front/back from different documents |
-| **DOB mismatch** | Different dates on front and back — poorly assembled forgery |
+| **Name mismatch** | Front says JOHN SMITH, back says JANE DOE; mismatched front/back from different documents |
+| **DOB mismatch** | Different dates on front and back; poorly assembled forgery |
 
 ### 4. Document type consistency
 
@@ -54,7 +54,7 @@ If the user declares a document type (e.g., "passport") but the MRZ indicates a 
 Tuteliq compares the document's country of origin against the geographic origin of the API request. A Brazilian CPF submitted from a Vietnamese IP address isn't necessarily fraud, but it's an anomaly worth flagging.
 
 <Info>
-  Geographic inconsistency is a **soft signal** — it generates a flag but doesn't cause automatic failure. Diaspora populations, travelers, and VPN users can legitimately trigger this. It's included in `failure_reasons` for your review logic to handle appropriately.
+  Geographic inconsistency is a **soft signal**: it generates a flag but doesn't cause automatic failure. Diaspora populations, travelers, and VPN users can legitimately trigger this. It's included in `failure_reasons` for your review logic to handle appropriately.
 </Info>
 
 ### 6. Age consistency (document vs. selfie)
@@ -128,9 +128,9 @@ Every fraud signal generates a specific, human-readable failure reason:
 ```
 
 These reasons are designed to be:
-- **Actionable** — your moderation team can understand exactly what went wrong
-- **Specific** — each reason identifies the exact data points that disagree
-- **Auditable** — included in the API response for compliance logging
+- **Actionable**: your moderation team can understand exactly what went wrong
+- **Specific**: each reason identifies the exact data points that disagree
+- **Auditable**: included in the API response for compliance logging
 
 ## Hard vs. soft failures
 

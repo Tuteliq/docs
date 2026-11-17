@@ -10,7 +10,7 @@ Tuteliq provides machine-readable documentation files so AI agents, coding assis
 
 ## What agents can do with Tuteliq
 
-Tuteliq covers four capability areas — all accessible via API, MCP tools, or OpenAPI spec:
+Tuteliq covers four capability areas, all accessible via API, MCP tools, or OpenAPI spec:
 
 <CardGroup cols={2}>
   <Card title="Content Safety" icon="shield-halved">
@@ -31,17 +31,17 @@ Tuteliq covers four capability areas — all accessible via API, MCP tools, or O
 
 | Endpoint | What it does | Tier |
 |----------|-------------|------|
-| `POST /api/v1/verify/age/submit` | Document OCR, biometric age estimation, or combined — returns verified age range, `is_minor`, and confidence | Assure |
-| `POST /api/v1/verify/identity/submit` | Document authentication + face matching + liveness detection — prevents impersonation and spoofing | Assure |
+| `POST /api/v1/verify/age/submit` | Document OCR, biometric age estimation, or combined. Returns verified age range, `is_minor`, and confidence | Assure |
+| `POST /api/v1/verify/identity/submit` | Document authentication + face matching + liveness detection. Prevents impersonation and spoofing | Assure |
 | `POST /api/v1/verify/session` | Manage multi-step verification sessions with liveness challenges | Assure |
 
-Verification integrates directly with detection — verify once, then pass the confirmed `age_group` to all safety endpoints for properly calibrated risk scoring. See the [Verification guide](/verification) for full details.
+Verification integrates directly with detection: verify once, then pass the confirmed `age_group` to all safety endpoints for properly calibrated risk scoring. See the [Verification guide](/verification) for full details.
 
 ---
 
 ## llms.txt
 
-The [`llms.txt`](https://tuteliq.ai/llms.txt) file is a concise, structured summary of Tuteliq — like `robots.txt`, but for AI. It tells agents what the API does, which endpoints are available, and where to find detailed documentation.
+The [`llms.txt`](https://tuteliq.ai/llms.txt) file is a concise, structured summary of Tuteliq, like `robots.txt`, but for AI. It tells agents what the API does, which endpoints are available, and where to find detailed documentation.
 
 ```
 https://tuteliq.ai/llms.txt
@@ -51,7 +51,7 @@ Point your AI assistant to this URL for a quick overview of all capabilities.
 
 ## llms-full.txt
 
-The [`llms-full.txt`](https://tuteliq.ai/llms-full.txt) file is the complete API reference in plain text — every endpoint, parameter, response field, and example. Ideal for agents that need full context to generate accurate API calls.
+The [`llms-full.txt`](https://tuteliq.ai/llms-full.txt) file is the complete API reference in plain text: every endpoint, parameter, response field, and example. Ideal for agents that need full context to generate accurate API calls.
 
 ```
 https://tuteliq.ai/llms-full.txt
@@ -81,7 +81,7 @@ https://api.tuteliq.ai/.well-known/ai-plugin.json
 
 ## MCP Server
 
-For AI assistants that support the [Model Context Protocol](/mcp-server) (Claude Desktop, Cursor, Windsurf), Tuteliq exposes all detection tools as MCP tools — no code required.
+For AI assistants that support the [Model Context Protocol](/mcp-server) (Claude Desktop, Cursor, Windsurf), Tuteliq exposes all detection tools as MCP tools, no code required.
 
 The MCP server also provides built-in data resources (`tuteliq://documentation`, `tuteliq://context-fields`, etc.) that agents can read for full parameter references.
 
@@ -91,7 +91,7 @@ See the [MCP setup guide](/mcp-server) for configuration instructions.
 
 | File | URL | Use Case |
 |------|-----|----------|
-| `llms.txt` | `tuteliq.ai/llms.txt` | Quick discovery — what Tuteliq does and where to learn more |
+| `llms.txt` | `tuteliq.ai/llms.txt` | Quick discovery: what Tuteliq does and where to learn more |
 | `llms-full.txt` | `tuteliq.ai/llms-full.txt` | Full API reference for agents that need complete context |
 | `openapi.json` | `api.tuteliq.ai/openapi.json` | OpenAPI 3.1 spec for code generation and API clients |
 | `ai-plugin.json` | `api.tuteliq.ai/.well-known/ai-plugin.json` | OpenAI plugin manifest |

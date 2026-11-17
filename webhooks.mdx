@@ -105,7 +105,7 @@ app.post("/tuteliq/webhook", (req, res) => {
 
   switch (event.type) {
     case "safety.critical":
-      // Escalate immediately — alert moderators, pause user, etc.
+      // Escalate immediately: alert moderators, pause user, etc.
       handleCriticalAlert(event.data);
       break;
     case "safety.high":

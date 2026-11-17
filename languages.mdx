@@ -63,7 +63,7 @@ Language detection uses a three-layer approach for maximum reliability:
     If no explicit language is given, the API runs trigram-based analysis on the input text to infer the language. This works well for most languages and requires no extra latency.
   </Step>
   <Step title="LLM confirmation">
-    The LLM also identifies the content language during its analysis (at zero extra cost — same API call). When the LLM's detection is a supported language, it takes precedence over the trigram result. This ensures correct detection for closely related languages like Norwegian/Swedish/Danish.
+    The LLM also identifies the content language during its analysis (at zero extra cost, same API call). When the LLM's detection is a supported language, it takes precedence over the trigram result. This ensures correct detection for closely related languages like Norwegian/Swedish/Danish.
   </Step>
 </Steps>
 
@@ -81,12 +81,12 @@ Every safety endpoint response includes language information:
 
 Each supported language includes culture-specific guidelines that are injected into the classification prompt:
 
-- **Local slang and idioms** — Ensures teen slang and cultural expressions are correctly interpreted rather than triggering false positives.
-- **Harmful terms** — Language-specific lists of slurs, hate speech, and harmful terminology.
-- **Grooming indicators** — Language-specific grooming patterns, including pronoun formality shifts, culturally-specific pet names, and platform preferences by region.
-- **Self-harm coded vocabulary** — Coded phrases for self-harm and suicidal ideation in each language, beyond literal translations.
-- **Filter evasion techniques** — Language-specific evasion patterns: diacritic omission, Cyrillic-Latin homoglyph mixing (Bulgarian), Greeklish/Shlyokavitsa (Greek/Bulgarian Latin-alphabet writing), code-switching between related languages.
-- **Cultural context** — For example, Finnish profanity (e.g., "perkele") is culturally common and treated differently than targeted insults. Norwegian analysis accounts for the janteloven cultural norm. Danish analysis is calibrated for sarcastic and self-deprecating communication styles. Dutch analysis flags disease-based swearing (e.g., "kanker-" prefix). Turkish analysis considers honor-based dynamics. Baltic and Balkan languages include parental emigration context for vulnerability assessment.
+- **Local slang and idioms**: Ensures teen slang and cultural expressions are correctly interpreted rather than triggering false positives.
+- **Harmful terms**: Language-specific lists of slurs, hate speech, and harmful terminology.
+- **Grooming indicators**: Language-specific grooming patterns, including pronoun formality shifts, culturally-specific pet names, and platform preferences by region.
+- **Self-harm coded vocabulary**: Coded phrases for self-harm and suicidal ideation in each language, beyond literal translations.
+- **Filter evasion techniques**: Language-specific evasion patterns: diacritic omission, Cyrillic-Latin homoglyph mixing (Bulgarian), Greeklish/Shlyokavitsa (Greek/Bulgarian Latin-alphabet writing), code-switching between related languages.
+- **Cultural context**: For example, Finnish profanity (e.g., "perkele") is culturally common and treated differently than targeted insults. Norwegian analysis accounts for the janteloven cultural norm. Danish analysis is calibrated for sarcastic and self-deprecating communication styles. Dutch analysis flags disease-based swearing (e.g., "kanker-" prefix). Turkish analysis considers honor-based dynamics. Baltic and Balkan languages include parental emigration context for vulnerability assessment.
 
 ## Examples
 

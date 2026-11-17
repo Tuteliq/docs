@@ -16,7 +16,7 @@ Tuteliq uses a **trunk-based development** model with short-lived feature branch
 
 | Branch | Purpose | Protection |
 |--------|---------|-----------|
-| `main` | Production-ready code | Protected — no direct pushes, requires PR |
+| `main` | Production-ready code | Protected: no direct pushes, requires PR |
 | `feat/*` | New features | Developer branch |
 | `fix/*` | Bug fixes | Developer branch |
 | `hotfix/*` | Critical production fixes | Expedited review process |
@@ -55,10 +55,10 @@ Tuteliq uses a **trunk-based development** model with short-lived feature branch
   <Step title="Automated CI Checks">
     Every pull request triggers automated CI pipelines that must pass before merge:
 
-    - **Build** — Compilation and type checking across all supported targets
-    - **Test** — Full unit and integration test suite
-    - **Lint** — Code style and formatting enforcement
-    - **Security** — Dependency vulnerability scanning (Dependabot / GitHub Advisory Database)
+    - **Build**: Compilation and type checking across all supported targets
+    - **Test**: Full unit and integration test suite
+    - **Lint**: Code style and formatting enforcement
+    - **Security**: Dependency vulnerability scanning (Dependabot / GitHub Advisory Database)
 
     <Warning>
       Pull requests cannot be merged if any CI check fails.
@@ -83,9 +83,9 @@ Tuteliq uses a **trunk-based development** model with short-lived feature branch
   <Step title="Production Deployment">
     Merges to `main` trigger automatic deployment to production via the CI/CD pipeline:
 
-    - **API** — Deployed to Google Cloud Run with zero-downtime rolling updates
-    - **SDKs** — Published to respective package registries (npm, PyPI, pub.dev, Maven Central, NuGet, Swift Package Index) on tagged releases
-    - **Documentation** — Auto-deployed via Mintlify on push to `main`
+    - **API**: Deployed to Google Cloud Run with zero-downtime rolling updates
+    - **SDKs**: Published to respective package registries (npm, PyPI, pub.dev, Maven Central, NuGet, Swift Package Index) on tagged releases
+    - **Documentation**: Auto-deployed via Mintlify on push to `main`
 
     Deployments are monitored for errors and latency regressions. Automatic rollback is triggered if health checks fail.
   </Step>
@@ -128,11 +128,11 @@ Code progresses through environments before reaching production:
 
 ## Monitoring & Rollback
 
-- **Health checks** — Automated HTTP health probes on every deployment
-- **Error tracking** — Real-time error monitoring with alerting
-- **Latency monitoring** — P50/P95/P99 latency tracked per endpoint
-- **Automatic rollback** — Cloud Run reverts to the previous revision if the new deployment fails health checks
-- **Manual rollback** — Any team member can trigger an immediate rollback via the deployment dashboard
+- **Health checks**: Automated HTTP health probes on every deployment
+- **Error tracking**: Real-time error monitoring with alerting
+- **Latency monitoring**: P50/P95/P99 latency tracked per endpoint
+- **Automatic rollback**: Cloud Run reverts to the previous revision if the new deployment fails health checks
+- **Manual rollback**: Any team member can trigger an immediate rollback via the deployment dashboard
 
 ## Questions
 

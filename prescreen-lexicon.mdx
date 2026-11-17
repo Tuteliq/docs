@@ -23,7 +23,7 @@ Both of these strengthen the privacy story: less content in transit, less conten
 GET /api/v1/prescreen/lexicon
 ```
 
-**Public.** No authentication required. The lexicon contains no secrets — just patterns mapped to category tags. It's safe to fetch, cache, and inspect.
+**Public.** No authentication required. The lexicon contains no secrets: just patterns mapped to category tags. It's safe to fetch, cache, and inspect.
 
 ```bash
 curl -i https://api.tuteliq.ai/api/v1/prescreen/lexicon
@@ -112,19 +112,19 @@ async function checkGrooming(text: string) {
 
 ## Privacy properties
 
-- **The lexicon is public** — anyone can fetch and inspect it. No model weights, no proprietary scoring.
-- **The matching is local** — content matched on-device never leaves the device unless the SDK decides to make an API call.
-- **Benign short-circuits** — clearly-benign content never reaches Tuteliq at all.
-- **Server-side acceptance is opt-in** — passing `prescreen_flags` on a detection request is supported and used as a prior; it never substitutes for the full server-side analysis.
+- **The lexicon is public**: anyone can fetch and inspect it. No model weights, no proprietary scoring.
+- **The matching is local**: content matched on-device never leaves the device unless the SDK decides to make an API call.
+- **Benign short-circuits**: clearly-benign content never reaches Tuteliq at all.
+- **Server-side acceptance is opt-in**: passing `prescreen_flags` on a detection request is supported and used as a prior; it never substitutes for the full server-side analysis.
 
 ## What's NOT in v1
 
-- **Multi-language entries beyond English** — coming in subsequent lexicon versions. SDKs that don't recognise the language fall back to `en` patterns; we plan to ship `es`, `pt`, `fr`, `de` next.
-- **Machine-learned patterns** — v1 is curated, hand-written phrases focused on precision-per-pattern. The bar to add an entry is intentionally high — false-positive benign matches would cause SDKs to silently drop concerning content.
-- **Per-customer custom lexicons** — every SDK runs the same public lexicon. Custom patterns are a P3 follow-up.
+- **Multi-language entries beyond English**: coming in subsequent lexicon versions. SDKs that don't recognise the language fall back to `en` patterns; we plan to ship `es`, `pt`, `fr`, `de` next.
+- **Machine-learned patterns**: v1 is curated, hand-written phrases focused on precision-per-pattern. The bar to add an entry is intentionally high; false-positive benign matches would cause SDKs to silently drop concerning content.
+- **Per-customer custom lexicons**: every SDK runs the same public lexicon. Custom patterns are a P3 follow-up.
 
 ## Versioning
 
-The `version` field (e.g. `2026.05.001`) bumps on **any** change to entries. SDKs cache by version. Old SDK versions keep working with their cached lexicon — they're just less sharp until the next SDK release pulls the new one. Two-week target cadence for additions; faster for removals.
+The `version` field (e.g. `2026.05.001`) bumps on **any** change to entries. SDKs cache by version. Old SDK versions keep working with their cached lexicon; they're just less sharp until the next SDK release pulls the new one. Two-week target cadence for additions; faster for removals.
 
-If you spot a false positive (benign content matching as a positive signal) please report it — those are the highest-priority lexicon fixes.
+If you spot a false positive (benign content matching as a positive signal) please report it; those are the highest-priority lexicon fixes.

@@ -24,7 +24,7 @@ The Tuteliq Telegram bot monitors group chats for grooming, bullying, and unsafe
 
 ### Hosted bot (recommended)
 
-Click **Add to Telegram** above or search for `@tuteliq_guardian_bot` in Telegram, then add the bot to your group. No code required — configure everything with bot commands.
+Click **Add to Telegram** above or search for `@tuteliq_guardian_bot` in Telegram, then add the bot to your group. No code required. Configure everything with bot commands.
 
 The bot needs the following group permissions:
 
@@ -61,11 +61,11 @@ npm start
 
 Messages in the group flow through a multi-stage pipeline:
 
-1. **Crisis keywords** — Messages containing crisis phrases (e.g. self-harm, exploitation) trigger an immediate API call for instant analysis.
-2. **Grooming buffer** — Messages are accumulated per group. When the buffer has enough context from multiple senders, a conversation analysis is sent for grooming detection.
-3. **Batch queue** — All other messages are batched and sent to the Tuteliq API for efficient bullying and unsafe content detection.
-4. **Alert** — When a risk score exceeds your sensitivity threshold, an alert is sent as a DM to the group admin with severity, risk score, message excerpt, and recommended action.
-5. **Act** — Admins take action directly from the alert using inline buttons.
+1. **Crisis keywords**: Messages containing crisis phrases (e.g. self-harm, exploitation) trigger an immediate API call for instant analysis.
+2. **Grooming buffer**: Messages are accumulated per group. When the buffer has enough context from multiple senders, a conversation analysis is sent for grooming detection.
+3. **Batch queue**: All other messages are batched and sent to the Tuteliq API for efficient bullying and unsafe content detection.
+4. **Alert**: When a risk score exceeds your sensitivity threshold, an alert is sent as a DM to the group admin with severity, risk score, message excerpt, and recommended action.
+5. **Act**: Admins take action directly from the alert using inline buttons.
 
 <Info>
   Alerts are sent as direct messages to the admin who configured the bot, keeping moderation activity private from the group.
@@ -100,9 +100,9 @@ When a threat is detected, the admin DM includes inline buttons:
 | Level | Threshold | Best for |
 |---|---|---|
 | `low` | 70%+ | Minimal alerts, only clear violations |
-| `medium` | 50%+ | Balanced — good default for most groups |
+| `medium` | 50%+ | Balanced: good default for most groups |
 | `high` | 30%+ | Stricter monitoring, catches more subtle threats |
-| `maximum` | 10%+ | Maximum protection — useful for testing or high-risk communities |
+| `maximum` | 10%+ | Maximum protection: useful for testing or high-risk communities |
 
 Set the level with `/sensitivity <level>`.
 
@@ -142,7 +142,7 @@ ENCRYPTION_KEY=your-64-hex-char-encryption-key
 # Firebase
 GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
 
-# Webhook (optional — omit for polling mode)
+# Webhook (optional; omit for polling mode)
 WEBHOOK_URL=https://your-domain.com/webhook
 WEBHOOK_SECRET=your-webhook-secret
 

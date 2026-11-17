@@ -42,7 +42,7 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyseMulti` (alias `/detection/multi`) | `1 + N` | Parallel fan-out discount. `1 base + 1 per endpoint`; 3 endpoints = 4 credits, 7 endpoints = 8 credits. Cheaper than calling endpoints individually because server-side execution is parallel — wall-clock cost doesn't scale with N. |
+| `analyseMulti` (alias `/detection/multi`) | `1 + N` | Parallel fan-out discount. `1 base + 1 per endpoint`; 3 endpoints = 4 credits, 7 endpoints = 8 credits. Cheaper than calling endpoints individually because server-side execution is parallel; wall-clock cost doesn't scale with N. |
 
 ### Analysis & Guidance
 
@@ -70,7 +70,7 @@ Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on 
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyzeDocument` | Dynamic | `max(10, pages_analyzed × endpoint_count)` — minimum 10 credits |
+| `analyzeDocument` | Dynamic | `max(10, pages_analyzed × endpoint_count)`, minimum 10 credits |
 
 Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint combination costs 1 credit, with a minimum of 10 credits to cover extraction overhead. See [Document Analysis](/document-analysis#credit-pricing) for detailed examples.
 

@@ -54,8 +54,8 @@ Copy the `TuteliqSafety/` folder into `ServerScriptService` in Roblox Studio.
 
 ## Prerequisites
 
-- **Enable HTTP Requests** — In Roblox Studio go to **Game Settings → Security → Allow HTTP Requests** and turn it on.
-- **Get an API key** — Sign up at [tuteliq.ai](https://tuteliq.ai) and create a key starting with `tq_`.
+- **Enable HTTP Requests**: In Roblox Studio go to **Game Settings → Security → Allow HTTP Requests** and turn it on.
+- **Get an API key**: Sign up at [tuteliq.ai](https://tuteliq.ai) and create a key starting with `tq_`.
 
 ## Quick start
 
@@ -79,9 +79,9 @@ TuteliqSafety.start({
 
 Every chat message goes through a three-stage pipeline:
 
-1. **Crisis keywords** — Phrases like "kill myself" or "send me pictures" trigger an immediate API call to `/safety/unsafe` for instant analysis.
-2. **Grooming buffer** — Messages are accumulated per channel. When the buffer reaches 5+ messages from 2+ unique senders, a conversation analysis is sent to `/safety/grooming`.
-3. **Batch queue** — All other messages are batched (25 per request or every 5 seconds) and sent to `/batch/analyze` for efficient bullying and unsafe content detection.
+1. **Crisis keywords**: Phrases like "kill myself" or "send me pictures" trigger an immediate API call to `/safety/unsafe` for instant analysis.
+2. **Grooming buffer**: Messages are accumulated per channel. When the buffer reaches 5+ messages from 2+ unique senders, a conversation analysis is sent to `/safety/grooming`.
+3. **Batch queue**: All other messages are batched (25 per request or every 5 seconds) and sent to `/batch/analyze` for efficient bullying and unsafe content detection.
 
 When a threat is detected above your sensitivity threshold, the module takes automatic actions based on severity:
 
@@ -174,9 +174,9 @@ TuteliqSafety.start({
 | Level | Threshold | Best for |
 |---|---|---|
 | `low` | 0.7 | Minimal false positives, only flags high-confidence threats |
-| `medium` | 0.5 | Balanced — good default for most experiences |
+| `medium` | 0.5 | Balanced: good default for most experiences |
 | `high` | 0.3 | Catches more subtle threats, may increase false positives |
-| `maximum` | 0.1 | Maximum protection — flags nearly everything suspicious |
+| `maximum` | 0.1 | Maximum protection: flags nearly everything suspicious |
 
 ## API
 
@@ -192,16 +192,16 @@ TuteliqSafety.start({
 
 ```
 TuteliqSafety/
-├── init.lua               — Main entry point
-├── Types.lua              — Luau type definitions
-├── Config.lua             — Validation, defaults, thresholds
-├── Logger.lua             — Structured logging
-├── HttpClient.lua         — API communication via HttpService
-├── RateLimiter.lua        — Token bucket rate limiter
-├── BatchQueue.lua         — Message batching with timer/size flush
-├── ConversationBuffer.lua — Ring buffer for grooming context
-├── CrisisDetector.lua     — Keyword matching for immediate analysis
-└── ActionDispatcher.lua   — Mute/kick/notify based on severity
+├── init.lua               - Main entry point
+├── Types.lua              - Luau type definitions
+├── Config.lua             - Validation, defaults, thresholds
+├── Logger.lua             - Structured logging
+├── HttpClient.lua         - API communication via HttpService
+├── RateLimiter.lua        - Token bucket rate limiter
+├── BatchQueue.lua         - Message batching with timer/size flush
+├── ConversationBuffer.lua - Ring buffer for grooming context
+├── CrisisDetector.lua     - Keyword matching for immediate analysis
+└── ActionDispatcher.lua   - Mute/kick/notify based on severity
 ```
 
 ## Rate limiting

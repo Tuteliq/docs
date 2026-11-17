@@ -2,11 +2,11 @@
 title: Synthetic Content Detection
 sidebarTitle: Synthetic Content
 icon: robot
-description: Multi-signal forensic detection of AI-generated text, images, audio, and video — deepfakes, voice cloning, synthetic identities, and AI-enhanced child exploitation content
+description: Multi-signal forensic detection of AI-generated text, images, audio, and video (deepfakes, voice cloning, synthetic identities, and AI-enhanced child exploitation content)
 keywords: [synthetic content, deepfake, AI-generated, voice cloning, CSAM, GenAI, detection, classification, forensic, blueprint, C2PA, perceptual hash, spectrogram, temporal consistency, lip-sync]
 ---
 
-Tuteliq detects AI-generated and synthetic content across all four modalities — text, image, audio, and video. Each endpoint classifies content using the standardized taxonomy from the [Child Protection Blueprint](https://protectingchildrenonline.org): `confirmed_synthetic`, `suspected_synthetic`, `unknown`, or `confirmed_authentic`.
+Tuteliq detects AI-generated and synthetic content across all four modalities: text, image, audio, and video. Each endpoint classifies content using the standardized taxonomy from the [Child Protection Blueprint](https://protectingchildrenonline.org): `confirmed_synthetic`, `suspected_synthetic`, `unknown`, or `confirmed_authentic`.
 
 For images and video, Tuteliq goes far beyond a single model call. Several independent forensic checks run on every file, including our own forensic vision models, file metadata, C2PA Content Credentials, watermark detection and perceptual hashing, and their findings are combined into one assessment. Each check is independent, so one failing does not take the result down with it.
 
@@ -139,7 +139,7 @@ The two layers answer different questions and neither replaces the other:
 
 ## Text Detection
 
-Analyzes text for AI-generated content indicators — LLM-generated text, synthetic identities, AI-enhanced grooming scripts, and more.
+Analyzes text for AI-generated content indicators: LLM-generated text, synthetic identities, AI-enhanced grooming scripts, and more.
 
 ```
 POST /api/v1/safety/synthetic-content
@@ -301,8 +301,8 @@ Content-Type: multipart/form-data
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `metadata_analysis` | object | EXIF/metadata extraction results — format, dimensions, camera presence, GPS, AI generator detection |
-| `provenance` | object | C2PA Content Credentials — present only when a C2PA manifest is found |
+| `metadata_analysis` | object | EXIF/metadata extraction results: format, dimensions, camera presence, GPS, AI generator detection |
+| `provenance` | object | C2PA Content Credentials, present only when a C2PA manifest is found |
 | `semantic_analysis` | object | What our forensic vision models saw: whether the image looks generated, how confident they are, and the artifacts found |
 | `forensic_signals` | object | Summary of the forensic findings: how many, from which kind of check, and their combined effect |
 | `perceptual_hash` | string | Perceptual hash of the image, for matching against hash lists you hold |

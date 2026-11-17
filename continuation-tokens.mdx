@@ -10,7 +10,7 @@ keywords: [continuation tokens, conversation memory, privacy, multi-turn analysi
 
 > **You hold the conversation. We hold the signature.**
 
-Tuteliq's safety endpoints get sharper when they can see the conversation arc — not just one message. Most platforms solve this by storing the conversation server-side. Tuteliq doesn't. We return a **signed, opaque token** containing the *derived analysis state* (turn count, accumulated categories, severity trajectory, recommended actions). You hold the token; on the next call, you pass it back. We never store a single message of yours.
+Tuteliq's safety endpoints get sharper when they can see the conversation arc, not just one message. Most platforms solve this by storing the conversation server-side. Tuteliq doesn't. We return a **signed, opaque token** containing the *derived analysis state* (turn count, accumulated categories, severity trajectory, recommended actions). You hold the token; on the next call, you pass it back. We never store a single message of yours.
 
 ## Why it matters
 
@@ -40,7 +40,7 @@ sequenceDiagram
     Note over Tuteliq: Fresh token replaces the old one
 ```
 
-The token is a signed JWT (HS256) with `typ: "TLQT"` (Tuteliq Continuation Token). It's opaque to you — you don't decode it, you just round-trip it.
+The token is a signed JWT (HS256) with `typ: "TLQT"` (Tuteliq Continuation Token). It's opaque to you: you don't decode it, you just round-trip it.
 
 ## Supported endpoints
 
@@ -52,7 +52,7 @@ The token is a signed JWT (HS256) with `typ: "TLQT"` (Tuteliq Continuation Token
 | `POST /v1/safety/coercive-control` | ✓ |
 | `POST /v1/safety/vulnerability-exploitation` | ✓ |
 
-Token is **single-endpoint by design** — a token issued by `/safety/grooming` cannot be used on `/safety/bullying`. Each conversation type maintains its own state.
+Token is **single-endpoint by design**: a token issued by `/safety/grooming` cannot be used on `/safety/bullying`. Each conversation type maintains its own state.
 
 ## Quick start
 
@@ -122,7 +122,7 @@ The response reflects the **trajectory**, not just this message:
 |---|---|---|
 | `continuation_token` | string (optional) | Opaque token from a previous response. |
 | `reset_conversation` | boolean (optional) | When `true`, discard the token and start fresh. |
-| `message_id` | string (optional, ≤128 chars) | Your own identifier for this turn — used in the token's evidence pointers so you can map detections back to your messages. If omitted we use a deterministic short hash. |
+| `message_id` | string (optional, ≤128 chars) | Your own identifier for this turn, used in the token's evidence pointers so you can map detections back to your messages. If omitted we use a deterministic short hash. |
 
 ## Response fields
 
@@ -136,12 +136,12 @@ The response reflects the **trajectory**, not just this message:
 
 These hold **by construction**, not by policy:
 
-- **No raw text in the token** — only derived signals (counts, confidences, severity trajectory)
-- **No PII in the token** — emails, phone numbers, addresses are never carried forward
-- **Per-key binding** — a token issued to your key cannot be used by another customer's key (HMAC `sub` claim binds to a hash of your API key)
-- **Per-endpoint binding** — tokens cannot cross endpoints
-- **Tamper-evident** — any modification invalidates the HMAC signature
-- **Bounded lifetime** — 24h default expiry
+- **No raw text in the token**: only derived signals (counts, confidences, severity trajectory)
+- **No PII in the token**: emails, phone numbers, addresses are never carried forward
+- **Per-key binding**: a token issued to your key cannot be used by another customer's key (HMAC `sub` claim binds to a hash of your API key)
+- **Per-endpoint binding**: tokens cannot cross endpoints
+- **Tamper-evident**: any modification invalidates the HMAC signature
+- **Bounded lifetime**: 24h default expiry
 - **A leaked token reveals nothing beyond what's already in the public API response** for that conversation
 
 ## Errors
@@ -163,22 +163,22 @@ In every case, the fix is the same: drop the token and start a fresh conversatio
 ## Best practices
 
 - **Persist the token per conversation, not per user.** A user with three open chats has three tokens.
-- **Don't log it server-side** if you can avoid it — treat it like a session cookie. It's signed but it's also small and bounded; the less it sits around, the better.
+- **Don't log it server-side** if you can avoid it; treat it like a session cookie. It's signed but it's also small and bounded; the less it sits around, the better.
 - **On any error code, gracefully fall back.** Send the recent conversation_history once to re-seed, then continue with the new token.
 - **Use `reset_conversation: true`** to explicitly close a conversation arc and start fresh (e.g., end of a support session).
-- **Use `message_id`** with your own message identifiers — the token's evidence pointers will reference them so you can map detections back to your records.
+- **Use `message_id`** with your own message identifiers; the token's evidence pointers will reference them so you can map detections back to your records.
 
 ## Coexistence with `conversation_history`
 
 The `conversation_history` field (today's pattern) still works. Three modes:
 
-1. **History only** (today) — full conversation each call, server is stateless, no token returned... actually the new response *does* include a token you can adopt going forward.
-2. **Token only** (new) — only the new turn, plus the token. Privacy-first.
-3. **Both** — token wins; history is ignored on this call. Use this only for one-call migration.
+1. **History only** (today): full conversation each call, server is stateless, no token returned... actually the new response *does* include a token you can adopt going forward.
+2. **Token only** (new): only the new turn, plus the token. Privacy-first.
+3. **Both**: token wins; history is ignored on this call. Use this only for one-call migration.
 
 ## Grooming-endpoint legacy `session_id`
 
-`POST /v1/safety/grooming` historically supported a server-stored `session_id`. That endpoint **still works** but is scheduled for deprecation — the continuation token offers the same multi-turn awareness without server-side storage. New integrations should use `continuation_token`; existing integrations have a clean migration path (send `continuation_token` instead of `session_id`; response shapes are unchanged otherwise).
+`POST /v1/safety/grooming` historically supported a server-stored `session_id`. That endpoint **still works** but is scheduled for deprecation; the continuation token offers the same multi-turn awareness without server-side storage. New integrations should use `continuation_token`; existing integrations have a clean migration path (send `continuation_token` instead of `session_id`; response shapes are unchanged otherwise).
 
 ## Token shape (for the curious)
 
@@ -186,8 +186,8 @@ The `conversation_history` field (today's pattern) still works. Three modes:
 header.payload.signature
 ```
 
-- **Header** — `{ "alg": "HS256", "typ": "TLQT", "kid": "tlq-ct-YYYY-MM" }`
-- **Payload** — derived state: `{ v, ep, sub, lang, ac, tc, cat, ev, sev_hist, trj, rec, iat, exp }`
-- **Signature** — HMAC-SHA256 over `header.payload` with the secret bound to `kid`
+- **Header**: `{ "alg": "HS256", "typ": "TLQT", "kid": "tlq-ct-YYYY-MM" }`
+- **Payload**: derived state (`{ v, ep, sub, lang, ac, tc, cat, ev, sev_hist, trj, rec, iat, exp }`)
+- **Signature**: HMAC-SHA256 over `header.payload` with the secret bound to `kid`
 
-You don't need to inspect any of this — pass the token back, that's all. We document the shape only for security-team curiosity.
+You don't need to inspect any of this: pass the token back, that's all. We document the shape only for security-team curiosity.

@@ -2,7 +2,7 @@
 title: API Reference
 sidebarTitle: Overview
 icon: code
-description: Complete reference for all Tuteliq API endpoints — authentication, rate limits, error handling, and endpoint groups
+description: Complete reference for all Tuteliq API endpoints (authentication, rate limits, error handling, and endpoint groups)
 keywords: [API reference, endpoints, error codes, rate limits, authentication, credits, sandbox, sessions]
 ---
 
@@ -57,7 +57,7 @@ enum; in the fraud and extended-harm family it is a number from 0 to 1, and the 
 called `level`. Branch on `recommended_action` and you sidestep the difference entirely.
 </Warning>
 
-**Core safety family** — `/safety/bullying`, `/safety/unsafe`, `/safety/grooming`.
+**Core safety family**: `/safety/bullying`, `/safety/unsafe`, `/safety/grooming`.
 Each names its own verdict field and returns a flat category vocabulary.
 
 ```json
@@ -81,7 +81,7 @@ Each names its own verdict field and returns a flat category vocabulary.
 `bullying_type`. `/safety/grooming` returns `grooming_risk`, `flags` and a per-message
 `message_analysis` array; see [Grooming detection](/grooming-detection).
 
-**Fraud and extended-harm family** — `/fraud/*` and the extended `/safety/*` endpoints
+**Fraud and extended-harm family**: `/fraud/*` and the extended `/safety/*` endpoints
 (`coercive-control`, `tfgbv`, `radicalisation`, `gambling-harm`,
 `vulnerability-exploitation`, `distress-signals`). These share one shape, identified by
 the `endpoint` field, and carry evidence excerpts.
@@ -427,22 +427,22 @@ resending history, and without anything being stored server-side. See
 
 ## Stateless by Design
 
-Tuteliq is **fully stateless** — every API call is independent, and no conversation text, context, or session state is retained between requests. This is a deliberate **privacy-by-design** decision, not a missing feature.
+Tuteliq is **fully stateless**: every API call is independent, and no conversation text, context, or session state is retained between requests. This is a deliberate **privacy-by-design** decision, not a missing feature.
 
 **Why stateless?**
 
-- **GDPR compliance** — Processing children's data under GDPR/COPPA demands the strictest data minimization. By retaining no cross-request state, there is zero risk of sensitive conversation data persisting in caches, logs, or backups.
-- **No data retention surface** — There is no session store to breach, no conversation cache to leak, and no accumulated history to subpoena. Each request arrives, is analyzed, and the content is discarded.
-- **Simpler compliance audits** — "We store nothing between requests" is the easiest privacy posture to audit and certify.
+- **GDPR compliance**: Processing children's data under GDPR/COPPA demands the strictest data minimization. By retaining no cross-request state, there is zero risk of sensitive conversation data persisting in caches, logs, or backups.
+- **No data retention surface**: There is no session store to breach, no conversation cache to leak, and no accumulated history to subpoena. Each request arrives, is analyzed, and the content is discarded.
+- **Simpler compliance audits**: "We store nothing between requests" is the easiest privacy posture to audit and certify.
 
 **What this means for developers:**
 
 - Pass `context` (age_group, platform, language, conversation_history) with **every request** that needs it.
-- Use `external_id` and `customer_id` to correlate results with your own systems — these are echoed back but not stored.
+- Use `external_id` and `customer_id` to correlate results with your own systems; these are echoed back but not stored.
 - If you need to track risk escalation across a conversation, aggregate results on your side using the `severity`, `risk_score`, and `level` fields returned by each call.
 
 <Info>
-**This is intentional.** Many child safety APIs offer session-based context accumulation. We chose not to — because when you're processing messages from minors, the safest data is data you never store. Your integration handles context; Tuteliq handles detection.
+**This is intentional.** Many child safety APIs offer session-based context accumulation. We chose not to, because when you're processing messages from minors, the safest data is data you never store. Your integration handles context; Tuteliq handles detection.
 </Info>
 
 ## Sandbox Mode
@@ -454,7 +454,7 @@ Create a sandbox key in your [Dashboard](https://tuteliq.ai/dashboard) under **S
 Sandbox limits:
 - **10 requests per minute** rate limit
 - **50 calls per day** (resets at midnight UTC)
-- Real analysis, real results — not mocked
+- Real analysis, real results, not mocked
 
 <Warning>
 Sandbox mode is for integration testing only. Daily limits prevent use as a free production workaround.
@@ -507,7 +507,7 @@ Each endpoint consumes a different number of credits:
 | Image analysis | 3 | Vision + OCR + safety |
 | Voice analysis | 5 | Transcription + safety |
 | Age verification | 5 | Document/biometric |
-| Document analysis | Dynamic | `max(3, pages × endpoints)` — [details](/document-analysis#credit-pricing) |
+| Document analysis | Dynamic | `max(3, pages × endpoints)`, [details](/document-analysis#credit-pricing) |
 | Video analysis | 10 | Frame extraction + per-frame analysis |
 | Identity verification | 10 | Document auth + face match + liveness |
 
@@ -561,7 +561,7 @@ For the full error reference and retry strategies, see [Error Handling](/error-h
     Fan-out a single text to up to 10 detectors in parallel with aggregated results.
   </Card>
   <Card title="Analysis" icon="chart-line" href="/api-reference/analysis">
-    Emotional trend analysis — dominant emotions, sentiment trajectory, depression/anxiety indicators.
+    Emotional trend analysis: dominant emotions, sentiment trajectory, depression/anxiety indicators.
   </Card>
   <Card title="Guidance" icon="compass" href="/api-reference/guidance">
     Age-appropriate action plans for children, parents, or professionals.
@@ -582,7 +582,7 @@ For the full error reference and retry strategies, see [Error Handling](/error-h
     Credit balance, daily summaries, per-tool breakdowns, and billing period usage.
   </Card>
   <Card title="Compliance" icon="scale-balanced" href="/api-reference/compliance">
-    GDPR data subject rights — erasure, portability, rectification, consent, audit trail.
+    GDPR data subject rights: erasure, portability, rectification, consent, audit trail.
   </Card>
   <Card title="Health" icon="heart-pulse" href="/api-reference/health">
     Liveness probes, readiness checks, and component-level status.
