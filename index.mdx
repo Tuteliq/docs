@@ -2,13 +2,22 @@
 title: Introduction
 sidebarTitle: Introduction
 icon: book-open
-description: Detect grooming, bullying, self-harm, fraud, and more with a single API call
-keywords: [child safety, API, KOSA, moderation, grooming detection, content moderation]
+description: Tuteliq is a child-safety deep tech company. Its proprietary models detect grooming, bullying, self-harm, fraud and more, through an API or a licensed deployment, with an optional moderation platform that never stores raw content.
+keywords: [child safety, child safety AI, deep tech, proprietary AI models, grooming detection, content moderation API, moderation platform, trust and safety, moderation queue, MCP server, model licensing, self-hosted moderation, KOSA, DSA, age verification, IWF member]
 ---
 
-## Ship child-safe apps without building content moderation from scratch
+## Child-safety detection on our own models, with an optional moderation platform
 
-Tuteliq is a content moderation API built around the harm taxonomy of the Kids Online Safety Act (KOSA). Detect grooming, bullying, self-harm, fraud, social engineering, and more — with age-calibrated risk scoring designed for near-real-time moderation. Verify user age and identity to prevent impersonation and support your compliance program. One API call replaces months of in-house ML work.
+Tuteliq is a child-safety deep tech company. We research, train and run our own proprietary models, developed with criminologists and child-protection specialists, to detect grooming, bullying, self-harm, fraud, social engineering and more, with age-calibrated risk scoring for near-real-time moderation. Use them through the API or license them for a dedicated or self-hosted deployment, and add our moderation platform for queue triage, human review and signed decisions. Raw content is never stored.
+
+<CardGroup cols={2}>
+  <Card title="Detection API & licensed models" icon="microchip" href="/how-it-works">
+    One API call per check, across text, voice, image and video, or Tuteliq's models licensed into your own environment. Contact [sales@tuteliq.ai](mailto:sales@tuteliq.ai) about licensing.
+  </Card>
+  <Card title="Moderation & triage platform" icon="list-check" href="/moderation-platform">
+    An optional incident queue, triage and review in the dashboard, over the API or through AI agents over MCP, with a signed audit receipt for every decision.
+  </Card>
+</CardGroup>
 
 <CardGroup cols={2}>
   <Card title="Get your API Key" icon="key" href="https://tuteliq.ai/dashboard">
@@ -71,8 +80,8 @@ Tuteliq does it in a single API call.
   <Card title="Context, Not Keywords" icon="brain-circuit">
     A teen texting "I'm literally going to die if I don't get those shoes" shouldn't trigger the same response as genuine crisis language. Tuteliq's context engine understands the difference — dramatically reducing false positives.
   </Card>
-  <Card title="Beyond Detection" icon="clipboard-list">
-    Most safety APIs stop at a risk score. Tuteliq generates age-appropriate action plans for children, parents, and moderators, plus professional incident reports ready for school counselors and compliance audits.
+  <Card title="Beyond Detection" icon="clipboard-list" href="/moderation-platform">
+    Most safety APIs stop at a risk score. Tuteliq adds a moderation queue with human and AI agent review and signed decisions, age-appropriate action plans for children, parents and moderators, and incident reports ready for school counselors and compliance audits.
   </Card>
   <Card title="Full KOSA Coverage" icon="shield-check">
     Every KOSA harm category covered out of the box. No mix-and-match from multiple vendors. One integration, one detection layer across the whole taxonomy.
@@ -81,7 +90,18 @@ Tuteliq does it in a single API call.
     Text, voice, and images analyzed through a single API in 32 languages (English stable, 31 beta). Language is auto-detected — no configuration needed. Audio is transcribed and safety-analyzed with timestamped segments. Images are classified visually and OCR-scanned for embedded text.
   </Card>
   <Card title="Built for Production" icon="server">
-    Predictable latency for near-real-time moderation (typical p95 under 1.5s for LLM-backed detection). 99.9% uptime SLA. Batch processing for up to 50 items per request. HMAC-signed webhooks with automatic retry. GDPR-compliant data management on every tier.
+    Predictable latency for near-real-time moderation (typical p95 under 1.5s for model-backed detection). 99.9% uptime SLA. Batch processing for up to 50 items per request. HMAC-signed webhooks with automatic retry. GDPR-compliant data management on every tier.
+  </Card>
+</CardGroup>
+
+## Part of the child-protection community
+
+<CardGroup cols={2}>
+  <Card title="Internet Watch Foundation member" icon="shield-heart" href="/research-partnerships#internet-watch-foundation-member">
+    A member of the IWF since June 2026, contributing behavioural detection expertise for the earliest signs of grooming and exploitation.
+  </Card>
+  <Card title="IJM technical white paper" icon="file-lines" href="/research-partnerships#international-justice-mission-technical-white-paper">
+    A contributor to International Justice Mission's white paper on devices that cannot create or display child sexual abuse material, with a Tuteliq Technical Brief.
   </Card>
 </CardGroup>
 
@@ -99,7 +119,7 @@ Built for platforms where minors interact:
 
 | Metric | Value |
 |--------|-------|
-| Typical p95 (LLM-backed endpoints) | ~1.4s |
+| Typical p95 (model-backed endpoints) | ~1.4s |
 | Uptime SLA | 99.9% |
 | KOSA categories covered | 9/9 |
 | Supported input types | Text, voice, image, video |

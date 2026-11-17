@@ -18,8 +18,10 @@ keywords: [content moderation API comparison, best moderation API, keyword filte
 | Multi-turn harm (grooming, romance scam) | No | No | Trajectory-aware, with [continuation tokens](/continuation-tokens) |
 | Explainability | None | Score only | Rationale, categories, recommended action, evidence |
 | Coverage | Toxicity only | Toxicity, some categories | Grooming, bullying, fraud, radicalisation, self-harm, synthetic media, and more |
-| Languages | Varies | Varies | 27 ([languages](/languages)) |
+| Languages | Varies | Varies | 32 ([languages](/languages)) |
 | Data retention | Varies | Varies | No user content stored |
+| Models | None | The vendor's general model | Tuteliq's own proprietary child-safety models, as an API or licensed for self-hosting |
+| Moderation workflow | None | Score only | Optional [moderation platform](/moderation-platform): queue, triage, human and agent review, signed decisions |
 
 ## When a word list is not enough
 
@@ -33,6 +35,8 @@ keywords: [content moderation API comparison, best moderation API, keyword filte
 - You need to detect **grooming, romance scams, sextortion, coercive control, or radicalisation**, which are behavioural and multi-turn.
 - You need **explainable** decisions (rationale, categories, recommended action) for moderator review or compliance.
 - You need **coverage across many harm types and languages** from one API.
+- You want a **moderation workflow** as well as detection: a queue, human review and a signed record of each decision, without the vendor storing your users' content.
+- You need the models **in your own environment**, licensed for a dedicated or self-hosted deployment.
 
 ## When a simple filter is fine
 
@@ -46,11 +50,16 @@ General-purpose moderation scores one message against a fixed set of categories.
 **Is Tuteliq good for gaming chat moderation?**
 Yes. It is built to keep competitive trash-talk intact while flagging targeted harassment and coded abuse, by reading reciprocity, target, intent, and persistence rather than matching keywords.
 
+**Is Tuteliq only a detection API?**
+No. Detection runs on Tuteliq's own proprietary models, available as an API or licensed for self-hosting, and an optional [moderation platform](/moderation-platform) adds a queue, triage, human and AI agent review and signed decisions. Raw content is never stored.
+
 **Can Tuteliq replace my keyword filter?**
 For behavioural or evolving harm, yes. For blocking a fixed profanity list in a low-risk context, a word list may be all you need.
 
 ## Related
 
+- [Moderation & triage platform](/moderation-platform)
+- [Research & partnerships](/research-partnerships)
 - [Benchmarks and accuracy](/benchmarks)
 - [Bullying and toxicity detection](/bullying-toxicity-detection)
 - [Grooming detection](/grooming-detection)

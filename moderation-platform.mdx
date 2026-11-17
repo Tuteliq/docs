@@ -1,0 +1,92 @@
+---
+title: Moderation & Triage Platform
+sidebarTitle: Moderation & Triage
+icon: list-check
+description: Tuteliq's optional moderation platform on top of detection. A moderation queue, triage, human and AI agent review, signed decisions, trends and incident reports, with raw content never stored.
+keywords: [moderation platform, trust and safety platform, moderation queue, incident triage, moderation dashboard, human in the loop moderation, content moderation workflow, signed audit trail, EU AI Act article 14, DSA evidence, KOSA compliance, hotline triage, child safety moderation]
+---
+
+Tuteliq is more than a detection API. Every detection can feed an optional moderation layer: a queue of incidents, triage tools, human and AI agent review, and a signed record of every decision. It runs on the same models as the API, and it never stores the content it judged.
+
+You choose how much of it to use:
+
+<CardGroup cols={2}>
+  <Card title="Detection only" icon="bolt">
+    Call the API and act on the response in your own systems. Turn incident logging off and Tuteliq keeps no record at all. See [Incident Logging](/incident-logging).
+  </Card>
+  <Card title="Detection + moderation" icon="list-check">
+    Leave incident logging on and work the queue in the [Tuteliq dashboard](https://tuteliq.ai/dashboard), over the incidents API, or with an AI agent over MCP.
+  </Card>
+</CardGroup>
+
+## The moderation loop
+
+<Steps>
+  <Step title="Detect">
+    A detection call returns the verdict, severity, rationale and recommended action in the response, as always.
+  </Step>
+  <Step title="Log an incident (optional)">
+    When a detection warrants attention, Tuteliq records an incident: the model's assessment, never the content. Summaries are encrypted at rest, or end-to-end encrypted if you register your own key. See [what an incident holds](/incident-logging#what-incident-metadata-is).
+  </Step>
+  <Step title="Triage the queue">
+    Size the backlog, filter by status, severity, category, source or your own identifiers, and work the most urgent first. Every incident carries its recommended actions, so the queue can be ranked without opening each one.
+  </Step>
+  <Step title="Review and decide">
+    A moderator confirms, downgrades, reclassifies, dismisses or escalates. An AI agent may only confirm a detection; anything that changes or overrides it is reserved for a person.
+  </Step>
+  <Step title="Keep the evidence">
+    Every decision emits its own signed audit receipt, including each decision in a batch. Trends, overviews, action plans and incident reports turn the record into evidence for a regulator, a school counsellor or an external hand-off.
+  </Step>
+</Steps>
+
+## Three ways to work the queue
+
+| | Where | Best for |
+|---|---|---|
+| **Dashboard** | [tuteliq.ai/dashboard](https://tuteliq.ai/dashboard) | Moderators reviewing incidents by hand |
+| **Incidents API** | `/api/v1/incidents` | Your own moderation tools and internal systems |
+| **MCP server** | [MCP moderation tools](/mcp-server/moderation) | AI agents that triage and confirm, with humans deciding the rest |
+
+### Incidents API
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/v1/incidents` | The queue: your incidents, newest first, filterable and paginated |
+| `GET /api/v1/incidents/{incident_id}` | One incident in full |
+| `GET /api/v1/incidents/overview` | Totals and breakdowns for a time window |
+| `GET /api/v1/incidents/trends` | Incident volume by hour, day or week |
+| `POST /api/v1/incidents/{incident_id}/review` | Record a moderator's decision |
+| `POST /api/v1/incidents/batch-review` | Record the same decision across many incidents, each with its own receipt |
+
+### MCP tools for moderation
+
+`moderation_queue`, `list_incidents`, `get_incident`, `review_incident`, `batch_review_incidents`, `get_incidents_overview` and `get_incident_trends`. See [Moderation Workflows with an AI Agent](/mcp-server/moderation) for how an agent works a queue and what it is allowed to decide.
+
+## Human oversight by design
+
+An MCP token identifies an account, never an individual, so an agent cannot act with a named moderator's authority. Agents can confirm a detection. Downgrading, reclassifying, dismissing and escalating are for people, which keeps a human in the loop for every decision that overrides the model, in line with the human-oversight requirement of EU AI Act Article 14.
+
+## Privacy, with the moderation layer on
+
+- **No content, ever.** An incident holds the model's assessment: category, severity, confidence, rationale and recommended actions. Never the message, image, audio or video.
+- **Encryption.** Summaries are encrypted at rest by default, and end-to-end encrypted if you register your own public key, so Tuteliq cannot read them.
+- **Retention you set.** 90 days by default, anywhere from 7 days to 2 years with `incident_retention_days`.
+- **Off at any time.** `incident_moderation_enabled: false` stops incident records entirely; detection keeps working in full.
+
+## For hotlines and high-sensitivity teams
+
+Teams that must keep material off any vendor's servers can still use the moderation tools:
+
+1. Send only what detection needs, and keep the original material in your own systems.
+2. Register your own key, so incident summaries are end-to-end encrypted and readable only by you.
+3. Set a short retention period, such as 7 or 30 days, long enough to work the queue.
+4. Record decisions through the dashboard, the incidents API or MCP, and keep the signed receipts as your evidence.
+
+Or turn incident logging off and use detection alone, keeping every record on your side.
+
+## Related
+
+- [Incident Logging](/incident-logging)
+- [Moderation Workflows with an AI Agent](/mcp-server/moderation)
+- [Trust Center](/trust)
+- [GDPR](/gdpr)
