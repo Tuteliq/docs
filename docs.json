@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Tuteliq",
-  "description": "Documentation for the Tuteliq API — AI-powered child safety detection and synthetic content analysis for text, voice, images, and video.",
+  "description": "Tuteliq is a child-safety deep tech company: proprietary models that detect grooming, bullying, self-harm and fraud across text, voice, images and video, as an API or licensed deployment, with an optional moderation platform that never stores raw content.",
   "seo": {
     "indexHiddenPages": false
   },
@@ -61,6 +61,8 @@
               "quickstart",
               "authentication",
               "how-it-works",
+              "moderation-platform",
+              "research-partnerships",
               "comparison",
               {
                 "group": "Benchmarks",
@@ -524,6 +526,7 @@
   },
   "metadata": {
     "og:site_name": "Tuteliq Docs",
+    "og:description": "Child-safety deep tech: proprietary detection models, as an API or licensed deployment, with an optional moderation platform. Raw content is never stored.",
     "og:image": "https://tuteliq.ai/og-image.png",
     "twitter:site": "@tuteliq",
     "robots": "index, follow",
