@@ -6,7 +6,7 @@ description: What Tuteliq caches, what it never stores, and how to opt out for f
 ## TL;DR
 
 - Tuteliq caches **verdicts only**, never the input content itself.
-- Cache keys are **SHA-256 of the input bytes** — a cryptographic one-way hash. The input cannot be recovered from the key, and similar inputs do not share keys.
+- Cache keys are **SHA-256 of the input bytes**, a cryptographic one-way hash. The input cannot be recovered from the key, and similar inputs do not share keys.
 - Cached verdicts **expire after 1 hour**.
 - Cache hits return the original verdict with `cached: true`, `cached_at: <ISO timestamp>`, and `credits_used: 0`.
 - You can disable the cache per request with `bypass_cache: true`.
@@ -51,7 +51,7 @@ cache_key = "synthetic:{type}:" + sha256(input_bytes).hexdigest()
 
 For forensic re-tests, regression probes, post-deploy verification, or any workflow where you need a guaranteed fresh evaluation, pass `bypass_cache: true` on the request. Bypass affects **both read and write**:
 
-- The cache lookup is skipped — your request always hits the live model.
+- The cache lookup is skipped: your request always hits the live model.
 - The resulting verdict is **not written** to the cache, so the test result does not shadow the production cache for subsequent customers.
 
 ### JSON endpoints
@@ -82,7 +82,7 @@ curl -X POST https://api.tuteliq.ai/api/v1/safety/synthetic-content/image \
 | `bypass_cache` value | Cache read | Cache write | Response includes `cached: true`? | `credits_used` |
 |---|---|---|---|---|
 | Omitted / `false` (default) | Yes | Yes | Only on hit | Normal on miss, `0` on hit |
-| `true` | No | No | Never | Normal — fresh evaluation always billed |
+| `true` | No | No | Never | Normal: fresh evaluation always billed |
 
 ## Why we cache by default
 
@@ -95,7 +95,7 @@ Disabling the cache by default would impose latency and cost on every legitimate
 
 ## What buyers / DPOs typically ask
 
-> *"What if I submit confidential customer text — could a future Tuteliq employee or attacker recover it from the cache?"*
+> *"What if I submit confidential customer text, could a future Tuteliq employee or attacker recover it from the cache?"*
 
 No. The cache key is a SHA-256 of the input. Even with full read access to the Redis store, no party can recover the input from a key. The cached *value* is the verdict response, not the input. After one hour the entry is evicted by TTL.
 
@@ -105,12 +105,12 @@ No. Tuteliq's models are trained on third-party datasets and synthetic data only
 
 > *"Can I force-flush my cached results?"*
 
-The 1-hour TTL is the supported flush mechanism. For workflows where stale results would be hazardous (e.g. you've updated your moderation rules and want to re-evaluate prior content), use `bypass_cache: true` on the re-evaluation request — the live verdict overwrites any prior cache entry only if `bypass_cache` is omitted on the next normal request.
+The 1-hour TTL is the supported flush mechanism. For workflows where stale results would be hazardous (e.g. you've updated your moderation rules and want to re-evaluate prior content), use `bypass_cache: true` on the re-evaluation request. The live verdict overwrites any prior cache entry only if `bypass_cache` is omitted on the next normal request.
 
-If your compliance posture requires an explicit cache-flush operation, contact us at [support@tuteliq.ai](mailto:support@tuteliq.ai) — we can scope a tenant-level cache-clear endpoint as an enterprise add-on.
+If your compliance posture requires an explicit cache-flush operation, contact us at [support@tuteliq.ai](mailto:support@tuteliq.ai); we can scope a tenant-level cache-clear endpoint as an enterprise add-on.
 
 ## Related
 
-- [Privacy / GDPR](/gdpr) — full data-handling posture
-- [Continuation tokens](/continuation-tokens) — how multi-turn state is carried in signed tokens, not server-side storage
-- [Trust & security](/trust) — infrastructure, regions, encryption-at-rest
+- [Privacy / GDPR](/gdpr): full data-handling posture
+- [Continuation tokens](/continuation-tokens): how multi-turn state is carried in signed tokens, not server-side storage
+- [Trust & security](/trust): infrastructure, regions, encryption-at-rest

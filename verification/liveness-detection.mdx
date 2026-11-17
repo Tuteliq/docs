@@ -6,7 +6,7 @@ description: Multi-signal visual liveness analysis prevents photo, screen, print
 keywords: [liveness detection, anti-spoofing, face matching, biometric, texture analysis, depth cues]
 ---
 
-Tuteliq's liveness detection combines **token-based challenge-response** with **visual analysis** across multiple frames to distinguish real people from spoofing attempts. It runs automatically during identity verification — no additional integration required.
+Tuteliq's liveness detection combines **token-based challenge-response** with **visual analysis** across multiple frames to distinguish real people from spoofing attempts. It runs automatically during identity verification, no additional integration required.
 
 ## Attack vectors covered
 
@@ -15,9 +15,9 @@ Tuteliq's liveness detection combines **token-based challenge-response** with **
 | **Printed photo** | Texture analysis detects flat, paper surfaces, and a print shows no natural motion. |
 | **Photo on screen** | Moire pattern detection, screen pixel grid artifacts, unnatural glow and reflections. |
 | **Video replay** | Cross-frame luminance analysis detects zero natural variation. Background pixel-diffing catches static overlays. |
-| **3D printed mask** | Depth cue analysis — real selfies have natural depth-of-field (sharp face, slightly blurred background). Masks show uniform sharpness. |
+| **3D printed mask** | Depth cue analysis: real selfies have natural depth-of-field (sharp face, slightly blurred background). Masks show uniform sharpness. |
 | **Deepfake video** | Consistency checks across frames catch morphing artifacts and identity shifts. |
-| **Photo cutout overlay** | Background thumbnail comparison across frames — identical backgrounds flag static cutout overlays. |
+| **Photo cutout overlay** | Background thumbnail comparison across frames: identical backgrounds flag static cutout overlays. |
 
 ## How it works
 

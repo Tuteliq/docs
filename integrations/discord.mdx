@@ -24,7 +24,7 @@ The Tuteliq Discord bot monitors text channels for grooming, bullying, and unsaf
 
 ### Hosted bot (recommended)
 
-Click the **Add to Discord** link above to invite the bot. No code required — configure everything with slash commands.
+Click the **Add to Discord** link above to invite the bot. No code required. Configure everything with slash commands.
 
 The bot needs the following permissions:
 
@@ -67,10 +67,10 @@ npm start
 
 Messages in monitored channels flow through a multi-stage pipeline:
 
-1. **Collect** — Each message is added to a per-channel sliding window buffer.
-2. **Batch analyze** — The buffer is periodically flushed and sent to the Tuteliq API, which detects bullying, grooming, unsafe content, and emotional distress.
-3. **Alert** — When a risk score exceeds your sensitivity threshold, a rich embed is posted to the alert channel with severity, risk score, message excerpt, and recommended action.
-4. **Act** — Admins take action directly from the alert embed using interactive buttons.
+1. **Collect**: Each message is added to a per-channel sliding window buffer.
+2. **Batch analyze**: The buffer is periodically flushed and sent to the Tuteliq API, which detects bullying, grooming, unsafe content, and emotional distress.
+3. **Alert**: When a risk score exceeds your sensitivity threshold, a rich embed is posted to the alert channel with severity, risk score, message excerpt, and recommended action.
+4. **Act**: Admins take action directly from the alert embed using interactive buttons.
 
 ## Slash commands
 
@@ -109,9 +109,9 @@ Admins with DM notifications enabled also receive a direct message for high and 
 | Level | Threshold | Best for |
 |---|---|---|
 | `low` | 70%+ | Minimal alerts, only clear violations |
-| `medium` | 50%+ | Balanced — good default for most servers |
+| `medium` | 50%+ | Balanced: good default for most servers |
 | `high` | 30%+ | Stricter monitoring, catches more subtle threats |
-| `maximum` | 10%+ | Maximum protection — useful for testing or high-risk communities |
+| `maximum` | 10%+ | Maximum protection: useful for testing or high-risk communities |
 
 Set the level with `/tuteliq sensitivity set <level>`.
 

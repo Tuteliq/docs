@@ -8,7 +8,7 @@ keywords: [trust, security, compliance, transparency, privacy, GDPR]
 
 ## Trust starts with transparency
 
-The **Tuteliq Trust Center** at [trust.tuteliq.ai](https://trust.tuteliq.ai) is where you can verify our security posture, compliance status, and data handling practices — all in one place.
+The **Tuteliq Trust Center** at [trust.tuteliq.ai](https://trust.tuteliq.ai) is where you can verify our security posture, compliance status, and data handling practices, all in one place.
 
 <Card title="Visit Trust Center" icon="arrow-right" href="https://trust.tuteliq.ai" horizontal>
   View real-time security and compliance information at **trust.tuteliq.ai**
@@ -21,7 +21,7 @@ The **Tuteliq Trust Center** at [trust.tuteliq.ai](https://trust.tuteliq.ai) is 
     Infrastructure security, encryption standards, access controls, and vulnerability management policies.
   </Card>
   <Card title="Compliance Status" icon="scale-balanced">
-    Current compliance posture for enacted law — GDPR, EU Digital Services Act, UK Online Safety Act, and more — plus our coverage of the harm taxonomy in KOSA, still pending US federal legislation.
+    Current compliance posture for enacted law (GDPR, EU Digital Services Act, UK Online Safety Act, and more), plus our coverage of the harm taxonomy in KOSA, still pending US federal legislation.
   </Card>
   <Card title="Sub-Processors" icon="sitemap">
     Full list of third-party sub-processors, their locations, purposes, and DPA links.
@@ -69,7 +69,7 @@ One thing: the **incident report**. It is the model's response, not your content
 | API logs (no message body) | Operations, billing, abuse | 30 days |
 
 <Info>
-  **Two encryption levels, and the stronger one is yours to switch on.** By default the incident record is encrypted at rest with server-side AES-256, which Tuteliq holds the key for. If you [register a public key](#end-to-end-encryption-for-stored-rationales-opt-in), incident fields are instead wrapped end-to-end so that **only you can decrypt them and Tuteliq cannot** — a cryptographic guarantee rather than a policy promise.
+  **Two encryption levels, and the stronger one is yours to switch on.** By default the incident record is encrypted at rest with server-side AES-256, which Tuteliq holds the key for. If you [register a public key](#end-to-end-encryption-for-stored-rationales-opt-in), incident fields are instead wrapped end-to-end so that **only you can decrypt them and Tuteliq cannot**, a cryptographic guarantee rather than a policy promise.
 
   In both cases the underlying content was already discarded, so what is being protected is the model's assessment, never your users' messages. And if you would rather nothing were written at all, `incident_moderation_enabled: false` does exactly that.
 </Info>
@@ -78,30 +78,30 @@ One thing: the **incident report**. It is the model's response, not your content
 
 - **Full deletion** within 1 hour of a `DELETE /account/data` request
 - **Encryption at rest** (AES-256) for all stored metadata
-- **End-to-end encryption (opt-in)** — register an RSA public key and Tuteliq can no longer decrypt your stored rationales (see below)
+- **End-to-end encryption (opt-in)**: register an RSA public key and Tuteliq can no longer decrypt your stored rationales (see below)
 - **EU data residency** by default; US region on request
-- **No cross-customer linking** — deployer fingerprints scoped per request
+- **No cross-customer linking**: deployer fingerprints scoped per request
 
-The short version: **your users' content lives in your platform, not ours. Tuteliq holds the analysis outputs your team needs to review — nothing else.**
+The short version: **your users' content lives in your platform, not ours. Tuteliq holds the analysis outputs your team needs to review, nothing else.**
 
 ### End-to-end encryption for stored rationales (opt-in)
 
-By default the metadata fields we retain — LLM rationale, visual description, source data — are encrypted at rest with a Tuteliq-held AES-256 key, then decrypted server-side when your dashboard requests them. This is fast and requires no setup on your side.
+By default the metadata fields we retain (LLM rationale, visual description, source data) are encrypted at rest with a Tuteliq-held AES-256 key, then decrypted server-side when your dashboard requests them. This is fast and requires no setup on your side.
 
-For customers who want stronger separation, we support **customer-managed end-to-end encryption**: you generate an RSA keypair, register the public key with Tuteliq, and we use it to wrap every new incident's metadata. From that point on we cannot decrypt those fields — only your dashboard, holding the matching private key, can.
+For customers who want stronger separation, we support **customer-managed end-to-end encryption**: you generate an RSA keypair, register the public key with Tuteliq, and we use it to wrap every new incident's metadata. From that point on we cannot decrypt those fields; only your dashboard, holding the matching private key, can.
 
 | Property | Default (server-side) | E2E (opt-in) |
 |---|---|---|
 | Encryption scheme | AES-256-GCM | RSA-OAEP-2048/4096 + AES-256-GCM (hybrid) |
 | Decryption key holder | Tuteliq | You |
 | Tuteliq can read rationale | Yes (for dashboard rendering) | **No** |
-| Private-key recovery if lost | n/a | **Your responsibility** — lost key means lost rationale |
-| Activation | None — default behaviour | `POST /api/v1/account/encryption-key` |
+| Private-key recovery if lost | n/a | **Your responsibility**: lost key means lost rationale |
+| Activation | None (default behaviour) | `POST /api/v1/account/encryption-key` |
 | Rollback / rotation | n/a | `POST` a new key any time; `DELETE` to revoke |
 
 The scheme identifier (`TLQ-HYBRID-RSA-OAEP-AES-256-GCM-v1`) and key fingerprint are embedded in every encrypted record so you can verify integrity client-side.
 
-This is **opt-in by design** because losing the private key permanently strands every record encrypted under it — Tuteliq cannot recover them. Teams that don't want that operational burden should stay on the default server-side AES at rest. Teams with stricter compliance requirements (or who want a verifiable cryptographic guarantee that Tuteliq cannot read their rationales) should register a key.
+This is **opt-in by design** because losing the private key permanently strands every record encrypted under it; Tuteliq cannot recover them. Teams that don't want that operational burden should stay on the default server-side AES at rest. Teams with stricter compliance requirements (or who want a verifiable cryptographic guarantee that Tuteliq cannot read their rationales) should register a key.
 
 Existing incidents written before you register a key remain readable under the server-side scheme; only new incidents use the hybrid scheme.
 

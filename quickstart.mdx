@@ -115,7 +115,7 @@ Pick the one that matches the language your app is written in.
   </Warning>
 
   <Tip>
-    **Building a pipeline, not a UI?** The response above is designed to be read by a person — the full example includes fields like `rationale` meant for a moderator. If your code branches on `risk_score` / `severity` / `recommended_action` without rendering anything for a human, pass `options: { verdict_only: true }` (or `verdictOnly: true` in the SDKs) on any detection call. See [Fast mode](/fast-mode).
+    **Building a pipeline, not a UI?** The response above is designed to be read by a person; the full example includes fields like `rationale` meant for a moderator. If your code branches on `risk_score` / `severity` / `recommended_action` without rendering anything for a human, pass `options: { verdict_only: true }` (or `verdictOnly: true` in the SDKs) on any detection call. See [Fast mode](/fast-mode).
   </Tip>
 </Step>
 
@@ -188,7 +188,7 @@ Pick the one that matches the language your app is written in.
 </Steps>
 
 <Tip>
-  **Testing without credits?** Create a sandbox API key in your [Dashboard](https://tuteliq.ai/dashboard) (Settings > API Keys > Environment: Sandbox). Sandbox keys run real analysis with zero credit consumption — 50 calls/day for free.
+  **Testing without credits?** Create a sandbox API key in your [Dashboard](https://tuteliq.ai/dashboard) (Settings > API Keys > Environment: Sandbox). Sandbox keys run real analysis with zero credit consumption, 50 calls/day for free.
 </Tip>
 
 <Tip>
@@ -202,7 +202,7 @@ Pick the one that matches the language your app is written in.
     Learn about API key environments and authentication methods.
   </Card>
   <Card title="Fast mode" icon="bolt" href="/fast-mode">
-    The recommended default for programmatic callers — structured fields without the human-facing formatting.
+    The recommended default for programmatic callers: structured fields without the human-facing formatting.
   </Card>
   <Card title="Credits" icon="coins" href="/credits">
     Understand per-endpoint credit costs and usage tracking.

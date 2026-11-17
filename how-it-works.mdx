@@ -2,17 +2,17 @@
 title: How It Works
 sidebarTitle: How It Works
 icon: diagram-project
-description: "Understand Tuteliq's detection pipeline — from raw content to actionable safety scores"
+description: "Understand Tuteliq's detection pipeline, from raw content to actionable safety scores"
 keywords: [architecture, detection, pipeline, scoring, how it works, KOSA]
 ---
 
-Tuteliq processes content through a multi-stage AI pipeline designed specifically for child safety. Every input — whether text, voice, or image — passes through detection, contextual analysis, and age-calibrated scoring before returning an actionable result.
+Tuteliq processes content through a multi-stage AI pipeline designed specifically for child safety. Every input, whether text, voice, or image, passes through detection, contextual analysis, and age-calibrated scoring before returning an actionable result.
 
 ## The detection pipeline
 
 ### 1. Content ingestion & language detection
 
-When you send a request to any Safety endpoint, Tuteliq first normalizes the input and detects the content language. Text is analyzed directly. Audio is transcribed and then analyzed as text with timestamped segments preserved. Images are processed for visual classification and OCR text extraction simultaneously — so a screenshot of a harmful conversation is caught by both the visual and textual classifiers.
+When you send a request to any Safety endpoint, Tuteliq first normalizes the input and detects the content language. Text is analyzed directly. Audio is transcribed and then analyzed as text with timestamped segments preserved. Images are processed for visual classification and OCR text extraction simultaneously, so a screenshot of a harmful conversation is caught by both the visual and textual classifiers.
 
 <Info>
   **Transcription runs on our own infrastructure.** Audio is transcribed by a self-hosted transcription model on our own infrastructure in an EU region. It is never sent to a third-party transcription API, and it is never written to disk: the audio is transcribed and analysed in memory and discarded when the request completes.
@@ -20,9 +20,9 @@ When you send a request to any Safety endpoint, Tuteliq first normalizes the inp
 
 Language detection uses a layered approach for maximum reliability:
 
-1. **Explicit code** — If you pass a `language` parameter, it is used directly.
-2. **Trigram detection** — If no explicit language is given, the API runs trigram-based analysis on the input text.
-3. **LLM confirmation** — The LLM also identifies the content language during analysis. When the LLM's detection is a supported language, it takes precedence — this ensures correct detection for closely related languages like Norwegian, Swedish, and Danish.
+1. **Explicit code**: If you pass a `language` parameter, it is used directly.
+2. **Trigram detection**: If no explicit language is given, the API runs trigram-based analysis on the input text.
+3. **LLM confirmation**: The LLM also identifies the content language during analysis. When the LLM's detection is a supported language, it takes precedence; this ensures correct detection for closely related languages like Norwegian, Swedish, and Danish.
 
 The detected language is used to inject culture-specific analysis guidelines (local slang, idioms, harmful terms, grooming indicators, self-harm coded vocabulary, and filter evasion techniques) into the classification prompts. 32 languages are supported: English (stable), plus all 24 EU official languages, Ukrainian, Norwegian, Turkish, Chinese, Japanese, Korean, Arabic, and Russian (beta). See [Language Support](/languages) for the full list.
 
@@ -46,16 +46,16 @@ Rather than relying on a single model, Tuteliq runs content through specialized 
 | **Mule Recruitment** | Easy money offers, account sharing requests, laundering language, recruitment pressure |
 | **Gambling Harm** | Underage gambling promotion, addiction patterns, predatory odds, bet pressure tactics |
 | **Coercive Control** | Isolation tactics, financial control, monitoring/surveillance, threat patterns in relationships |
-| **Vulnerability Exploitation** | Targeting based on age, disability, emotional state, or financial hardship — with cross-endpoint vulnerability profiling |
+| **Vulnerability Exploitation** | Targeting based on age, disability, emotional state, or financial hardship, with cross-endpoint vulnerability profiling |
 | **Radicalisation** | Extremist rhetoric, us-vs-them framing, recruitment patterns, dehumanisation of outgroups |
-| **Emotional Distress** | Pre-vulnerability detection: loneliness, feeling unheard, overwhelm, low self-worth, trust-seeking, withdrawal, family conflict — with exploitation risk assessment |
+| **Emotional Distress** | Pre-vulnerability detection: loneliness, feeling unheard, overwhelm, low self-worth, trust-seeking, withdrawal, family conflict, with exploitation risk assessment |
 | **Tech-Facilitated Gender-Based Violence (TFGBV)** | Image-based abuse, cyber stalking, online harassment, doxing, outing, post-separation abuse, digital coercion, sexualised deepfakes, gendered hate speech |
-| **Age Verification** | Document-based age verification, biometric age estimation, age assurance for platform compliance <Note>Beta — available on Assure and above</Note> |
-| **Identity Verification** | Document verification, liveness detection, identity confirmation to prevent impersonation <Note>Beta — available on Assure and above</Note> |
+| **Age Verification** | Document-based age verification, biometric age estimation, age assurance for platform compliance <Note>Beta: available on Assure and above</Note> |
+| **Identity Verification** | Document verification, liveness detection, identity confirmation to prevent impersonation <Note>Beta: available on Assure and above</Note> |
 
 Each classifier produces an independent confidence score. When multiple classifiers fire on the same content (e.g., grooming + sexual exploitation), Tuteliq combines the signals to produce a holistic risk assessment.
 
-The `/analyse/multi` endpoint lets you run up to 10 classifiers on a single piece of content in one API call. When vulnerability exploitation detection is included, it produces a cross-endpoint vulnerability modifier that automatically adjusts severity scores across all other results — amplifying risk when the content targets vulnerable individuals.
+The `/analyse/multi` endpoint lets you run up to 10 classifiers on a single piece of content in one API call. When vulnerability exploitation detection is included, it produces a cross-endpoint vulnerability modifier that automatically adjusts severity scores across all other results, amplifying risk when the content targets vulnerable individuals.
 
 Valid endpoint values for `/analyse/multi`:
 
@@ -79,11 +79,11 @@ Valid endpoint values for `/analyse/multi`:
 
 This is where Tuteliq diverges from keyword-based filters. The context engine evaluates:
 
-- **Linguistic intent** — Is "I want to kill myself" an expression of frustration over a video game, or a genuine crisis signal? Tuteliq analyzes surrounding context, tone, and conversational history to distinguish the two.
-- **Relationship dynamics** — A single message may appear harmless. The context engine tracks multi-turn escalation patterns — compliments, then secrecy requests, then isolation attempts, then boundary violations — that only become visible across a conversation. Every conversation-aware endpoint returns a `message_analysis` array that shows exactly how risk escalates message by message, with individual risk scores and detected tactics for each entry.
-- **Platform norms** — Teen slang, gaming culture, and social media language evolve fast. The context engine recognizes that "I'm literally dead" in a group chat has a fundamentally different risk profile than the same phrase in a private message to a younger child.
-- **Adversarial fragmentation** — Bad actors sometimes try to evade detection by spreading a phrase across many one-character or two-character messages. Conversation-aware endpoints reassemble runs of consecutive same-role short messages before analysis, so `"d","o","n","t","t","e","l","l"` is evaluated as `"donttell"`. Reassembled fragments score at a **lower severity** than the same intent written naturally (the underlying signal is weaker), but `recommended_action` still escalates when the verdict is medium or above. **Branch alerting on `recommended_action`, not on `severity === 'critical'`** — that way reassembled grooming attempts still reach a moderator.
-- **Long conversation handling** — `detect_grooming` accepts up to 100 messages per call, and multi-turn trajectory analysis is sharpest on windows of 10 to 15 turns. For longer threads, pass the response's `continuation_token` back on the next call and analyse the next chunk — state stays on the customer's side and the trajectory carries across windows. If the engine cannot produce a verdict for a conversation, the response returns `analysis_status: "engine_error"` with a forced `recommended_action: "flag_for_review"` rather than a generic failure — escalate to a human moderator regardless of the zeroed risk score in that case.
+- **Linguistic intent**: Is "I want to kill myself" an expression of frustration over a video game, or a genuine crisis signal? Tuteliq analyzes surrounding context, tone, and conversational history to distinguish the two.
+- **Relationship dynamics**: A single message may appear harmless. The context engine tracks multi-turn escalation patterns (compliments, then secrecy requests, then isolation attempts, then boundary violations) that only become visible across a conversation. Every conversation-aware endpoint returns a `message_analysis` array that shows exactly how risk escalates message by message, with individual risk scores and detected tactics for each entry.
+- **Platform norms**: Teen slang, gaming culture, and social media language evolve fast. The context engine recognizes that "I'm literally dead" in a group chat has a fundamentally different risk profile than the same phrase in a private message to a younger child.
+- **Adversarial fragmentation**: Bad actors sometimes try to evade detection by spreading a phrase across many one-character or two-character messages. Conversation-aware endpoints reassemble runs of consecutive same-role short messages before analysis, so `"d","o","n","t","t","e","l","l"` is evaluated as `"donttell"`. Reassembled fragments score at a **lower severity** than the same intent written naturally (the underlying signal is weaker), but `recommended_action` still escalates when the verdict is medium or above. **Branch alerting on `recommended_action`, not on `severity === 'critical'`**. That way reassembled grooming attempts still reach a moderator.
+- **Long conversation handling**: `detect_grooming` accepts up to 100 messages per call, and multi-turn trajectory analysis is sharpest on windows of 10 to 15 turns. For longer threads, pass the response's `continuation_token` back on the next call and analyse the next chunk; state stays on the customer's side and the trajectory carries across windows. If the engine cannot produce a verdict for a conversation, the response returns `analysis_status: "engine_error"` with a forced `recommended_action: "flag_for_review"` rather than a generic failure. Escalate to a human moderator regardless of the zeroed risk score in that case.
 
 ### 4. Age-calibrated scoring
 
@@ -117,7 +117,7 @@ You can pass a `context` object with any detection request to improve accuracy:
 | `minor_disclosure_check` | `boolean` | Opt-in. On a request that declares an adult, also checks whether a speaker says they are under 18. See [Checking for a minor on an adult platform](/api-reference/introduction#checking-for-a-minor-on-an-adult-platform). |
 
 <Info>
-When `sender_trust` is `"verified"`, the API fully suppresses `AUTH_IMPERSONATION` — a verified sender cannot be impersonating an authority by definition. Routine urgency (schedules, deadlines) is also suppressed. Only genuinely malicious content (credential theft, phishing links, financial demands) will be flagged.
+When `sender_trust` is `"verified"`, the API fully suppresses `AUTH_IMPERSONATION`: a verified sender cannot be impersonating an authority by definition. Routine urgency (schedules, deadlines) is also suppressed. Only genuinely malicious content (credential theft, phishing links, financial demands) will be flagged.
 </Info>
 
 ### Crisis support resources (`support_threshold`)
@@ -145,16 +145,16 @@ Pass `support_threshold` in the `options` object or as a top-level request field
 
 Every response includes:
 
-- **`unsafe`** (boolean, legacy endpoints) or **`detected`** (boolean, new detection endpoints) — Clear yes/no for immediate routing decisions. Legacy endpoints return `unsafe`; newer detection endpoints use `detected` instead.
-- **`categories`** (array) — Which KOSA harm categories were triggered.
-- **`severity`** (string) — `low`, `medium`, `high`, or `critical`, calibrated to the age group.
-- **`risk_score`** (float, 0.0–1.0) — Granular score for threshold-based automation.
-- **`confidence`** (float) — Model confidence in the classification.
-- **`rationale`** (string) — Human-readable explanation of why the content was flagged. Useful for trust & safety review and audit trails.
-- **`message_analysis`** (array, conversation-aware endpoints) — Per-message risk breakdown, returned when `conversation_history` is provided. Each entry contains `message_index`, `risk_score`, `flags`, and `summary`, making the escalation sequence visible for dashboards and reporting. Available on grooming, social engineering, app fraud, romance scam, mule recruitment, gambling harm, coercive control, vulnerability exploitation, and radicalisation endpoints.
-- **`recommended_action`** (string) — Suggested next step, such as "Escalate to counselor" or "Block and report."
-- **`language`** (string) — Resolved language code (ISO 639-1) used for analysis, auto-detected or explicit.
-- **`language_status`** (string) — `"stable"` for English, `"beta"` for all other supported languages.
+- **`unsafe`** (boolean, legacy endpoints) or **`detected`** (boolean, new detection endpoints): Clear yes/no for immediate routing decisions. Legacy endpoints return `unsafe`; newer detection endpoints use `detected` instead.
+- **`categories`** (array): Which KOSA harm categories were triggered.
+- **`severity`** (string): `low`, `medium`, `high`, or `critical`, calibrated to the age group.
+- **`risk_score`** (float, 0.0–1.0): Granular score for threshold-based automation.
+- **`confidence`** (float): Model confidence in the classification.
+- **`rationale`** (string): Human-readable explanation of why the content was flagged. Useful for trust & safety review and audit trails.
+- **`message_analysis`** (array, conversation-aware endpoints): Per-message risk breakdown, returned when `conversation_history` is provided. Each entry contains `message_index`, `risk_score`, `flags`, and `summary`, making the escalation sequence visible for dashboards and reporting. Available on grooming, social engineering, app fraud, romance scam, mule recruitment, gambling harm, coercive control, vulnerability exploitation, and radicalisation endpoints.
+- **`recommended_action`** (string): Suggested next step, such as "Escalate to counselor" or "Block and report."
+- **`language`** (string): Resolved language code (ISO 639-1) used for analysis, auto-detected or explicit.
+- **`language_status`** (string): `"stable"` for English, `"beta"` for all other supported languages.
 
 ## Beyond detection
 
@@ -164,9 +164,9 @@ Tuteliq doesn't stop at "this content is unsafe." Two additional endpoints compl
 
 The `/guidance/action-plan` endpoint takes a detection result and generates age-appropriate guidance tailored to the audience:
 
-- **For children** — Gentle, reading-level-appropriate language explaining what happened and what to do next.
-- **For parents** — Clear explanation of the detected risk with suggested conversations and resources.
-- **For trust & safety teams** — Technical summary with recommended platform actions and escalation paths.
+- **For children**: Gentle, reading-level-appropriate language explaining what happened and what to do next.
+- **For parents**: Clear explanation of the detected risk with suggested conversations and resources.
+- **For trust & safety teams**: Technical summary with recommended platform actions and escalation paths.
 
 ### Incident reports
 
@@ -174,13 +174,13 @@ The `/reports/incident` endpoint converts raw conversation data into structured,
 
 ## Architecture principles
 
-**Fully stateless.** Every API call is independent — Tuteliq never stores conversation text, context, or session state between requests. This is a deliberate privacy-by-design decision: when processing children's data under GDPR/COPPA, the safest data is data you never store. Pass conversation history with each request that needs it; results are returned and content is discarded.
+**Fully stateless.** Every API call is independent; Tuteliq never stores conversation text, context, or session state between requests. This is a deliberate privacy-by-design decision: when processing children's data under GDPR/COPPA, the safest data is data you never store. Pass conversation history with each request that needs it; results are returned and content is discarded.
 
 **No training on your data.** Content sent to Tuteliq is used solely for real-time analysis and is not retained for model training. See the [GDPR](/gdpr) section for data retention details.
 
-**Parallel processing.** All harm classifiers in `/analyse/multi` run simultaneously, not sequentially — so checking against all nine KOSA categories costs no more wall-clock time than checking one. Typical p95 for LLM-backed detection is ~1.4s; warm single-endpoint calls land lower.
+**Parallel processing.** All harm classifiers in `/analyse/multi` run simultaneously, not sequentially, so checking against all nine KOSA categories costs no more wall-clock time than checking one. Typical p95 for LLM-backed detection is ~1.4s; warm single-endpoint calls land lower.
 
-**Policy-configurable.** Use the `/policy/` endpoint to adjust detection thresholds, category weights, and moderation rules for your specific use case — without changing your integration code.
+**Policy-configurable.** Use the `/policy/` endpoint to adjust detection thresholds, category weights, and moderation rules for your specific use case, without changing your integration code.
 
 ## Next steps
 

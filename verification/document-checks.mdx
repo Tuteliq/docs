@@ -10,7 +10,7 @@ Tuteliq validates documents at three levels: **document number algorithms**, **M
 
 ## Document number validation
 
-Tuteliq validates document numbers using the **actual government-defined algorithm** for each country — not just format checks. This means a forged document with a made-up number that looks correct will still fail validation.
+Tuteliq validates document numbers using the **actual government-defined algorithm** for each country, not just format checks. This means a forged document with a made-up number that looks correct will still fail validation.
 
 ### Supported countries (45)
 
@@ -48,7 +48,7 @@ Each country uses a specific check digit algorithm. Some examples:
 | US | SSN | Area/group/serial validation + known invalid rejection |
 
 <Info>
-  Document number validation is **automatic** — when a document number and country code are detected, the appropriate algorithm runs without any configuration.
+  Document number validation is **automatic**: when a document number and country code are detected, the appropriate algorithm runs without any configuration.
 </Info>
 
 ---
@@ -77,7 +77,7 @@ Each MRZ contains multiple fields, each protected by its own check digit using t
 | Personal number | Per-field | Altered personal data |
 | **Composite** | Across all fields | **Any** tampering across the entire MRZ |
 
-The composite check digit is critical — even if someone correctly recalculates individual field check digits after altering a value, the composite check will fail unless they also recalculate it.
+The composite check digit is critical: even if someone correctly recalculates individual field check digits after altering a value, the composite check will fail unless they also recalculate it.
 
 ### Extracted fields
 
@@ -101,7 +101,7 @@ US and Canadian driver's licenses encode all personal data in a PDF417 barcode o
 
 ### Why barcodes matter
 
-The barcode data is **independent** of the printed text on the front. A forger who edits the front of a driver's license (changing the name, DOB, or photo) must also modify the barcode — which requires specialized knowledge. Most forgeries only edit the visual side.
+The barcode data is **independent** of the printed text on the front. A forger who edits the front of a driver's license (changing the name, DOB, or photo) must also modify the barcode, which requires specialized knowledge. Most forgeries only edit the visual side.
 
 When both sides are provided, Tuteliq:
 

@@ -113,7 +113,7 @@ Update session settings at any time. The server responds with a `config_updated`
 | `analysis_types`         | string[] | all                             | Safety categories to analyze: `bullying`, `unsafe`, `grooming`, `emotions`. |
 | `enable_video`           | boolean  | false                           | Enable video frame analysis. |
 | `frame_interval_seconds` | number   | 5                               | Minimum interval between video frame analyses (min 3s). |
-| `context`                | object   | —                               | Analysis context: `age_group`, `platform`, `language`, `child_age`. |
+| `context`                | object   | None                            | Analysis context: `age_group`, `platform`, `language`, `child_age`. |
 
 ### End
 
@@ -353,5 +353,5 @@ Credits are deducted as each flush or frame is processed. Use the `interval_seco
 | 4029 | Connection limit exceeded for your tier |
 
 <Warning>
-  Voice streaming sessions have a maximum duration of **1 hour**. The server will send a `session_summary` event and close the connection when the limit is reached. Heartbeat pings are sent every 30 seconds — connections that miss a pong will be terminated as stale.
+  Voice streaming sessions have a maximum duration of **1 hour**. The server will send a `session_summary` event and close the connection when the limit is reached. Heartbeat pings are sent every 30 seconds; connections that miss a pong will be terminated as stale.
 </Warning>

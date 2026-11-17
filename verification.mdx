@@ -2,13 +2,13 @@
 title: Age & Identity Verification
 sidebarTitle: Overview
 icon: id-card
-description: Production-grade age and identity verification with document intelligence, biometric matching, liveness detection, and multi-layer fraud prevention — covering 45 countries
+description: Production-grade age and identity verification with document intelligence, biometric matching, liveness detection, and multi-layer fraud prevention, covering 45 countries
 keywords: [age verification, identity verification, KYC, age assurance, liveness detection, document verification, KOSA, COPPA, MRZ, PDF417, biometric, face matching]
 ---
 
 Tuteliq Verification is a production-grade identity and age verification pipeline that combines document intelligence, biometric matching, liveness detection, and multi-layer fraud prevention in a single API call.
 
-Most verification providers give you OCR and a face match. Tuteliq cross-references **every data source on the document against every other** — MRZ check digits, barcode data, OCR text, front vs. back, document vs. selfie — and flags any inconsistency as potential tampering. This catches forgeries that pass single-layer checks.
+Most verification providers give you OCR and a face match. Tuteliq cross-references **every data source on the document against every other** (MRZ check digits, barcode data, OCR text, front vs. back, document vs. selfie) and flags any inconsistency as potential tampering. This catches forgeries that pass single-layer checks.
 
 <Card title="Cross-device flow" icon="arrows-rotate" href="/verification/cross-device-flow" horizontal>
   **Recommended integration path for mobile, web, and native apps.** Create a session on your server, open the URL in a webview or QR code, get the result back via Server-Sent Events. Includes code samples for iOS (Swift), Android (Kotlin), React Native, Flutter, and web (iframe).
@@ -33,7 +33,7 @@ Most verification providers give you OCR and a face match. Tuteliq cross-referen
 
 <CardGroup cols={3}>
   <Card title="45-Country Document Validation" icon="globe">
-    Algorithmic check digit validation for CPF, personnummer, Aadhaar, Codice Fiscale, CURP, SSN, and 39 more. Not just format checks — full mathematical verification.
+    Algorithmic check digit validation for CPF, personnummer, Aadhaar, Codice Fiscale, CURP, SSN, and 39 more. Not just format checks: full mathematical verification.
   </Card>
   <Card title="7-Layer Cross-Referencing" icon="layer-group">
     MRZ vs. OCR. Barcode vs. OCR. Front vs. back. Document vs. selfie. Declared type vs. detected type. IP vs. document country. OCR confidence gating. Every inconsistency is flagged.
@@ -65,7 +65,7 @@ Verify a user's age through document analysis, biometric age estimation, or both
 |--------|-------------|----------|
 | **Document** | Extracts DOB from government ID via OCR, MRZ parsing, and barcode decoding | High-assurance age gates, parental consent |
 | **Biometric** | Estimates age from a selfie using AgeNet, our own model, run on our infrastructure (child/teen/adult classification) | Frictionless age checks, onboarding flows |
-| **Combined** | Document + biometric with cross-reference — flags age inconsistencies > 10 years | Maximum assurance — verifies the document belongs to the person |
+| **Combined** | Document + biometric with cross-reference. Flags age inconsistencies > 10 years | Maximum assurance: verifies the document belongs to the person |
 
 ### Request
 
@@ -73,8 +73,8 @@ Verify a user's age through document analysis, biometric age estimation, or both
 ```typescript Node.js
 const result = await tuteliq.verifyAge({
   document: fs.createReadStream('id-front.jpg'),     // Government-issued ID
-  documentBack: fs.createReadStream('id-back.jpg'),  // Optional — enables barcode reading + back cross-ref
-  selfie: fs.createReadStream('selfie.jpg'),          // Optional — for biometric estimation
+  documentBack: fs.createReadStream('id-back.jpg'),  // Optional, enables barcode reading + back cross-ref
+  selfie: fs.createReadStream('selfie.jpg'),          // Optional, for biometric estimation
   method: 'combined',                                  // 'document' | 'biometric' | 'combined'
 });
 
@@ -158,10 +158,10 @@ curl -X POST https://api.tuteliq.ai/api/v1/verify/age/submit \
 
 DOB is extracted from multiple sources and cross-referenced. Priority order:
 
-1. **MRZ** (Machine Readable Zone) — Most reliable. ICAO 9303 check digit validated.
-2. **PDF417 barcode** — US/Canadian driver's licenses. AAMVA-encoded structured data.
-3. **OCR labels** — Text patterns like "Date of Birth:", "DOB:", date formats.
-4. **Selfie estimation** — AgeNet, our own convolutional age-estimation model, run on our infrastructure (fallback). No LLM and no third-party vision API touches a verification image.
+1. **MRZ** (Machine Readable Zone): Most reliable. ICAO 9303 check digit validated.
+2. **PDF417 barcode**: US/Canadian driver's licenses. AAMVA-encoded structured data.
+3. **OCR labels**: Text patterns like "Date of Birth:", "DOB:", date formats.
+4. **Selfie estimation**: AgeNet, our own convolutional age-estimation model, run on our infrastructure (fallback). No LLM and no third-party vision API touches a verification image.
 
 When multiple sources disagree, the verification flags the inconsistency.
 
@@ -257,8 +257,8 @@ All identity fields are `null` when not extractable (e.g. `height_cm` for nation
 | `verification_id` | string \| null | Persistent ID for the record |
 | `status` | string | `verified` \| `failed` \| `needs_review` |
 | `full_name` | string \| null | Combined name as extracted from the document |
-| `first_name` | string \| null | Given names — prefers MRZ-parsed, falls back to heuristic split |
-| `last_name` | string \| null | Surname — same source preference |
+| `first_name` | string \| null | Given names. Prefers MRZ-parsed, falls back to heuristic split |
+| `last_name` | string \| null | Surname. Same source preference |
 | `date_of_birth` | string \| null | ISO 8601 |
 | `document_type` | string \| null | `passport` \| `national_id` \| `drivers_license` |
 | `country_code` | string \| null | ISO 3166-1 alpha-3 |
@@ -286,7 +286,7 @@ Returned only when the document's country has a per-country extractor in this re
 |-------|------|-------------|
 | `value` | string | The ID number as printed (with separator preserved when present) |
 | `valid` | boolean | Country-specific algorithmic validation passed |
-| `type` | string | Canonical name — `personnummer` (SWE), `fødselsnummer` (NOR), `henkilötunnus` (FIN), `DNI/NIE` (ESP), `CPF` (BRA) |
+| `type` | string | Canonical name: `personnummer` (SWE), `fødselsnummer` (NOR), `henkilötunnus` (FIN), `DNI/NIE` (ESP), `CPF` (BRA) |
 | `country_code` | string | ISO 3166-1 alpha-3 |
 
 Countries with validators but no extractor yet (returns `null` for `national_id` until extractors land): DEU, FRA, ITA, NLD, GBR, IRL, CHE, AUT, CZE, ROU, HRV, BGR, GRC, HUN, EST, LVA, LTU, ARG, MEX, CHL, COL, PER, ECU, URY, CAN, USA, JPN, KOR, ZAF, THA, TUR.
@@ -296,8 +296,8 @@ Countries with validators but no extractor yet (returns `null` for `national_id`
 | Status | Meaning | Examples |
 |--------|---------|---------|
 | `verified` | All checks passed | Valid document, face match, liveness passed |
-| `failed` | Hard failure — definitive fraud signal | Liveness failed, face mismatch, document expired |
-| `needs_review` | Soft failure — human review recommended | Low OCR confidence, low face-match confidence, partial field extraction |
+| `failed` | Hard failure: definitive fraud signal | Liveness failed, face mismatch, document expired |
+| `needs_review` | Soft failure: human review recommended | Low OCR confidence, low face-match confidence, partial field extraction |
 
 ---
 
@@ -405,13 +405,13 @@ Verification errors use the `VERIFY_11xxx` code range:
 | Code | HTTP | Description |
 |------|------|-------------|
 | `VERIFY_11001` `VERIFY_OCR_FAILED` | 500 | Reserved; not currently returned. An unreadable document comes back as a result with `failure_reasons` |
-| `VERIFY_11002` `VERIFY_NO_DOB_FOUND` | 400 | Date of birth could not be extracted — try a clearer page / different document |
+| `VERIFY_11002` `VERIFY_NO_DOB_FOUND` | 400 | Date of birth could not be extracted. Try a clearer page / different document |
 | `VERIFY_11003` `VERIFY_FACE_NOT_DETECTED` | 400 | No face detected in the selfie or document portrait |
 | `VERIFY_11004` `VERIFY_FACE_MISMATCH` | 400 | Selfie does not match the document portrait |
-| `VERIFY_11005` `VERIFY_LIVENESS_FAILED` | 400 | Liveness check failed — possible spoofing or stale capture |
-| `VERIFY_11006` `VERIFY_SESSION_NOT_FOUND` | 404 | Session ID unknown — recreate the session |
-| `VERIFY_11007` `VERIFY_SESSION_EXPIRED` | 410 | Session past TTL — recreate the session |
-| `VERIFY_11008` `VERIFY_SESSION_INVALID_TOKEN` | 401 | Session token invalid — recreate the session, do not replay |
+| `VERIFY_11005` `VERIFY_LIVENESS_FAILED` | 400 | Liveness check failed: possible spoofing or stale capture |
+| `VERIFY_11006` `VERIFY_SESSION_NOT_FOUND` | 404 | Session ID unknown; recreate the session |
+| `VERIFY_11007` `VERIFY_SESSION_EXPIRED` | 410 | Session past TTL; recreate the session |
+| `VERIFY_11008` `VERIFY_SESSION_INVALID_TOKEN` | 401 | Session token invalid; recreate the session, do not replay |
 | `VERIFY_11009` `VERIFY_SESSION_ALREADY_USED` | 409 | Session token already consumed |
 | `VERIFY_11010` `VERIFY_SESSION_WRONG_STATE` | 400 | Session not in the right state for this call |
 | `VERIFY_11011` `VERIFY_NOT_ENABLED` | 403 | Verification not provisioned for this account, or the configured redirect URL does not use `https` |

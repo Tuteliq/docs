@@ -6,7 +6,7 @@ section: Concepts
 
 # Grooming detection
 
-Most safety APIs answer "is this content sexual?" Tuteliq answers a stronger question: **is this person being groomed — and how?**
+Most safety APIs answer "is this content sexual?" Tuteliq answers a stronger question: **is this person being groomed, and how?**
 
 Grooming is rarely a single message. It's a structured sequence of tactics applied over time, each one independently low-severity but together unmistakable. Tuteliq's `detect_grooming` endpoint identifies eight distinct tactics across a conversation, returns a per-message trajectory of risk score evolution, and produces a composite verdict with evidence-grounded flags.
 
@@ -14,7 +14,7 @@ This page is the deep-dive on what we detect and why each tactic matters.
 
 ## The eight tactics
 
-Each tactic below maps to a `flags` value returned by `detect_grooming`. Multiple tactics often co-occur — that co-occurrence is itself a strong predictor and a moderator's most actionable signal.
+Each tactic below maps to a `flags` value returned by `detect_grooming`. Multiple tactics often co-occur; that co-occurrence is itself a strong predictor and a moderator's most actionable signal.
 
 | Tactic | What it captures | Real example phrasing | KOSA / NCMEC mapping |
 |---|---|---|---|
@@ -37,9 +37,9 @@ Two things about it are worth knowing before you switch on it. A question that i
 
 A single isolated `flattery` flag from one message is rarely actionable on its own. The same flag combined with `secrecy_request` and `isolation` across a conversation is a near-certain grooming pattern that warrants immediate moderation. Tuteliq surfaces this in two ways:
 
-**1. Per-message trajectory.** The response includes a `message_analysis` array with `risk_score` per message — allowing dashboards to plot the trajectory and surface the moment the pattern becomes unambiguous. A textbook grooming conversation shows a steady ramp from 0.1 to 0.9+ across rapport → secrecy → photo request → meeting attempt.
+**1. Per-message trajectory.** The response includes a `message_analysis` array with `risk_score` per message, allowing dashboards to plot the trajectory and surface the moment the pattern becomes unambiguous. A textbook grooming conversation shows a steady ramp from 0.1 to 0.9+ across rapport → secrecy → photo request → meeting attempt.
 
-**2. Multi-flag composite.** Multiple flags on the same conversation are evidence of a *pattern*, not a noisy classifier. The endpoint's `risk_score` reflects compounding when multiple tactics co-occur — the same content with two flags scores higher than the sum of two single-flag verdicts.
+**2. Multi-flag composite.** Multiple flags on the same conversation are evidence of a *pattern*, not a noisy classifier. The endpoint's `risk_score` reflects compounding when multiple tactics co-occur: the same content with two flags scores higher than the sum of two single-flag verdicts.
 
 ```json
 {
@@ -92,9 +92,9 @@ is preserved across windows without resending history. See
 
 Pass age information when you have it:
 
-- `context.child_age` — the minor's age (if known)
-- `context.participant_age` — the non-minor counterpart's age (if known, e.g. on age-verified platforms)
-- `messages[].sender_age` — per-message age tag when conversations have more than two parties
+- `context.child_age`: the minor's age (if known)
+- `context.participant_age`: the non-minor counterpart's age (if known, e.g. on age-verified platforms)
+- `messages[].sender_age`: per-message age tag when conversations have more than two parties
 
 When two or more age signals are provided AND all are ≥18, the endpoint short-circuits with `grooming_risk: "none"` and `analysis_status: "out_of_scope_adults"`. This is a precision floor: adult-to-adult interactions with grooming-shaped content should be routed to `/safety/coercive-control` or `/safety/social-engineering`, not flagged as child grooming.
 
@@ -109,8 +109,8 @@ response reports it in `minor_disclosure`. See
 
 `detect_grooming` is purpose-built for adult-to-minor patterns in 1:1 or small-group conversations. It is **not** the right endpoint for:
 
-- **Peer-to-peer minor conversations.** Use `/safety/bullying` or `/safety/coercive-control` instead — the prompt is calibrated for an age gap.
-- **Romance scams targeting adults.** Use `/fraud/romance-scam` — the playbook overlaps superficially (rapport → isolation → ask) but the tactic vocabulary and intervention path are different.
+- **Peer-to-peer minor conversations.** Use `/safety/bullying` or `/safety/coercive-control` instead; the prompt is calibrated for an age gap.
+- **Romance scams targeting adults.** Use `/fraud/romance-scam`; the playbook overlaps superficially (rapport → isolation → ask) but the tactic vocabulary and intervention path are different.
 - **Single-message analysis.** `detect_grooming` reasons over a conversation; a single message is rarely sufficient context. For single-message decisions, use `/safety/unsafe`.
 
 ## Tactic mapping by severity
@@ -124,11 +124,11 @@ When designing moderator workflows, this severity ladder is a reasonable default
 | Urgent | `secrecy_request` + any other tactic | Flag for moderator review within 1h |
 | Critical | `photo_request` OR `meeting_request` | Immediate intervention; trigger NCMEC / IWF / regional CSAM hotline workflows where applicable |
 
-Your specific routing should match your platform's policy and the legal jurisdictions you operate in. The compound scoring in `risk_score` already reflects this severity ranking — `recommended_action` is the operational shortcut.
+Your specific routing should match your platform's policy and the legal jurisdictions you operate in. The compound scoring in `risk_score` already reflects this severity ranking; `recommended_action` is the operational shortcut.
 
 ## Related
 
-- [Composable safety primitives](/composability) — combine `detect_grooming` with `detect_vulnerability_exploitation` for vulnerability-amplified verdicts.
-- [Continuation tokens](/continuation-tokens) — preserve trajectory state across chunked windows for long conversations.
-- [KOSA coverage](/kosa-compliance) — full mapping of detected tactics to KOSA harm categories.
-- [Languages](/languages) — supported languages for `detect_grooming` (currently 6+ at near-English parity).
+- [Composable safety primitives](/composability): combine `detect_grooming` with `detect_vulnerability_exploitation` for vulnerability-amplified verdicts.
+- [Continuation tokens](/continuation-tokens): preserve trajectory state across chunked windows for long conversations.
+- [KOSA coverage](/kosa-compliance): full mapping of detected tactics to KOSA harm categories.
+- [Languages](/languages): supported languages for `detect_grooming` (currently 6+ at near-English parity).

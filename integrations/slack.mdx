@@ -24,7 +24,7 @@ The Tuteliq Slack bot monitors channels for grooming, bullying, and unsafe conte
 
 ### Hosted app (recommended)
 
-Click the **Add to Slack** button above to install the bot into your workspace. No code required — configure everything with slash commands.
+Click the **Add to Slack** button above to install the bot into your workspace. No code required. Configure everything with slash commands.
 
 The bot requests the following permissions:
 
@@ -60,7 +60,7 @@ npm start
     Click **Add to Slack** and authorize the bot in your workspace.
   </Step>
   <Step title="Configure your API key">
-    Run `/tuteliq setup` — a modal dialog will open where you enter your Tuteliq API key (starts with `tq_`) and select the alert channel. The key is encrypted at rest with AES-256.
+    Run `/tuteliq setup`. A modal dialog will open where you enter your Tuteliq API key (starts with `tq_`) and select the alert channel. The key is encrypted at rest with AES-256.
   </Step>
   <Step title="Select channels to monitor">
     Choose which channels to monitor during setup. Leave empty to monitor all channels.
@@ -74,11 +74,11 @@ npm start
 
 Messages in monitored channels flow through a multi-stage pipeline:
 
-1. **Crisis keywords** — Messages containing crisis phrases (e.g. self-harm, exploitation) trigger an immediate API call for instant analysis.
-2. **Grooming buffer** — Messages are accumulated per channel. When the buffer has enough context from multiple senders, a conversation analysis is sent for grooming detection.
-3. **Batch queue** — All other messages are batched and sent to the Tuteliq API for efficient bullying and unsafe content detection.
-4. **Alert** — When a risk score exceeds your sensitivity threshold, an alert is posted to your configured alert channel with severity, risk score, message excerpt, and recommended action.
-5. **Act** — Admins take action directly from the alert using interactive buttons.
+1. **Crisis keywords**: Messages containing crisis phrases (e.g. self-harm, exploitation) trigger an immediate API call for instant analysis.
+2. **Grooming buffer**: Messages are accumulated per channel. When the buffer has enough context from multiple senders, a conversation analysis is sent for grooming detection.
+3. **Batch queue**: All other messages are batched and sent to the Tuteliq API for efficient bullying and unsafe content detection.
+4. **Alert**: When a risk score exceeds your sensitivity threshold, an alert is posted to your configured alert channel with severity, risk score, message excerpt, and recommended action.
+5. **Act**: Admins take action directly from the alert using interactive buttons.
 
 ## Slash commands
 
@@ -108,9 +108,9 @@ When a threat is detected, the alert message includes interactive buttons:
 | Level | Threshold | Best for |
 |---|---|---|
 | `low` | 70%+ | Minimal alerts, only clear violations |
-| `medium` | 50%+ | Balanced — good default for most workspaces |
+| `medium` | 50%+ | Balanced: good default for most workspaces |
 | `high` | 30%+ | Stricter monitoring, catches more subtle threats |
-| `maximum` | 10%+ | Maximum protection — useful for testing or high-risk communities |
+| `maximum` | 10%+ | Maximum protection: useful for testing or high-risk communities |
 
 Set the level with `/tuteliq sensitivity <level>`.
 
