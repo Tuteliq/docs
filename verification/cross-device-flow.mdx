@@ -85,7 +85,7 @@ A completed, successful age-mode session has this shape:
       "document_number_valid": true,
       "sex": "string (M, F, X)",
       "country_code": "string (ISO 3166-1 alpha-3)",
-      "document_type": "string (passport, id_card, drivers_license, residence_permit)",
+      "document_type": "string (passport, national_id, drivers_license)",
       "expiration_date": "string (ISO 8601 date)",
       "expired": false,
       "mrz_valid": null,
@@ -226,7 +226,8 @@ const tuteliq = new Tuteliq({ apiKey: process.env.TUTELIQ_API_KEY });
 
 const session = await tuteliq.createVerificationSession({
   mode: "age",                    // "age" or "identity"
-  document_type: "passport",      // optional hint
+  document_type: "passport",      // optional: "passport", "national_id" or "drivers_license"
+  chip_policy: "optional",        // optional: "optional", "required" or "instead_of_photo"
 });
 
 console.log(session.session_id);  // "sess_a1b2c3d4..."
@@ -235,14 +236,16 @@ console.log(session.expires_at);  // Unix millisecond timestamp, 30 minutes from
 ```
 
 ```python Python
-import os 
-from tuteliq import Tuteliq
+import os
+from tuteliq import Tuteliq, CreateVerificationSessionInput, VerificationMode, DocumentType
 
 client = Tuteliq(api_key=os.environ["TUTELIQ_API_KEY"])
 
-session = client.create_verification_session(
-    mode="age",                       # "age" or "identity"
-    document_type="passport",         # optional
+session = await client.create_verification_session(
+    CreateVerificationSessionInput(
+        mode=VerificationMode.AGE,            # AGE or IDENTITY
+        document_type=DocumentType.PASSPORT,  # optional
+    )
 )
 
 print(session.session_id)
@@ -256,7 +259,8 @@ curl -X POST https://api.tuteliq.ai/api/v1/verify/session \
   -H "Content-Type: application/json" \
   -d '{
     "mode": "age",
-    "document_type": "passport"
+    "document_type": "passport",
+    "chip_policy": "optional"
   }'
 ```
 </CodeGroup>
@@ -268,13 +272,24 @@ curl -X POST https://api.tuteliq.ai/api/v1/verify/session \
   "session_id": "string",
   "mobile_url": "string (URL with single-use token)",
   "expires_at": 0,
-  "mode": "string (\"age\" or \"identity\")"
+  "mode": "string (\"age\" or \"identity\")",
+  "chip_policy": "string (optional, required, instead_of_photo)",
+  "auto_capture": true
 }
 ```
 
 `expires_at` is a Unix millisecond timestamp; sessions are valid for 30 minutes after creation. The `mobile_url` is single-use and tied to the session. Tokens are revoked the moment the session completes, fails, or expires.
 
-The request body accepts `mode` and `document_type` only. Keep the link between a session and your own user on your side: store the `session_id` you get back against your user before you hand out the `mobile_url`.
+The request body accepts these fields, and ignores any other:
+
+| Field | Values | Default |
+|---|---|---|
+| `mode` | `age` or `identity` | `age` |
+| `document_type` | `passport`, `national_id` or `drivers_license` | none |
+| `chip_policy` | `optional`: the document photo is required and a chip read adds to it. `required`: the photo and a chip read that proves itself genuine. `instead_of_photo`: a chip read that proves itself genuine replaces the photo, otherwise the user photographs the document. | `optional` |
+| `auto_capture` | `true`: the page takes the document photo once the document is framed, steady and sharp. `false`: the user taps Capture. | `true` |
+
+There is no `external_id` or `redirect_url`. Keep the link between a session and your own user on your side: store the `session_id` you get back against your user before you hand out the `mobile_url`.
 
 ### Where the user returns after verification
 
@@ -668,7 +683,7 @@ Identity mode (Assure plan and above) returns the same outer envelope as age mod
     "status": "string (one of: verified, failed, needs_review)",
     "full_name": "string",
     "date_of_birth": "string (ISO 8601 date)",
-    "document_type": "string (passport, id_card, drivers_license, residence_permit)",
+    "document_type": "string (passport, national_id, drivers_license)",
     "country_code": "string (ISO 3166-1 alpha-3)",
     "liveness": {
       "valid": true,
