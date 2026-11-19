@@ -6,7 +6,7 @@ description: Understand the Tuteliq credit system, pricing tiers, and per-endpoi
 keywords: [pricing, credits, usage, billing, cost]
 ---
 
-Every Tuteliq API call consumes credits. Credit costs vary by endpoint based on processing complexity. Your current balance and usage are always available through the dashboard and the API.
+Every analysis call consumes credits. Credit costs vary by endpoint based on processing complexity. Account, configuration and reporting calls are free (see [below](#free-routes)). Your current balance and usage are always available through the dashboard and the API.
 
 ## Per-endpoint costs
 
@@ -90,6 +90,17 @@ Document analysis uses **per-page, per-endpoint pricing**. Each page-endpoint co
 | Voice stream (per flush) | 7 | Real-time transcription + analysis |
 | Video stream (per frame) | 7 | Per-frame vision analysis |
 
+### Free routes
+
+These routes cost no credits, and they stay available when your balance is empty, so you can always check usage, change settings and export or delete your data:
+
+| Area | Routes |
+|------|--------|
+| Account | `/account/*` (API key quota, audit logs, consent, data export and deletion, MCP tokens), `/account/encryption-key`, `/safety-classification` |
+| Configuration | `/policy`, `/policy/automation`, `/webhooks`, `/settings/detection` |
+| Usage and audit | `/usage/*`, `/audit/receipts/{request_id}` |
+| Threat intelligence | `/intelligence/*`, `/safety/risk-trends` (Assure and Enterprise plans) |
+
 <Info>
   For conversation-based endpoints (`detectGrooming`, `analyzeEmotions`), credits scale with message count. A 25-message conversation costs `ceil(25 / 10) × 3 = 9` credits.
 
@@ -167,5 +178,9 @@ Configure low-balance notifications in the [Dashboard](https://tuteliq.ai/dashbo
 ## What happens when credits run out
 
 <Warning>
-  When your balance reaches zero, API requests return a `402 Payment Required` error. Upgrade your plan or purchase additional credits from the [Dashboard](https://tuteliq.ai/dashboard) to resume service.
+  When your balance reaches zero, analysis requests return `402 Payment Required` with error code `SUB_7004`. Upgrade your plan or purchase additional credits from the [Dashboard](https://tuteliq.ai/dashboard) to resume service. [Free routes](#free-routes) keep working.
 </Warning>
+
+## Sandbox accounts
+
+A sandbox account and its API keys work only in the Tuteliq sandbox. Calls to the API with a sandbox key, or with any key of a sandbox account, return `403` with error code `SUB_7008` and a link to upgrade. Upgrade to a paid plan to call the API.

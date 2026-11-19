@@ -85,9 +85,11 @@ All Tuteliq API errors return a consistent JSON structure with a machine-readabl
 | `SUB_7001` | 403 | No active subscription found |
 | `SUB_7002` | 403 | Subscription is inactive |
 | `SUB_7003` | 403 | Subscription has expired |
-| `SUB_7004` | 429 | Message limit reached |
-| `SUB_7005` | 429 | Credits depleted |
+| `SUB_7004` | 402 | Credit balance is empty |
+| `SUB_7005` | 402 | Credits depleted |
 | `SUB_7006` | 403 | Endpoint not available on your current plan |
+| `SUB_7007` | 403 | Subscription plan could not be recognised |
+| `SUB_7008` | 403 | Sandbox key: works only in the Tuteliq sandbox, not on the API |
 
 ### GDPR (GDPR_8xxx)
 
@@ -155,7 +157,8 @@ Not all errors should be retried. Here's a guide:
 | `SVC_4007` | Yes | Wait 5-10 seconds, then retry |
 | `NF_*` | No | Check the endpoint URL or resource ID |
 | `ANALYSIS_6001`, `6006`, `6007` | Yes | Retry once after a short delay |
-| `SUB_7005` | No | Purchase more credits |
+| `SUB_7004`, `SUB_7005` | No | Purchase more credits or upgrade your plan |
+| `SUB_7008` | No | Upgrade to a paid plan and use one of its keys |
 | `VERIFY_11002`–`11005` | No | Retake the photo or use a clearer document; retrying the same images gives the same result |
 | `VERIFY_11006`–`11010` | No | Create a new verification session |
 | `VERIFY_11011`, `VERIFY_11012` | No | Enable verification or fix the redirect URL in the dashboard, or upgrade your plan |

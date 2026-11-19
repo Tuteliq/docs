@@ -21,6 +21,15 @@ endpoint). They are left as published rather than renumbered, so anything that
 already cites them still resolves.
 </Info>
 
+## 19 November 2026
+
+### Updated: credits, sandbox accounts and threat intelligence
+
+- **Free routes.** Account, configuration, usage, audit and threat intelligence calls cost no credits and stay available when your balance is empty, so you can always check usage, change settings and export or delete your data. See [Pricing & Credits](/credits#free-routes).
+- **Empty balance.** Analysis calls return `402 Payment Required` (`SUB_7004`) when the balance is empty.
+- **Sandbox accounts.** A sandbox account and its keys work only in the Tuteliq sandbox; calls to the API return `403` with `SUB_7008` and a link to upgrade.
+- **Threat intelligence** (`/intelligence/*`, `/safety/risk-trends`) is available on the Assure and Enterprise plans.
+
 ## 13 November 2026
 
 ### Added: the Redactyl redaction endpoint
