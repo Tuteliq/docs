@@ -447,18 +447,9 @@ Tuteliq is **fully stateless**: every API call is independent, and no conversati
 
 ## Sandbox Mode
 
-API keys with `environment: "sandbox"` run real analysis without consuming credits. Sandbox responses include `"sandbox": true` and the `X-Sandbox-Mode: true` header.
+A sandbox account and its API keys work only in the Tuteliq sandbox. Calls to the API with a sandbox key, or with any key of a sandbox account, return `403` with error code `SUB_7008` and a link to [upgrade](https://tuteliq.ai/pricing).
 
-Create a sandbox key in your [Dashboard](https://tuteliq.ai/dashboard) under **Settings > API Keys > Environment: Sandbox**.
-
-Sandbox limits:
-- **10 requests per minute** rate limit
-- **50 calls per day** (resets at midnight UTC)
-- Real analysis, real results, not mocked
-
-<Warning>
-Sandbox mode is for integration testing only. Daily limits prevent use as a free production workaround.
-</Warning>
+On an enterprise verification plan, sandbox keys stay available for testing verification: their responses include `"sandbox": true` and the `X-Sandbox-Mode: true` header, and their verifications count toward the plan's allowance (see [Verification](/verification)).
 
 ## Rate Limits
 
@@ -469,11 +460,11 @@ Rate limits are enforced per API key per minute, based on your plan:
 | Build ($99/mo) | 1,000 | 25,000 |
 | Assure ($499/mo) | 5,000 | 150,000 |
 | Enterprise | 10,000 | Custom |
-| Sandbox | 10 | No credits consumed |
 
 Your allowance is measured in **detection credits**, not requests. Endpoints
-are weighted by cost: a text detection is 1 credit, an image 7, a video 95. See
-[pricing](https://tuteliq.ai/pricing) for the current plans.
+are weighted by cost: a text detection is 2 credits, an image 7, a video 95, and
+account, configuration and reporting calls are free. See [Pricing & Credits](/credits)
+for every endpoint and [pricing](https://tuteliq.ai/pricing) for the current plans.
 
 <Note>
 Accounts on a legacy plan (Starter, Indie, Pro, Business) keep their existing
