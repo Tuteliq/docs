@@ -449,8 +449,6 @@ Tuteliq is **fully stateless**: every API call is independent, and no conversati
 
 A sandbox account and its API keys work only in the Tuteliq sandbox. Calls to the API with a sandbox key, or with any key of a sandbox account, return `403` with error code `SUB_7008` and a link to [upgrade](https://tuteliq.ai/pricing).
 
-On an enterprise verification plan, sandbox keys stay available for testing verification: their responses include `"sandbox": true` and the `X-Sandbox-Mode: true` header, and their verifications count toward the plan's allowance (see [Verification](/verification)).
-
 ## Rate Limits
 
 Rate limits are enforced per API key per minute, based on your plan:
