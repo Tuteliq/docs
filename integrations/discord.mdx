@@ -9,7 +9,7 @@ keywords: [discord, bot, integration, chat moderation, child safety]
 The Tuteliq Discord bot monitors text channels for grooming, bullying, and unsafe content in real time using the Tuteliq API. Add the hosted bot with one click or self-host on your own infrastructure.
 
 <CardGroup cols={3}>
-  <Card title="Add to Discord" icon="robot" href="https://discord.com/oauth2/authorize?client_id=1470719024320090154&scope=bot+applications.commands&permissions=2164260880">
+  <Card title="Add to Discord" icon="robot" href="https://discord.com/oauth2/authorize?client_id=1470719024320090154&scope=bot+applications.commands&permissions=1099511720976">
     Invite the hosted bot to your server
   </Card>
   <Card title="Landing Page" icon="globe" href="https://tuteliq.ai/integrations/discord">
@@ -26,13 +26,15 @@ The Tuteliq Discord bot monitors text channels for grooming, bullying, and unsaf
 
 Click the **Add to Discord** link above to invite the bot. No code required. Configure everything with slash commands.
 
-The bot needs the following permissions:
+The link asks for exactly the permissions the bot uses:
 
-- Send Messages
-- Embed Links
-- Read Message History
-- Manage Messages
-- Moderate Members
+- View Channel, Read Message History: read the channels you choose to monitor
+- Send Messages, Embed Links: post alerts
+- Manage Channels: create the private `#tuteliq-alerts` channel during setup
+- Manage Messages: the **Delete message** button on alerts
+- Moderate Members: the **Timeout user** button on alerts
+
+To time someone out, the Tuteliq role must be above that member's highest role in **Server Settings > Roles**. If you added the bot with an older link, enable Manage Messages and Moderate Members on the Tuteliq role there; `/tuteliq status` tells you if anything is missing.
 
 Make sure **Message Content Intent** is enabled for the bot application.
 
