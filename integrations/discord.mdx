@@ -89,6 +89,7 @@ All commands live under the `/tuteliq` prefix and require **Administrator** or *
 | `/tuteliq sensitivity view` | View current sensitivity settings and thresholds |
 | `/tuteliq status` | View bot status, rate limits, and quota usage |
 | `/tuteliq link` | Generate a parent link code (expires in 15 minutes) |
+| `/tuteliq scams enable/disable` | Also check messages for scams: phishing links, fake support staff, requests for login codes or API keys. Off by default; each message uses one more check |
 | `/tuteliq reset` | Remove all Tuteliq configuration from the server |
 
 ## Alert actions
@@ -114,6 +115,12 @@ Admins with DM notifications enabled also receive a direct message for high and 
 | `maximum` | 10%+ | Maximum protection: useful for testing or high-risk communities |
 
 Set the level with `/tuteliq sensitivity set <level>`.
+
+## Gaming communities
+
+In a shooter or a battle game, players talk about killing each other every round. To keep that game talk out of your alerts, set your account's `default_conversation_type` to `gaming_chat` with `PUT /api/v1/settings/detection`. The bot picks it up with no change on the server. Game talk aimed at other players as opponents is then kept quiet, while a threat against a real person or place, self-harm, grooming, hate and harassment alert as before.
+
+Communities that trade items or skins can also turn on `/tuteliq scams enable` to flag phishing links, fake support staff and requests for login codes or API keys.
 
 ## Parent linking
 

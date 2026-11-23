@@ -276,7 +276,8 @@ response names it in `conversation_type_in_effect` and says where it came from i
 | Moderation | `moderation_review` | An urgent action is capped at `flag_for_review`, as above. It is **not** a setting where harm is discussed: a moderator reviews content that may itself be the harm, so every raise still applies. |
 | A professional or a responsible adult | `healthcare`, `law_enforcement`, `education`, `family` | A responsible party already handling a person at risk, with nothing happening as the text is written, is kept at `monitor`. Urgent actions are not capped. In `education` and `family` this applies only when the speaker is not the person at risk: a young person speaking for themselves alerts as with no setting. |
 | A platform whose users are adults | `dating`, `adult_community`, `workplace` | See [Adult platforms](#adult-platforms) below. |
-| Ordinary settings | `direct_message`, `group_chat`, `public_post`, `customer_service`, `gaming_chat` | Nothing. They let you be precise rather than leave the field blank. |
+| A video game chat | `gaming_chat` | On bullying, unsafe content and radicalisation, an alert whose only concern is a threat, intimidation or violence that happens inside the game, aimed at players as opponents, is kept at `monitor` and `game_play_capped` says so. A threat aimed at a real person or place, self-harm, sexual content, hate and harassment alert as with no setting. |
+| Ordinary settings | `direct_message`, `group_chat`, `public_post`, `customer_service` | Nothing. They let you be precise rather than leave the field blank. |
 
 Three rules hold in every setting:
 
