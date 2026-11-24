@@ -52,7 +52,7 @@ If you're using Node.js, save the example in a file ending in `.mjs` (for exampl
 
     console.log(result.severity);    // "high"
     console.log(result.categories);  // ["sexual_exploitation"]
-    console.log(result.credits_used); // 1
+    console.log(result.credits_used); // 2
     ```
     ```python Python
     import os
@@ -67,7 +67,7 @@ If you're using Node.js, save the example in a file ending in `.mjs` (for exampl
 
     print(result.severity)      # "high"
     print(result.categories)    # ["sexual_exploitation"]
-    print(result.credits_used)  # 1
+    print(result.credits_used)  # 2
     ```
     ```bash cURL
     curl -X POST https://api.tuteliq.ai/api/v1/safety/unsafe \
@@ -93,7 +93,7 @@ If you're using Node.js, save the example in a file ending in `.mjs` (for exampl
     "recommended_action": "immediate_intervention",
     "language": "en",
     "language_status": "stable",
-    "credits_used": 1
+    "credits_used": 2
   }
   ```
 
@@ -173,7 +173,7 @@ If you're using Node.js, save the example in a file ending in `.mjs` (for exampl
     });
 
     console.log(result.summary.highest_severity);   // "critical"
-    console.log(result.summary.total_credits_used);  // 3
+    console.log(result.summary.total_credits_used);  // 4
     console.log(result.results.length);              // 3
     ```
     ```bash cURL
