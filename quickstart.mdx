@@ -18,6 +18,8 @@ keywords: [getting started, setup, first call, SDK]
 
 Pick the one that matches the language your app is written in.
 
+For Node.js, you'll need Node.js 18 or newer installed first. You can download it from [nodejs.org](https://nodejs.org).
+
   <CodeGroup>
     ```bash npm
     npm install @tuteliq/sdk
@@ -35,6 +37,8 @@ Pick the one that matches the language your app is written in.
 <Step title="Make your first call">
   Use `detectUnsafe` to analyze a piece of text for harmful content.
 
+If you're using Node.js, save the example in a file ending in `.mjs` (for example `test.mjs`), so the `import` and `await` lines work.
+
   <CodeGroup>
     ```typescript Node.js
     import { Tuteliq } from "@tuteliq/sdk";
@@ -47,8 +51,8 @@ Pick the one that matches the language your app is written in.
     });
 
     console.log(result.severity);    // "high"
-    console.log(result.categories);  // ["grooming"]
-    console.log(result.credits_used); // 1
+    console.log(result.categories);  // ["sexual_exploitation"]
+    console.log(result.credits_used); // 2
     ```
     ```python Python
     import os
@@ -62,8 +66,8 @@ Pick the one that matches the language your app is written in.
     )
 
     print(result.severity)      # "high"
-    print(result.categories)    # ["grooming"]
-    print(result.credits_used)  # 1
+    print(result.categories)    # ["sexual_exploitation"]
+    print(result.credits_used)  # 2
     ```
     ```bash cURL
     curl -X POST https://api.tuteliq.ai/api/v1/safety/unsafe \
@@ -83,13 +87,13 @@ Pick the one that matches the language your app is written in.
     "unsafe": true,
     "severity": "high",
     "risk_score": 0.91,
-    "categories": ["grooming"],
+    "categories": ["sexual_exploitation"],
     "confidence": 0.92,
     "rationale": "Potential grooming pattern detected: solicitation of a private meeting with secrecy directive.",
     "recommended_action": "immediate_intervention",
     "language": "en",
     "language_status": "stable",
-    "credits_used": 1
+    "credits_used": 2
   }
   ```
 
@@ -169,7 +173,7 @@ Pick the one that matches the language your app is written in.
     });
 
     console.log(result.summary.highest_severity);   // "critical"
-    console.log(result.summary.total_credits_used);  // 3
+    console.log(result.summary.total_credits_used);  // 4
     console.log(result.results.length);              // 3
     ```
     ```bash cURL

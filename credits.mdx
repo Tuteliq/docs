@@ -16,7 +16,7 @@ Every analysis call consumes credits. Credit costs vary by endpoint based on pro
 |----------|---------|-------|
 | `detectBullying` | 2 | Single text analysis |
 | `detectUnsafe` | 2 | Single text analysis |
-| `detectGrooming` | 3 per 10 msgs | `ceil(messages / 10) × 3`, minimum 3 |
+| `detectGrooming` | 3 per 10 msgs | 3 credits for every 10 messages, rounded up (`ceil(messages / 10) × 3`), minimum 3 |
 
 ### Fraud Detection
 
@@ -48,7 +48,7 @@ Every analysis call consumes credits. Credit costs vary by endpoint based on pro
 
 | Endpoint | Credits | Notes |
 |----------|---------|-------|
-| `analyzeEmotions` | 3 per 10 msgs | `ceil(messages / 10) × 3`, minimum 3 |
+| `analyzeEmotions` | 3 per 10 msgs | 3 credits for every 10 messages, rounded up (`ceil(messages / 10) × 3`), minimum 3 |
 | `getActionPlan` | 9 | Longer generation |
 | `generateReport` | 13 | Structured output |
 
