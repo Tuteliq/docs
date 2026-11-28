@@ -21,6 +21,23 @@ endpoint). They are left as published rather than renumbered, so anything that
 already cites them still resolves.
 </Info>
 
+## 26 November 2026
+
+### Changed: the prescreen lexicon is a hint, never a reason to skip analysis
+
+`GET /api/v1/prescreen/lexicon` no longer returns the `usage` block (`short_circuit_when`,
+`attach_when`, `request_field`). The phrase list and its version are unchanged. A match is a hint
+for your interface, such as highlighting a phrase for a moderator: send every message for analysis,
+whatever the lexicon matched. No endpoint reads a `prescreen_flags` field. See
+[Prescreen Lexicon](/prescreen-lexicon).
+
+### Upcoming on 10 December 2026: `prior_messages` limits on `/safety/bullying`
+
+From 10 December 2026, `context.prior_messages` on `POST /api/v1/safety/bullying` accepts at most
+100 turns, each with `role` and `text`, and `text` of at most 10,000 characters, as on the other
+detectors. A request over these limits will be answered with a validation error instead of being
+read in part. Requests within the limits are handled exactly as today.
+
 ## 19 November 2026
 
 ### Updated: credits, sandbox accounts and threat intelligence
